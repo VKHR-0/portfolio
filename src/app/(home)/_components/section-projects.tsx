@@ -7,7 +7,10 @@ const SectionProjects = () => {
   const width = useTransform(scrollYProgress, [0.25, 0.5], ["50%", "100vw"]);
 
   return (
-    <section className="scroller-section min-h-screen text-zinc-100 p-16 relative">
+    <section
+      className="scroller-section min-h-screen text-zinc-100 p-16 relative"
+      id="projects"
+    >
       <ExpandingText
         parentClassName="text-6xl font-semibold uppercase"
         overlapClassName="bg-zinc-100 h-16"

@@ -3,7 +3,10 @@ import { motion } from "framer-motion";
 
 const SectionMain = () => {
   return (
-    <section className="scroller-section w-screen h-screen relative font-black font-kanit overflow-x-hidden">
+    <section
+      className="scroller-section w-screen h-screen relative font-black font-kanit overflow-x-hidden"
+      id="home"
+    >
       <div className="mix-blend-difference uppercase absolute text-zinc-100 text-9xl w-max top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
         <motion.p
           initial={{ translateX: 2000 }}

@@ -17,18 +17,19 @@ const Header = () => {
       className="absolute top-0 z-10 w-screen py-5"
     >
       <div className="container flex justify-between">
-        <Link href="/">
-          <Image src="" alt="logo" fill />
-        </Link>
+        <Link href="/">{/* <Image src="" alt="logo" fill /> */}</Link>
         <ul className="text-zinc-100 text-lg font-bold space-x-5">
           <li className="inline-block">
-            <Link href="#">Home</Link>
+            <Link href="#home">Home</Link>
           </li>
           <li className="inline-block">
-            <Link href="#">Projects</Link>
+            <Link href="#projects">Projects</Link>
           </li>
           <li className="inline-block">
-            <Link href="#">About</Link>
+            <Link href="#expertise">Expertise</Link>
+          </li>
+          <li className="inline-block">
+            <Link href="#about">About</Link>
           </li>
         </ul>
       </div>

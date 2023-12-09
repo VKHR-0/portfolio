@@ -9,6 +9,10 @@
   body {
     font-family: "Kanit", sans-serif;
   }
+  html,
+  body {
+    scroll-behavior: smooth;
+  }
 }
 
 @layer components {

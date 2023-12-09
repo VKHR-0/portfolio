@@ -3,7 +3,10 @@ import { motion, useScroll, useTransform } from "framer-motion";
 
 const SectionAbout = () => {
   return (
-    <section className="scroller-section min-h-screen relative text-zinc-100 p-16">
+    <section
+      className="scroller-section min-h-screen relative text-zinc-100 p-16"
+      id="about"
+    >
       <ExpandingText
         parentClassName="text-6xl font-semibold uppercase"
         overlapClassName="bg-zinc-100 h-16"
