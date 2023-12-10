@@ -1,7 +1,7 @@
 const expertise = {
-  name: "project",
+  name: "expertise",
   type: "document",
-  title: "Project",
+  title: "Expertise",
   fields: [
     {
       name: "icon",
