@@ -1,12 +1,17 @@
-import ExpandingText from "@/components/expanding-text";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import ExpandingText from "@/components/expanding-text";
 
 const SectionExpertise = () => {
-  const { scrollYProgress } = useScroll();
+  const ref = useRef<HTMLElement | null>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
 
   const width = useTransform(
     scrollYProgress,
-    [0.25, 0.5, 0.75],
+    [0, 0.5, 1],
     ["50%", "100vw", "50%"],
   );
 
@@ -14,6 +19,7 @@ const SectionExpertise = () => {
     <section
       className="scroller-section min-h-screen text-slate-950 p-16 relative"
       id="expertise"
+      ref={ref}
     >
       <ExpandingText
         parentClassName="text-6xl font-semibold uppercase"
@@ -25,7 +31,7 @@ const SectionExpertise = () => {
       </ExpandingText>
 
       <motion.div
-        className="absolute top-0 left-1/2 -translate-x-1/2 bg-zinc-100 h-full w-full -z-10"
+        className="absolute -top-48 -bottom-8 left-1/2 -translate-x-1/2 bg-zinc-100 h-auto w-full -z-10"
         style={{ width }}
       />
     </section>
