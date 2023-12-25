@@ -9,6 +9,7 @@
   body {
     font-family: "Kanit", sans-serif;
   }
+
   html,
   body {
     scroll-behavior: smooth;
@@ -19,6 +20,7 @@
   .scroller {
     @apply snap-y snap-mandatory;
   }
+
   .scroller-section {
     @apply snap-start;
   }
@@ -33,15 +35,18 @@
     &::before {
       width: 200%;
       height: 200%;
-      background-size:
-        50% 50%,
-        50% 50%;
       background-position:
         0 0,
         100% 0,
         100% 100%,
         0 100%;
-      background-image: linear-gradient(#374151, #6b7280, #374151, #6b7280);
+      background-image: conic-gradient(#6b7280 0%,
+          #374151 10%,
+          #374151 40%,
+          #6b7280 50%,
+          #374151 60%,
+          #374151 90%,
+          #6b7280 100%);
       animation: rotate 10s linear infinite;
     }
 

@@ -31,7 +31,7 @@ const SectionExpertise = () => {
       </ExpandingText>
 
       <motion.div
-        className="absolute -top-48 -bottom-8 left-1/2 -translate-x-1/2 bg-zinc-100 h-auto w-full -z-10"
+        className="absolute -top-48 -bottom-8 left-1/2 -translate-x-1/2 bg-zinc-100 h-auto w-full -z-50"
         style={{ width }}
       />
     </section>

@@ -1,7 +1,7 @@
 "use client";
 
-import { MotionProps, motion, useAnimation, useInView } from "framer-motion";
-import { ComponentType, FC, PropsWithChildren, useEffect, useRef } from "react";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { FC, PropsWithChildren, useEffect, useRef } from "react";
 
 interface IExpandingText {
   parentClassName: string;
@@ -14,11 +14,9 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
   parentClassName,
   overlapClassName,
   textClassName,
-  children,
   element,
+  children,
 }) => {
-  const VariableMotion = motion[element] as ComponentType<MotionProps>;
-
   const controlOverlay = useAnimation();
   const controlText = useAnimation();
 
@@ -52,6 +50,8 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
       controlText.start({ width: 0 });
     }
   }, [inView, controlOverlay, controlText]);
+
+  const VariableMotion = motion<{ className: string }>(element);
 
   return (
     <div
