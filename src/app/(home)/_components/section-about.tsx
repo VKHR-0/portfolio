@@ -1,5 +1,4 @@
 import ExpandingText from "@/components/expanding-text";
-import { motion, useScroll, useTransform } from "framer-motion";
 
 const SectionAbout = () => {
   return (

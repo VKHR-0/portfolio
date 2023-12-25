@@ -1,5 +1,5 @@
 import ExpandingText from "@/components/expanding-text";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { client } from "@/../sanity/lib/client";
 import IProject from "@/types/project";
 import ProjectCard from "@/components/project-card";
