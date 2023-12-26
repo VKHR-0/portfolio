@@ -11,20 +11,21 @@ const SectionProjects = () => {
 
   useEffect(() => {
     const getProjects = async () => {
-      const projects = await client.fetch(
-        `*[_type == "project"]{_id, title, shortDescription, thumbnail{asset->{url}}}`,
-      );
+      try {
+        setIsLoading(true);
+        const projects = await client.fetch(
+          `*[_type == "project"]{_id, title, shortDescription, thumbnail{asset->{url}}}`,
+        );
 
-      setProjects(projects);
-      setIsLoading(false);
+        setProjects(projects);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    try {
-      setIsLoading(true);
-      getProjects();
-    } catch (error) {
-      console.log(error);
-    }
+    getProjects();
   }, []);
 
   return (

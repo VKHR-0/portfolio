@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Footer from "@/components/layout/footer";
 import { Suspense } from "react";
 import Loading from "./loading";
+import Providers from "@/components/providers";
 
 export const metadata: Metadata = {
   title: "Portfolio",
@@ -17,13 +18,15 @@ export default function RootLayout({
 }) {
   return (
     <html className="scroller" lang="en">
-      <body className="flex flex-col min-h-full font-kanit bg-slate-950">
-        <Header />
-        <Suspense fallback={<Loading />}>
-          <main className="flex-1">{children}</main>
-        </Suspense>
-        <Footer />
-      </body>
+      <Providers>
+        <body className="flex flex-col min-h-full font-kanit bg-slate-950">
+          <Header />
+          <Suspense fallback={<Loading />}>
+            <main className="flex-1">{children}</main>
+          </Suspense>
+          <Footer />
+        </body>
+      </Providers>
     </html>
   );
 }

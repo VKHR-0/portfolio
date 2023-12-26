@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import IProject from "@/types/project";
 import { client } from "@/../sanity/lib/client";
 import { PortableText } from "@portabletext/react";
+import Skeleton from "react-loading-skeleton";
 
 export default function Page({ params }: { params: { id: string } }) {
   const [project, setProject] = useState<IProject | null>(null);
@@ -12,31 +13,38 @@ export default function Page({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const getProject = async () => {
-      const project = await client.fetch(
-        `*[_type == "project" && _id == "${params.id}"]{_id, title, description, shortDescription, thumbnail{asset->{url}}}`,
-      );
+      try {
+        setIsLoading(true);
+        const project = await client.fetch(
+          `*[_type == "project" && _id == "${params.id}"]{_id, title, description, shortDescription, thumbnail{asset->{url}}}`,
+        );
 
-      setProject(project[0]);
-      setIsLoading(false);
+        setProject(project[0]);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+        // setTimeout(() => setIsLoading(false), 50000);
+      }
     };
 
-    try {
-      setIsLoading(true);
-      getProject();
-    } catch (error) {
-      console.log(error);
-    }
+    getProject();
   }, [params.id]);
 
   return (
     <section className="mx-auto container text-zinc-100 p-16">
       {isLoading ? (
-        <p>Loading...</p>
+        <>
+          <Skeleton />
+          <Skeleton />
+          <Skeleton count={25} />
+        </>
       ) : (
         <>
           {project ? (
             <>
               <h1>{project.title}</h1>
+              <p>{project.shortDescription}</p>
               <div>
                 <PortableText value={project.description} />
               </div>
