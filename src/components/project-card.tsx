@@ -3,8 +3,9 @@ import { FC, PropsWithChildren } from "react";
 import IProject from "@/types/project";
 import Image from "next/image";
 import Link from "next/link";
+import Skeleton from "react-loading-skeleton";
 
-const ProjectCard: FC<PropsWithChildren<IProject>> = ({
+export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
   _id,
   title,
   shortDescription,
@@ -32,4 +33,14 @@ const ProjectCard: FC<PropsWithChildren<IProject>> = ({
   );
 };
 
-export default ProjectCard;
+export const ProjectCardSkeleton = () => {
+  return (
+    <div className="running-border w-full max-w-md rounded-3xl px-6 py-5">
+      <Skeleton className="aspect-square rounded-lg" />
+      <div>
+        <Skeleton height={32} containerClassName="block my-4" />
+        <Skeleton />
+      </div>
+    </div>
+  );
+};

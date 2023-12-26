@@ -1,9 +1,8 @@
 import ExpandingText from "@/components/expanding-text";
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { client } from "@/../sanity/lib/client";
 import IProject from "@/types/project";
-import ProjectCard from "@/components/project-card";
-import Skeleton from "react-loading-skeleton";
+import { ProjectCard, ProjectCardSkeleton } from "@/components/project-card";
 
 const SectionProjects = () => {
   const [projects, setProjects] = useState<IProject[] | null>(null);
@@ -23,7 +22,6 @@ const SectionProjects = () => {
         console.log(error);
       } finally {
         setIsLoading(false);
-        // setTimeout(() => setIsLoading(false), 50000);
       }
     };
 
@@ -50,16 +48,7 @@ const SectionProjects = () => {
             {Array(3)
               .fill(true)
               .map((_, index) => (
-                <div
-                  key={index.toString()}
-                  className="running-border w-full max-w-md rounded-3xl px-6 py-5"
-                >
-                  <Skeleton className="aspect-square rounded-lg" />
-                  <div>
-                    <Skeleton height={32} containerClassName="block my-4" />
-                    <Skeleton />
-                  </div>
-                </div>
+                <ProjectCardSkeleton key={index.toString()} />
               ))}
           </>
         ) : (
