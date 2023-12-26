@@ -64,7 +64,7 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
         animate={controlOverlay}
       />
       <VariableMotion
-        className={`${textClassName} px-8 py-2 overflow-hidden`}
+        className={`${textClassName} mx-8 my-2 overflow-hidden`}
         initial={{ width: 0 }}
         animate={controlText}
       >
