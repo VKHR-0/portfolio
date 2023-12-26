@@ -5,6 +5,7 @@ import IProject from "@/types/project";
 import { client } from "@/../sanity/lib/client";
 import { PortableText } from "@portabletext/react";
 import Skeleton from "react-loading-skeleton";
+import Image from "next/image";
 
 export default function Page({ params }: { params: { id: string } }) {
   const [project, setProject] = useState<IProject | null>(null);
@@ -32,20 +33,32 @@ export default function Page({ params }: { params: { id: string } }) {
   }, [params.id]);
 
   return (
-    <section className="mx-auto container text-zinc-100 p-16">
+    <article className="container mx-auto flex h-full flex-col p-16 text-zinc-100">
       {isLoading ? (
         <>
+          <Skeleton
+            containerClassName="relative -top-16"
+            className="project-thumbnail -mb-8 aspect-[7/2] h-80"
+          />
+          <Skeleton height={56} />
+          <Skeleton height={6} className="my-3" />
           <Skeleton />
-          <Skeleton />
-          <Skeleton count={25} />
+          <Skeleton containerClassName="mt-8 h-full" className="h-full" />
         </>
       ) : (
         <>
           {project ? (
             <>
-              <h1>{project.title}</h1>
+              <Image
+                className="project-thumbnail !relative !top-0 -mt-16 mb-8 aspect-[7/2] !h-80 rounded-b-lg object-cover object-top"
+                src={project.thumbnail.asset.url}
+                alt={project.title}
+                fill
+              />
+              <h1 className="text-6xl font-extrabold">{project.title}</h1>
+              <hr className="my-4 border-2 border-zinc-100" />
               <p>{project.shortDescription}</p>
-              <div>
+              <div className="mt-8 h-full rounded-lg bg-slate-900 p-8">
                 <PortableText value={project.description} />
               </div>
             </>
@@ -54,6 +67,6 @@ export default function Page({ params }: { params: { id: string } }) {
           )}
         </>
       )}
-    </section>
+    </article>
   );
 }
