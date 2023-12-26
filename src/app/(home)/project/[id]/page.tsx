@@ -1,11 +1,27 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import IProject from "@/types/project";
 import { client } from "@/../sanity/lib/client";
 import { PortableText } from "@portabletext/react";
 import Skeleton from "react-loading-skeleton";
 import Image from "next/image";
+import urlBuilder from "@sanity/image-url";
+import { getImageDimensions } from "@sanity/asset-utils";
+
+const PortableImageComponent = ({ value }: { value: string }) => {
+  const { width, height } = getImageDimensions(value);
+  return (
+    <img
+      src={urlBuilder(client).image(value).fit("max").auto("format").url()}
+      alt={(value as string & { alt: string }).alt || ""}
+      loading="lazy"
+      style={{
+        aspectRatio: width / height,
+      }}
+    />
+  );
+};
 
 export default function Page({ params }: { params: { id: string } }) {
   const [project, setProject] = useState<IProject | null>(null);
@@ -57,8 +73,15 @@ export default function Page({ params }: { params: { id: string } }) {
               <h1 className="text-6xl font-extrabold">{project.title}</h1>
               <hr className="my-4 border-2 border-zinc-100" />
               <p>{project.shortDescription}</p>
-              <div className="mt-8 h-full rounded-lg bg-slate-900 p-8">
-                <PortableText value={project.description} />
+              <div className="prose prose-invert mt-8 h-full max-w-full rounded-lg bg-slate-900 p-8 prose-img:mx-auto prose-img:rounded-lg">
+                <PortableText
+                  value={project.description}
+                  components={{
+                    types: {
+                      image: PortableImageComponent,
+                    },
+                  }}
+                />
               </div>
             </>
           ) : (
