@@ -8,6 +8,7 @@ import Skeleton from "react-loading-skeleton";
 import Image from "next/image";
 import urlBuilder from "@sanity/image-url";
 import { getImageDimensions } from "@sanity/asset-utils";
+import { notFound } from "next/navigation";
 
 const PortableImageComponent = ({ value }: { value: string }) => {
   const { width, height } = getImageDimensions(value);
@@ -47,6 +48,8 @@ export default function Page({ params }: { params: { id: string } }) {
     getProject();
   }, [params.id]);
 
+  if (!isLoading && !project) notFound();
+
   return (
     <article className="container mx-auto flex h-full flex-col p-16 text-zinc-100">
       {isLoading ? (
@@ -62,7 +65,7 @@ export default function Page({ params }: { params: { id: string } }) {
         </>
       ) : (
         <>
-          {project ? (
+          {project && (
             <>
               <Image
                 className="project-thumbnail !relative !top-0 -mt-16 mb-8 aspect-[7/2] !h-80 rounded-b-lg object-cover object-top"
@@ -84,8 +87,6 @@ export default function Page({ params }: { params: { id: string } }) {
                 />
               </div>
             </>
-          ) : (
-            <h1>Project not found</h1>
           )}
         </>
       )}
