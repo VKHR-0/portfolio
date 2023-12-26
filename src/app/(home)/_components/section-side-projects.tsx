@@ -14,6 +14,8 @@ const SectionSideProject = () => {
       >
         Side Projects
       </ExpandingText>
+
+      <div className="container mx-auto"></div>
     </section>
   );
 };

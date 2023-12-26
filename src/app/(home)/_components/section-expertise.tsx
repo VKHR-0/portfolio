@@ -30,6 +30,8 @@ const SectionExpertise = () => {
         Expertise
       </ExpandingText>
 
+      <div className="container mx-auto"></div>
+
       <motion.div
         className="absolute -top-32 -bottom-8 left-1/2 -translate-x-1/2 bg-zinc-100 h-auto w-full -z-50"
         style={{ width }}

@@ -1,22 +1,30 @@
 import ExpandingText from "@/components/expanding-text";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { client } from "@/../sanity/lib/client";
 import IProject from "@/types/project";
 import ProjectCard from "@/components/project-card";
 
 const SectionProjects = () => {
-  const [projects, setProjects] = useState<IProject[]>([]);
+  const [projects, setProjects] = useState<IProject[] | null>(null);
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const getProjects = async () => {
       const projects = await client.fetch(
-        `*[_type == "project"]{_id, title, description, shortDescription, thumbnail{asset->{url}}}`,
+        `*[_type == "project"]{_id, title, shortDescription, thumbnail{asset->{url}}}`,
       );
 
       setProjects(projects);
+      setIsLoading(false);
     };
 
-    getProjects();
+    try {
+      setIsLoading(true);
+      getProjects();
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
 
   return (
@@ -33,13 +41,19 @@ const SectionProjects = () => {
         Projects
       </ExpandingText>
 
-      <div className="grid place-items-center justify-items-center grid-cols-3 gap-x-8 gap-y-10 px-5 w-fit mx-auto">
-        {projects ? (
-          projects.map((project) => (
-            <ProjectCard key={project._id} {...project} />
-          ))
+      <div className="mx-auto container grid place-items-center justify-items-center grid-cols-3 gap-x-8 gap-y-10 px-5 w-fit">
+        {isLoading ? (
+          <div>loading...</div>
         ) : (
-          <p>Not found</p>
+          <>
+            {projects ? (
+              projects.map((project) => (
+                <ProjectCard key={project._id} {...project} />
+              ))
+            ) : (
+              <p>Not found</p>
+            )}
+          </>
         )}
       </div>
     </section>

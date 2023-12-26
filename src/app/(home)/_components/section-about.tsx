@@ -14,6 +14,7 @@ const SectionAbout = () => {
       >
         About
       </ExpandingText>
+      <div className="container mx-auto"></div>
     </section>
   );
 };
