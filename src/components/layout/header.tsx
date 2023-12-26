@@ -20,16 +20,16 @@ const Header = () => {
         <Link href="/">{/* <Image src="" alt="logo" fill /> */}</Link>
         <ul className="text-zinc-100 text-lg font-bold space-x-5">
           <li className="inline-block">
-            <Link href="#home">Home</Link>
+            <Link href="/#home">Home</Link>
           </li>
           <li className="inline-block">
-            <Link href="#projects">Projects</Link>
+            <Link href="/#projects">Projects</Link>
           </li>
           <li className="inline-block">
-            <Link href="#expertise">Expertise</Link>
+            <Link href="/#expertise">Expertise</Link>
           </li>
           <li className="inline-block">
-            <Link href="#about">About</Link>
+            <Link href="/#about">About</Link>
           </li>
         </ul>
       </div>
