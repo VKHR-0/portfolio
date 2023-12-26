@@ -28,7 +28,7 @@
   }
 
   .running-border {
-    @apply relative z-0 overflow-hidden rounded-3xl before:absolute before:-left-1/2 before:-top-1/2 before:-z-20 before:bg-slate-700 before:bg-no-repeat after:absolute after:left-1.5 after:top-1.5 after:-z-10 after:rounded-[1.25rem] after:bg-slate-950;
+    @apply relative z-0 overflow-hidden rounded-3xl before:absolute before:-left-1/2 before:-top-1/2 before:-z-20 before:bg-zinc-700 before:bg-no-repeat after:absolute after:left-1 after:top-1 after:-z-10 after:rounded-[1.25rem] after:bg-zinc-950;
   }
 }
 
@@ -42,19 +42,19 @@
         100% 0,
         100% 100%,
         0 100%;
-      background-image: conic-gradient(#6b7280 0%,
-          #374151 10%,
-          #374151 40%,
-          #6b7280 50%,
-          #374151 60%,
-          #374151 90%,
-          #6b7280 100%);
+      background-image: conic-gradient(#71717a 0%,
+          #3f3f46 10%,
+          #3f3f46 40%,
+          #71717a 50%,
+          #3f3f46 60%,
+          #3f3f46 90%,
+          #71717a 100%);
       animation: rotate 10s linear infinite;
     }
 
     &::after {
-      width: calc(100% - 0.75rem);
-      height: calc(100% - 0.75rem);
+      width: calc(100% - 0.5rem);
+      height: calc(100% - 0.5rem);
     }
   }
 

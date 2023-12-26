@@ -17,13 +17,13 @@ const SectionExpertise = () => {
 
   return (
     <section
-      className="scroller-section relative min-h-screen p-16 text-slate-950"
+      className="scroller-section relative min-h-screen p-16"
       id="expertise"
       ref={ref}
     >
       <ExpandingText
         parentClassName="text-6xl font-semibold uppercase before:-z-10 before:absolute before:bg-zinc-100 before:w-full before:h-full"
-        overlapClassName="bg-slate-950 h-20"
+        overlapClassName="bg-zinc-950 h-20"
         textClassName="h-20"
         element="h2"
       >

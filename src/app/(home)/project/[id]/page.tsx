@@ -76,7 +76,7 @@ export default function Page({ params }: { params: { id: string } }) {
               <h1 className="text-6xl font-extrabold">{project.title}</h1>
               <hr className="my-4 border-2 border-zinc-100" />
               <p>{project.shortDescription}</p>
-              <div className="prose prose-invert mt-8 h-full max-w-full rounded-lg bg-slate-900 p-8 prose-img:mx-auto prose-img:rounded-lg">
+              <div className="prose prose-invert mt-8 h-full max-w-full rounded-lg bg-zinc-900 p-8 prose-img:mx-auto prose-img:rounded-lg">
                 <PortableText
                   value={project.description}
                   components={{

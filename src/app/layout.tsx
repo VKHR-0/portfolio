@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html className="scroller h-full" lang="en">
       <Providers>
-        <body className="flex h-dvh min-h-full flex-col bg-slate-950 font-kanit">
+        <body className="flex h-dvh min-h-full flex-col bg-zinc-950">
           <Header />
           <Suspense fallback={<Loading />}>
             <main className="flex-1 basis-auto">{children}</main>
