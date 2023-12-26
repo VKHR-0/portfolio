@@ -26,7 +26,7 @@
   }
 
   .running-border {
-    @apply relative z-0 rounded-3xl overflow-hidden before:absolute before:-z-20 before:-left-1/2 before:-top-1/2 before:bg-slate-700 before:bg-no-repeat after:absolute after:-z-10 after:left-1 after:top-1 after:bg-slate-950 after:rounded-[1.25rem];
+    @apply relative z-0 rounded-3xl overflow-hidden before:absolute before:-z-20 before:-left-1/2 before:-top-1/2 before:bg-slate-700 before:bg-no-repeat after:absolute after:-z-10 after:left-1.5 after:top-1.5 after:bg-slate-950 after:rounded-[1.25rem];
   }
 }
 
@@ -51,8 +51,8 @@
     }
 
     &::after {
-      width: calc(100% - 0.5rem);
-      height: calc(100% - 0.5rem);
+      width: calc(100% - 0.75rem);
+      height: calc(100% - 0.75rem);
     }
   }
 }
