@@ -8,8 +8,8 @@ const SectionSideProject = () => {
     >
       <ExpandingText
         parentClassName="text-6xl font-semibold uppercase"
-        overlapClassName="bg-zinc-100 h-16"
-        textClassName="h-16"
+        overlapClassName="bg-zinc-100 h-20"
+        textClassName="h-20"
         element="h2"
       >
         Side Projects

@@ -22,9 +22,9 @@ const SectionExpertise = () => {
       ref={ref}
     >
       <ExpandingText
-        parentClassName="text-6xl font-semibold uppercase"
-        overlapClassName="bg-slate-950 h-16"
-        textClassName="h-16"
+        parentClassName="text-6xl font-semibold uppercase before:-z-10 before:absolute before:bg-zinc-100 before:w-full before:h-full"
+        overlapClassName="bg-slate-950 h-20"
+        textClassName="h-20"
         element="h2"
       >
         Expertise
