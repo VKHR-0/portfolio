@@ -3,7 +3,7 @@ import ExpandingText from "@/components/expanding-text";
 const SectionAbout = () => {
   return (
     <section
-      className="scroller-section min-h-screen relative text-zinc-100 p-16"
+      className="scroller-section relative min-h-screen p-16 text-zinc-100"
       id="about"
     >
       <ExpandingText

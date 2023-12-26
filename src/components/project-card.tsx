@@ -11,7 +11,7 @@ const ProjectCard: FC<PropsWithChildren<IProject>> = ({
   thumbnail,
 }) => {
   return (
-    <figure className="p-6 rounded-3xl w-full max-w-md running-border">
+    <figure className="running-border w-full max-w-md rounded-3xl p-6">
       <Link className="relative" href={`/project/${_id}`}>
         <Image
           className="!relative rounded-lg"
@@ -21,7 +21,7 @@ const ProjectCard: FC<PropsWithChildren<IProject>> = ({
         />
       </Link>
       <figcaption>
-        <h3 className="font-black text-2xl my-4">
+        <h3 className="my-4 text-2xl font-black">
           <Link className="relative" href={`/project/${_id}`}>
             {title}
           </Link>

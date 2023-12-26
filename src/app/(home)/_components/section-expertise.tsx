@@ -17,7 +17,7 @@ const SectionExpertise = () => {
 
   return (
     <section
-      className="scroller-section min-h-screen text-slate-950 p-16 relative"
+      className="scroller-section relative min-h-screen p-16 text-slate-950"
       id="expertise"
       ref={ref}
     >
@@ -33,7 +33,7 @@ const SectionExpertise = () => {
       <div className="container mx-auto"></div>
 
       <motion.div
-        className="absolute -top-32 -bottom-8 left-1/2 -translate-x-1/2 bg-zinc-100 h-auto w-full -z-50"
+        className="absolute -bottom-8 -top-32 left-1/2 -z-50 h-auto w-full -translate-x-1/2 bg-zinc-100"
         style={{ width }}
       />
     </section>

@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 const SectionMain = () => {
   return (
     <section
-      className="scroller-section w-screen h-screen relative font-black font-kanit overflow-x-hidden"
+      className="scroller-section relative h-screen w-screen overflow-x-hidden font-kanit font-black"
       id="home"
     >
-      <div className="mix-blend-difference uppercase absolute text-zinc-100 text-9xl w-max top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+      <div className="absolute left-1/2 top-1/2 z-10 w-max -translate-x-1/2 -translate-y-1/2 text-9xl uppercase text-zinc-100 mix-blend-difference">
         <motion.p
           initial={{ translateX: 2000 }}
           animate={{ translateX: "75%" }}
@@ -16,7 +16,7 @@ const SectionMain = () => {
             stiffness: 250,
             damping: 20,
           }}
-          className="translate-x-3/4 text-xl font-cormorant italic"
+          className="translate-x-3/4 font-cormorant text-xl italic"
         >
           Viktor Harhat
         </motion.p>
@@ -66,9 +66,9 @@ const SectionMain = () => {
           }}
           className="translate-x-3/4 text-xl"
         >
-          WELCOME TO <span className="lowercase font-cormorant italic">my</span>{" "}
+          WELCOME TO <span className="font-cormorant lowercase italic">my</span>{" "}
           2023{" "}
-          <span className="lowercase font-cormorant italic">portfolio</span>
+          <span className="font-cormorant lowercase italic">portfolio</span>
         </motion.p>
       </div>
       <MainPannelScene />

@@ -63,12 +63,12 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
       className={`${parentClassName} relative overflow-hidden`}
     >
       <motion.div
-        className={`${overlapClassName} absolute top-0 left-0`}
+        className={`${overlapClassName} absolute left-0 top-0`}
         initial={{ width: 0 }}
         animate={controlOverlay}
       />
       <VariableMotion
-        className={`${textClassName} mx-8 py-2 overflow-hidden`}
+        className={`${textClassName} mx-8 overflow-hidden py-2`}
         initial={{ width: 0 }}
         animate={controlText}
       >

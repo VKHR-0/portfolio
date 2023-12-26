@@ -30,7 +30,7 @@ const SectionProjects = () => {
 
   return (
     <section
-      className="scroller-section min-h-screen text-zinc-100 p-16 pb-64 relative"
+      className="scroller-section relative min-h-screen p-16 pb-64 text-zinc-100"
       id="projects"
     >
       <ExpandingText
@@ -42,7 +42,7 @@ const SectionProjects = () => {
         Projects
       </ExpandingText>
 
-      <div className="mx-auto container grid place-items-center justify-items-center grid-cols-3 gap-x-8 gap-y-10 px-5 w-fit">
+      <div className="container mx-auto grid w-fit grid-cols-3 place-items-center justify-items-center gap-x-8 gap-y-10 px-5">
         {isLoading ? (
           <div>loading...</div>
         ) : (

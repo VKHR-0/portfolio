@@ -3,7 +3,7 @@ import ExpandingText from "@/components/expanding-text";
 const SectionSideProject = () => {
   return (
     <section
-      className="scroller-section min-h-screen text-zinc-100 p-16 relative"
+      className="scroller-section relative min-h-screen p-16 text-zinc-100"
       id="side-project"
     >
       <ExpandingText
