@@ -26,21 +26,25 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
 
   useEffect(() => {
     const animateInView = async () => {
-      await controlOverlay.start({
-        width: "100%",
-        transition: { delay: 0.1, duration: 0.25, ease: [0, 1, 1, 1] },
-      });
+      try {
+        await controlOverlay.start({
+          width: "100%",
+          transition: { delay: 0.1, duration: 0.25, ease: [0, 1, 1, 1] },
+        });
 
-      await controlText.start({
-        width: "auto",
-        transition: { ease: [0, 0.75, 1, 1] },
-      });
+        await controlText.start({
+          width: "auto",
+          transition: { ease: [0, 0.75, 1, 1] },
+        });
 
-      await controlOverlay.start({
-        width: 0,
-        left: "100%",
-        transition: { duration: 0.5, ease: [0.25, 1, 0, 1] },
-      });
+        await controlOverlay.start({
+          width: 0,
+          left: "100%",
+          transition: { duration: 0.5, ease: [0.25, 1, 0, 1] },
+        });
+      } catch (error) {
+        console.log(error);
+      }
     };
 
     if (inView) {
