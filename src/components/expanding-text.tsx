@@ -32,7 +32,7 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
       });
 
       await controlText.start({
-        width: "100%",
+        width: "auto",
         transition: { ease: [0, 0.75, 1, 1] },
       });
 
@@ -64,7 +64,7 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
         animate={controlOverlay}
       />
       <VariableMotion
-        className={`${textClassName} mx-8 my-2 overflow-hidden`}
+        className={`${textClassName} mx-8 py-2 overflow-hidden`}
         initial={{ width: 0 }}
         animate={controlText}
       >
