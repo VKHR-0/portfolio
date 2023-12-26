@@ -3,6 +3,7 @@ import { memo, useEffect, useState } from "react";
 import { client } from "@/../sanity/lib/client";
 import IProject from "@/types/project";
 import ProjectCard from "@/components/project-card";
+import Skeleton from "react-loading-skeleton";
 
 const SectionProjects = () => {
   const [projects, setProjects] = useState<IProject[] | null>(null);
@@ -22,6 +23,7 @@ const SectionProjects = () => {
         console.log(error);
       } finally {
         setIsLoading(false);
+        // setTimeout(() => setIsLoading(false), 50000);
       }
     };
 
@@ -42,9 +44,24 @@ const SectionProjects = () => {
         Projects
       </ExpandingText>
 
-      <div className="container mx-auto grid w-fit grid-cols-3 place-items-center justify-items-center gap-x-8 gap-y-10 px-5">
+      <div className="container mx-auto grid w-full grid-cols-3 place-items-center justify-items-center gap-x-8 gap-y-10 px-5">
         {isLoading ? (
-          <div>loading...</div>
+          <>
+            {Array(3)
+              .fill(true)
+              .map((_, index) => (
+                <div
+                  key={index.toString()}
+                  className="running-border w-full max-w-md rounded-3xl px-6 py-5"
+                >
+                  <Skeleton className="aspect-square rounded-lg" />
+                  <div>
+                    <Skeleton height={32} containerClassName="block my-4" />
+                    <Skeleton />
+                  </div>
+                </div>
+              ))}
+          </>
         ) : (
           <>
             {projects ? (

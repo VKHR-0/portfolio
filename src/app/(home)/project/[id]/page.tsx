@@ -25,7 +25,6 @@ export default function Page({ params }: { params: { id: string } }) {
         console.log(error);
       } finally {
         setIsLoading(false);
-        // setTimeout(() => setIsLoading(false), 50000);
       }
     };
 
