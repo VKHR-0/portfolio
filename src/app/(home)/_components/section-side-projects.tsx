@@ -14,7 +14,7 @@ const SectionSideProject = () => {
       try {
         setIsLoading(true);
         const sideProjects = await client.fetch(
-          `*[_type == "project"]{_id, title, shortDescription, thumbnail{asset->{url}}}`,
+          `*[_type == "sideProject"]{_id, title, shortDescription, thumbnail{asset->{url}}}`,
         );
 
         setSideProjects(sideProjects);

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 const SectionMain = () => {
   return (
     <section
-      className="scroller-section relative h-screen w-screen overflow-x-hidden font-kanit font-bold"
+      className="scroller-section relative h-dvh w-full overflow-x-hidden font-kanit font-bold"
       id="home"
     >
       <div className="absolute left-1/2 top-1/2 z-10 w-max -translate-x-1/2 -translate-y-1/2 text-9xl uppercase text-zinc-100 mix-blend-difference">
