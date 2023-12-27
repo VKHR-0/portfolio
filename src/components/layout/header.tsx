@@ -16,8 +16,10 @@ const Header = () => {
       }}
       className="absolute top-0 z-10 w-screen py-5"
     >
-      <div className="container flex justify-between">
-        <Link href="/">{/* <Image src="" alt="logo" fill /> */}</Link>
+      <div className="container mx-auto flex justify-between">
+        <Link href="/">
+          <Image src="/images/logo.svg" alt="logo" height={48} width={126} />
+        </Link>
         <ul className="space-x-5 text-lg font-bold text-zinc-100">
           <li className="inline-block">
             <Link href="/">Home</Link>
