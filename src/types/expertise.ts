@@ -1,11 +1,11 @@
 import { TypedObject } from "sanity";
 
-export default interface IProject {
+export default interface IExpertise {
   _id: string;
   title: string;
+  number: number;
   description: TypedObject[];
-  shortDescription: string;
-  thumbnail: {
+  icon: {
     asset: { url: string };
   };
 }

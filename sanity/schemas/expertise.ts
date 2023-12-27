@@ -14,6 +14,11 @@ const expertise = {
       title: "Title",
     },
     {
+      name: "number",
+      type: "number",
+      title: "Order Number",
+    },
+    {
       name: "description",
       title: "Description",
       type: "array",
