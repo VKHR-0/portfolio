@@ -38,9 +38,9 @@ const SectionAbout = () => {
               develop web scraping tools, telegram bots, game development, etc.
             </p>
             <p>
-              With a strong emphasis on {'"progressive enhancement"'}, I look
+              {`With a strong emphasis on "progressive enhancement", I look
               for creative ways to push the boundaries of a website's front-end
-              code without compromising browser support and performance.
+              code without compromising browser support and performance.`}
             </p>
             <p>
               In an effort to stay up-to-date, I read books, take courses,

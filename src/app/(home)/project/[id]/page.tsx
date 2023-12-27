@@ -13,7 +13,7 @@ import { notFound } from "next/navigation";
 const PortableImageComponent = ({ value }: { value: string }) => {
   const { width, height } = getImageDimensions(value);
   return (
-    <img
+    <Image
       src={urlBuilder(client).image(value).fit("max").auto("format").url()}
       alt={(value as string & { alt: string }).alt || ""}
       loading="lazy"
