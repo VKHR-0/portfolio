@@ -15,8 +15,9 @@ const expertise = {
     },
     {
       name: "description",
-      type: "string",
       title: "Description",
+      type: "array",
+      of: [{ type: "block" }],
     },
   ],
 };

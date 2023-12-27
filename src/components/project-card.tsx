@@ -35,7 +35,7 @@ export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
         className="absolute left-0 top-0 h-full w-full rounded-3xl bg-zinc-100"
         initial={{ height: "100%" }}
         whileInView={{ height: 0 }}
-        transition={{ delay: 0.25 }}
+        transition={{ delay: 0.25, ease: "easeOut" }}
       />
     </figure>
   );
