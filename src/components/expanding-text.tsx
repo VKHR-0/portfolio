@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useAnimation, useInView } from "framer-motion";
-import { FC, PropsWithChildren, useEffect, useRef } from "react";
+import { FC, PropsWithChildren, useEffect, useMemo, useRef } from "react";
 
 interface IExpandingText {
   parentClassName: string;
@@ -37,11 +37,15 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
           transition: { ease: [0, 0.75, 1, 1] },
         });
 
+        controlText.stop();
+
         await controlOverlay.start({
           width: 0,
           left: "100%",
           transition: { duration: 0.5, ease: [0.25, 1, 0, 1] },
         });
+
+        controlOverlay.stop();
       } catch (error) {
         console.log(error);
       }
@@ -55,7 +59,10 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
     }
   }, [inView, controlOverlay, controlText]);
 
-  const VariableMotion = motion<{ className: string }>(element);
+  const VariableMotion = useMemo(
+    () => motion<{ className: string }>(element),
+    [element],
+  );
 
   return (
     <div
@@ -68,7 +75,7 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
         animate={controlOverlay}
       />
       <VariableMotion
-        className={`${textClassName} mx-8 overflow-hidden py-2`}
+        className={`${textClassName} mx-8 overflow-hidden whitespace-nowrap py-2`}
         initial={{ width: 0 }}
         animate={controlText}
       >

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 const SectionMain = () => {
   return (
     <section
-      className="scroller-section relative h-screen w-screen overflow-x-hidden font-kanit font-black"
+      className="scroller-section relative h-screen w-screen overflow-x-hidden font-kanit font-bold"
       id="home"
     >
       <div className="absolute left-1/2 top-1/2 z-10 w-max -translate-x-1/2 -translate-y-1/2 text-9xl uppercase text-zinc-100 mix-blend-difference">
@@ -16,7 +16,7 @@ const SectionMain = () => {
             stiffness: 250,
             damping: 20,
           }}
-          className="translate-x-3/4 font-cormorant text-xl italic"
+          className="translate-x-3/4 font-cormorant text-2xl font-bold italic"
         >
           Viktor Harhat
         </motion.p>
@@ -64,10 +64,10 @@ const SectionMain = () => {
             stiffness: 250,
             damping: 20,
           }}
-          className="translate-x-3/4 text-xl"
+          className="translate-x-3/4 text-2xl"
         >
           WELCOME TO <span className="font-cormorant lowercase italic">my</span>{" "}
-          2023{" "}
+          2024{" "}
           <span className="font-cormorant lowercase italic">portfolio</span>
         </motion.p>
       </div>

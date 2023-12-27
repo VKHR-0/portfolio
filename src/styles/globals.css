@@ -1,11 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import url("https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;400;500;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap");
 
 @import "react-loading-skeleton/dist/skeleton.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   body {
@@ -43,11 +43,11 @@
         100% 100%,
         0 100%;
       background-image: conic-gradient(#71717a 0%,
-          #3f3f46 10%,
-          #3f3f46 40%,
+          #f4f4f5 10%,
+          #f4f4f5 40%,
           #71717a 50%,
-          #3f3f46 60%,
-          #3f3f46 90%,
+          #f4f4f5 60%,
+          #f4f4f5 90%,
           #71717a 100%);
       animation: rotate 10s linear infinite;
     }

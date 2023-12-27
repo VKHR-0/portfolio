@@ -18,9 +18,9 @@ const Header = () => {
     >
       <div className="container flex justify-between">
         <Link href="/">{/* <Image src="" alt="logo" fill /> */}</Link>
-        <ul className="text-zinc-100 text-lg font-bold space-x-5">
+        <ul className="space-x-5 text-lg font-bold text-zinc-100">
           <li className="inline-block">
-            <Link href="/#home">Home</Link>
+            <Link href="/">Home</Link>
           </li>
           <li className="inline-block">
             <Link href="/#projects">Projects</Link>

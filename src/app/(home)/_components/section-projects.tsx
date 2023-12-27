@@ -53,13 +53,9 @@ const SectionProjects = () => {
           </>
         ) : (
           <>
-            {projects ? (
-              projects.map((project) => (
-                <ProjectCard key={project._id} {...project} />
-              ))
-            ) : (
-              <p>Not found</p>
-            )}
+            {projects?.map((project) => (
+              <ProjectCard key={project._id} {...project} />
+            ))}
           </>
         )}
       </div>
