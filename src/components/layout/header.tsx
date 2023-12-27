@@ -14,7 +14,7 @@ const Header = () => {
         stiffness: 200,
         damping: 25,
       }}
-      className="absolute top-0 z-10 w-screen py-5"
+      className="absolute top-0 z-10 w-full py-5"
     >
       <div className="container mx-auto flex justify-between">
         <Link href="/">

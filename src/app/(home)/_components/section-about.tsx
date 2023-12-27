@@ -16,7 +16,7 @@ const SectionAbout = () => {
       >
         About
       </ExpandingText>
-      <div className="container mx-auto grid grid-cols-2 gap-x-8">
+      <div className="container mx-auto grid grid-cols-[1.25fr_0.75fr] gap-x-8">
         <div>
           <article className="prose prose-lg prose-invert mb-6 text-balance">
             <p>
