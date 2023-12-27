@@ -1,9 +1,36 @@
 import ExpandingText from "@/components/expanding-text";
+import { useEffect, useState } from "react";
+import { client } from "@/../sanity/lib/client";
+import ISideProject from "@/types/side-project";
+import { ProjectCard, ProjectCardSkeleton } from "@/components/project-card";
 
 const SectionSideProject = () => {
+  const [sideProjects, setSideProjects] = useState<ISideProject[] | null>(null);
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const getSideProjects = async () => {
+      try {
+        setIsLoading(true);
+        const sideProjects = await client.fetch(
+          `*[_type == "project"]{_id, title, shortDescription, thumbnail{asset->{url}}}`,
+        );
+
+        setSideProjects(sideProjects);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getSideProjects();
+  }, []);
+
   return (
     <section
-      className="scroller-section relative min-h-screen p-16 text-zinc-100"
+      className="scroller-section relative grid min-h-screen p-16 text-zinc-100"
       id="side-project"
     >
       <ExpandingText
@@ -15,7 +42,23 @@ const SectionSideProject = () => {
         Side Projects
       </ExpandingText>
 
-      <div className="container mx-auto"></div>
+      <div className="container mx-auto grid w-full grid-cols-3 place-items-center justify-items-center gap-x-8 gap-y-10 px-5">
+        {isLoading ? (
+          <>
+            {Array(3)
+              .fill(true)
+              .map((_, index) => (
+                <ProjectCardSkeleton key={index.toString()} />
+              ))}
+          </>
+        ) : (
+          <>
+            {sideProjects?.map((sideProject) => (
+              <ProjectCard key={sideProject._id} {...sideProject} />
+            ))}
+          </>
+        )}
+      </div>
     </section>
   );
 };

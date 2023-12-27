@@ -67,7 +67,7 @@ const ExpandingText: FC<PropsWithChildren<IExpandingText>> = ({
   return (
     <div
       ref={wrapper}
-      className={`${parentClassName} relative overflow-hidden`}
+      className={`${parentClassName} relative h-fit overflow-hidden`}
     >
       <motion.div
         className={`${overlapClassName} absolute left-0 top-0`}

@@ -30,7 +30,7 @@ const SectionProjects = () => {
 
   return (
     <section
-      className="scroller-section relative min-h-screen p-16 pb-64 text-zinc-100"
+      className="scroller-section relative min-h-screen p-16 text-zinc-100"
       id="projects"
     >
       <ExpandingText
