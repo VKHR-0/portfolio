@@ -9,6 +9,7 @@ import Image from "next/image";
 import urlBuilder from "@sanity/image-url";
 import { getImageDimensions } from "@sanity/asset-utils";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 const PortableImageComponent = ({ value }: { value: string }) => {
   const { width, height } = getImageDimensions(value);
@@ -34,7 +35,7 @@ export default function Page({ params }: { params: { id: string } }) {
       try {
         setIsLoading(true);
         const project = await client.fetch(
-          `*[_type == "project" && _id == "${params.id}"]{_id, title, description, shortDescription, thumbnail{asset->{url}}}`,
+          `*[_type == "sideProject" && _id == "${params.id}"]{_id, title, link, description, shortDescription, thumbnail{asset->{url}}}`,
         );
 
         setProject(project[0]);
@@ -68,12 +69,23 @@ export default function Page({ params }: { params: { id: string } }) {
           {project && (
             <>
               <Image
-                className="project-thumbnail !relative !top-0 -mt-16 mb-8 aspect-[7/2] !h-80 rounded-b-lg object-cover object-top"
+                className="project-thumbnail !relative !top-0 -mt-16 mb-8 aspect-[7/2] !h-80 rounded-b-lg object-cover object-center"
                 src={project.thumbnail.asset.url}
                 alt={project.title}
                 fill
               />
-              <h1 className="text-6xl font-extrabold">{project.title}</h1>
+              <h1 className="text-6xl font-extrabold">
+                <Link href={project.link} target="_blank">
+                  {project.title}
+                </Link>
+                <Image
+                  className="inline"
+                  src={"/images/icons/open.svg"}
+                  alt="open"
+                  width={48}
+                  height={48}
+                />
+              </h1>{" "}
               <hr className="my-4 border-2 border-zinc-100" />
               <p>{project.shortDescription}</p>
               <div className="prose prose-invert mt-8 h-full max-w-full rounded-lg bg-zinc-900 p-8 prose-img:mx-auto prose-img:rounded-lg">

@@ -2,7 +2,10 @@ import ExpandingText from "@/components/expanding-text";
 import { useEffect, useState } from "react";
 import { client } from "@/../sanity/lib/client";
 import ISideProject from "@/types/side-project";
-import { ProjectCard, ProjectCardSkeleton } from "@/components/project-card";
+import {
+  SideProjectCard,
+  SideProjectCardSkeleton,
+} from "@/components/side-project-card";
 
 const SectionSideProject = () => {
   const [sideProjects, setSideProjects] = useState<ISideProject[] | null>(null);
@@ -48,13 +51,13 @@ const SectionSideProject = () => {
             {Array(3)
               .fill(true)
               .map((_, index) => (
-                <ProjectCardSkeleton key={index.toString()} />
+                <SideProjectCardSkeleton key={index.toString()} />
               ))}
           </>
         ) : (
           <>
             {sideProjects?.map((sideProject) => (
-              <ProjectCard key={sideProject._id} {...sideProject} />
+              <SideProjectCard key={sideProject._id} {...sideProject} />
             ))}
           </>
         )}

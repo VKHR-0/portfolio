@@ -16,7 +16,7 @@ export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
     <figure className="running-border w-full max-w-md rounded-3xl p-6">
       <Link className="relative" href={`/project/${_id}`}>
         <Image
-          className="!relative aspect-square rounded-lg bg-zinc-300"
+          className="!relative aspect-square rounded-lg bg-zinc-300 object-cover"
           src={thumbnail.asset.url}
           alt={title}
           priority

@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 import IProject from "@/types/project";
 
-export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
+export const SideProjectCard: FC<PropsWithChildren<IProject>> = ({
   _id,
   title,
   shortDescription,
@@ -16,7 +16,7 @@ export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
     <figure className="running-border w-full max-w-md rounded-3xl p-6">
       <Link className="relative" href={`/side-project/${_id}`}>
         <Image
-          className="!relative aspect-square rounded-lg bg-zinc-300"
+          className="!relative aspect-square rounded-lg bg-zinc-300 object-cover"
           src={thumbnail.asset.url}
           alt={title}
           priority
@@ -25,7 +25,7 @@ export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
       </Link>
       <figcaption>
         <h3 className="my-4 text-2xl font-bold">
-          <Link className="relative" href={`/project/${_id}`}>
+          <Link className="relative" href={`/side-project/${_id}`}>
             {title}
           </Link>
         </h3>
@@ -41,7 +41,7 @@ export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
   );
 };
 
-export const ProjectCardSkeleton = () => {
+export const SideProjectCardSkeleton = () => {
   return (
     <div className="running-border w-full max-w-md rounded-3xl px-6 py-5">
       <Skeleton className="aspect-square rounded-lg" />
