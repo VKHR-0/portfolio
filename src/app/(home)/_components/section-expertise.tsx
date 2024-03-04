@@ -54,13 +54,13 @@ const SectionExpertise = () => {
       <ExpandingText
         parentClassName="text-6xl font-semibold uppercase before:-z-10 before:absolute before:bg-zinc-100 before:w-full before:h-full"
         overlapClassName="bg-zinc-950 h-20"
-        textClassName="h-20"
+        textClassName="h-20 max-md:text-center"
         element="h2"
       >
         Expertise
       </ExpandingText>
 
-      <div className="container mx-auto mt-8 grid h-fit w-full grid-cols-3 place-items-center justify-items-center gap-y-10 divide-x-2 divide-zinc-950 rounded-3xl border-2 border-zinc-950 bg-zinc-100 px-2 py-8">
+      <div className="container mx-auto mt-8 grid h-fit w-full grid-cols-3 place-items-center justify-items-center gap-y-10 divide-x-2 divide-zinc-950 rounded-3xl border-2 border-zinc-950 bg-zinc-100 px-2 py-8 max-lg:grid-rows-3 max-lg:grid-cols-1 max-lg:divide-x-0 max-lg:divide-y-2 max-lg:px-8 max-lg:py-2 max-lg:gap-y-5">
         {isLoading ? (
           <>
             {Array(3)
@@ -79,7 +79,7 @@ const SectionExpertise = () => {
       </div>
 
       <motion.div
-        className="absolute -bottom-8 -top-32 left-1/2 -z-50 h-auto w-full -translate-x-1/2 bg-zinc-100"
+        className="absolute -bottom-8 -top-32 left-1/2 -z-50 h-auto w-full -translate-x-1/2 bg-zinc-100 max-md:-top-12"
         style={{ width }}
       />
     </section>

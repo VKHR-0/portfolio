@@ -10,25 +10,25 @@ const MainPannelScene = () => {
           args={[1.25, 1.25, 1.25]}
           radius={0.1}
           rotation={[0, 45, 45]}
-          position={[-5, 1, 0]}
+          position={[-4, 1, 0]}
         />
         <FollowedCube
           args={[1.25, 1.25, 1.25]}
           radius={0.1}
           rotation={[10, 45, 45]}
-          position={[5, -1, 0]}
+          position={[4, -1, 0]}
         />
         <FollowedCube
           args={[1, 1, 1]}
           radius={0.1}
           rotation={[0, 25, 25]}
-          position={[3, -1.75, 0]}
+          position={[2, -1.75, 0]}
         />
         <FollowedCube
           args={[1, 1, 1]}
           radius={0.1}
           rotation={[0, -25, 45]}
-          position={[-3, 1.75, 0]}
+          position={[-2, 1.75, 0]}
         />
       </mesh>
     </Scene>

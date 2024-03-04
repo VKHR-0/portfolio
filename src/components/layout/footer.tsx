@@ -4,11 +4,11 @@ import Link from "next/link";
 const Footer = () => {
   return (
     <footer className="snap-end p-16 text-zinc-100">
-      <div className="container mx-auto flex justify-between">
-        <Link href="/">
+      <div className="container mx-auto flex justify-between max-lg:flex-col gap-y-6">
+        <Link className="max-lg:mx-auto" href="/">
           <Image src="/images/logo.svg" alt="logo" height={48} width={126} />
         </Link>
-        <ul className="flex gap-4 text-xl *:flex *:gap-2">
+        <ul className="flex gap-4 text-xl *:flex *:gap-2 max-lg:flex-wrap max-lg:justify-center">
           <li>
             <Link href="https://github.com/0Empty0" className="font-medium">
               <Image

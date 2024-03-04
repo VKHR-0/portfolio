@@ -39,13 +39,13 @@ const SectionSideProject = () => {
       <ExpandingText
         parentClassName="text-6xl font-semibold uppercase"
         overlapClassName="bg-zinc-100 h-20"
-        textClassName="h-20 mb-8"
+        textClassName="h-20 mb-8 max-md:text-center"
         element="h2"
       >
         Side Projects
       </ExpandingText>
 
-      <div className="container mx-auto grid w-full grid-cols-3 place-items-center justify-items-center gap-x-8 gap-y-10 px-5">
+      <div className="container mx-auto grid w-full grid-cols-3 place-items-center justify-items-center gap-x-12 gap-y-10 px-5 max-lg:grid-cols-2 max-md:grid-cols-1 max-md:w-3/4 max-sm:!w-full max-sm:px-12">
         {isLoading ? (
           <>
             {Array(3)

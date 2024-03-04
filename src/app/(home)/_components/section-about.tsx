@@ -11,12 +11,12 @@ const SectionAbout = () => {
       <ExpandingText
         parentClassName="text-6xl font-semibold uppercase"
         overlapClassName="bg-zinc-100 h-20"
-        textClassName="h-20 mb-8"
+        textClassName="h-20 mb-8 max-md:text-center"
         element="h2"
       >
         About
       </ExpandingText>
-      <div className="container mx-auto grid grid-cols-[1.25fr_0.75fr] gap-x-8">
+      <div className="container mx-auto grid grid-cols-[1.25fr_0.75fr] gap-x-8 max-lg:grid-cols-1">
         <div>
           <article className="prose prose-lg prose-invert mb-6 text-balance">
             <p>
@@ -54,7 +54,7 @@ const SectionAbout = () => {
             Curriculum Vitae (PDF)
           </Link>
         </div>
-        <ul className="text-xl *:flex *:gap-2">
+        <ul className="text-xl *:flex *:gap-2 max-lg:hidden">
           <li>
             Github:{" "}
             <Link href="https://github.com/0Empty0" className="font-medium">
