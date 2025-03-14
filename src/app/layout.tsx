@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html className="scroller h-full" lang="en">
       <Providers>
-        <body className="flex h-dvh min-h-full flex-col bg-zinc-950">
+        <body className="flex h-dvh w-screen min-h-full flex-col items-center bg-zinc-950">
           {children}
         </body>
       </Providers>

@@ -1,11 +1,22 @@
 @import url("https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;400;500;600;700;800;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Convergence:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap");
+/* @import url('https://fonts.googleapis.com/css2?family=Convergence&display=swap'); */
 
 @import "react-loading-skeleton/dist/skeleton.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-kanit: "Kanit", sans-serif;
+  --font-convergence: "Convergence", serif;
+
+  --color-black: #111111;
+  --color-white: #f4f4f5;
+
+  --shadow-card: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+  --inset-shadow-card-inner: inset 0 3px 0 0 rgb(184, 180, 180, 0.08);
+}
 
 @layer base {
   body {
@@ -25,46 +36,5 @@
 
   .scroller-section {
     @apply snap-start;
-  }
-
-  .running-border {
-    @apply relative z-0 overflow-hidden rounded-3xl before:absolute before:-left-1/2 before:-top-1/2 before:-z-20 before:bg-zinc-700 before:bg-no-repeat after:absolute after:left-1 after:top-1 after:-z-10 after:rounded-[1.25rem] after:bg-zinc-950;
-  }
-}
-
-@layer utilities {
-  .running-border {
-    &::before {
-      width: 200%;
-      height: 200%;
-      background-position:
-        0 0,
-        100% 0,
-        100% 100%,
-        0 100%;
-      background-image: conic-gradient(#71717a 0%,
-          #f4f4f5 10%,
-          #f4f4f5 40%,
-          #71717a 50%,
-          #f4f4f5 60%,
-          #f4f4f5 90%,
-          #71717a 100%);
-      animation: rotate 10s linear infinite;
-    }
-
-    &::after {
-      width: calc(100% - 0.5rem);
-      height: calc(100% - 0.5rem);
-    }
-  }
-
-  .project-thumbnail {
-    mask-image: linear-gradient(0deg, black, transparent 75%);
-  }
-}
-
-@keyframes rotate {
-  100% {
-    transform: rotate(1turn);
   }
 }
