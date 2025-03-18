@@ -1,88 +1,43 @@
 "use client";
 
-import MainPannelScene from "@/components/decorations/scenes/main-pannel-scene";
-import useMediaQuery from "@/hooks/use-media-query";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-
-interface IVariant {
-  initial: number | string;
-  animate: number | string;
-}
-
-interface IVariants {
-  big: IVariant[];
-  medium: IVariant[];
-  small: IVariant[];
-  tiny: IVariant[];
-}
-
-const VARIANTS: IVariants = {
-  big: [
-    { initial: 2000, animate: "75%" },
-    { initial: -2000, animate: 128 },
-    { initial: 2000, animate: -96 },
-    { initial: -2000, animate: 40 },
-    { initial: -2000, animate: "75%" },
-  ],
-  medium: [
-    { initial: 2000, animate: "66.666%" },
-    { initial: -2000, animate: 64 },
-    { initial: 2000, animate: -48 },
-    { initial: -2000, animate: 0 },
-    { initial: -2000, animate: "50%" },
-  ],
-  small: [
-    { initial: 2000, animate: "66.666%" },
-    { initial: -2000, animate: 64 },
-    { initial: 2000, animate: -24 },
-    { initial: -2000, animate: 0 },
-    { initial: -2000, animate: "33.333%" },
-  ],
-  tiny: [
-    { initial: 2000, animate: "66.666%" },
-    { initial: -2000, animate: 64 },
-    { initial: 2000, animate: -24 },
-    { initial: -2000, animate: 0 },
-    { initial: -2000, animate: "33.333%" },
-  ],
-};
+import { ArrowUpRight, CircleDot } from "lucide-react";
+import Link from "next/link";
 
 const SectionHero = () => {
-  const isBig = useMediaQuery("(min-width: 1280px)");
-  const isMedium = useMediaQuery("(min-width: 768px)") && !isBig;
-  const isTiny = useMediaQuery("(max-width: 640px)");
-  const isSmall = useMediaQuery("(max-width: 767px)") && !isTiny;
-
-  console.log(isTiny, isSmall, isMedium, isBig);
-
-  const selectVariant = (): IVariant[] => {
-    switch (true) {
-      case isBig:
-        return VARIANTS.big;
-      case isMedium:
-        return VARIANTS.medium;
-      case isSmall:
-        return VARIANTS.small;
-      case isTiny:
-        return VARIANTS.tiny;
-      default:
-        return VARIANTS.big;
-    }
-  };
-
-  const [variant, setVariant] = useState<IVariant[]>(selectVariant());
-
-  useEffect(() => {
-    setVariant(selectVariant());
-  }, [isTiny, isSmall, isMedium, isBig]);
-
   return (
     <section
-      className="scroller-section relative h-dvh w-full overflow-x-hidden font-kanit font-bold"
+      className="from-black-secondary to-black-primary relative bg-linear-to-b from-25% pt-24 pb-12"
       id="home"
     >
-      <MainPannelScene />
+      <div className="container mx-auto">
+        <div className="mt-24 flex flex-col gap-6">
+          <div className="font-kanit shadow-card inset-shadow-card-inner flex w-fit items-center gap-2 rounded-3xl border border-white/25 bg-black px-4 py-3 text-sm text-white">
+            <CircleDot size={16} className="inline" /> Software Engineer &amp;
+            Full-Stack Developer
+          </div>
+          <div className="space-y-3">
+            <h1 className="font-kanit space-x-4 text-7xl leading-24 font-medium text-white">
+              <span>
+                Viktor <span className="text-white/60">Harhat</span>
+              </span>
+              <Link href="#about" className="inline-block">
+                <span className="inset-shadow-circle flex h-14 w-14 items-center justify-center rounded-full bg-black">
+                  <ArrowUpRight size={32} className="inline text-white" />
+                </span>
+              </Link>
+            </h1>
+            <p className="font-convergence max-w-sm text-base text-white/60">
+              Some cool text about me Some cool t about m Som bout me Some cool
+              text about me tet about me
+            </p>
+          </div>
+          <div className="flex gap-4 py-1.5">
+            <button className="black-button">See All Projects</button>
+            <button className="white-button">Resume (CV)</button>
+          </div>
+        </div>
+        <div>{/* <MainPannelScene /> */}</div>
+      </div>
     </section>
   );
 };

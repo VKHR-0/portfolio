@@ -32,9 +32,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html className="scroller h-full" lang="en">
+    <html className="h-full" lang="en">
       <Providers>
-        <body className="flex h-dvh w-screen min-h-full flex-col items-center bg-zinc-950">
+        <body className="bg-black-secondary flex min-h-full w-screen flex-col items-center">
           {children}
         </body>
       </Providers>

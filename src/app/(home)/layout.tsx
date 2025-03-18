@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import Loading from "../loading";
 
 export const metadata: Metadata = {
-  title: "Portfolio",
+  title: "Viktor Harhat | Portfolio",
   description: "A portfolio website showcasing my skills and projects.",
 };
 

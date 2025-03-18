@@ -14,13 +14,13 @@ const Header = () => {
         stiffness: 200,
         damping: 25,
       }}
-      className="shadow-card inset-shadow-card-inner sticky top-8 z-50 min-xl:w-8/12 max-w-7xl w-full py-5 border border-white/25 backdrop-blur-lg bg-black/75 rounded-full"
+      className="shadow-card inset-shadow-card-inner sticky top-8 z-50 w-10/12 max-w-7xl rounded-full border border-white/25 bg-black/75 py-5 backdrop-blur-lg min-xl:w-8/12"
     >
-      <div className="flex justify-between items-center px-6">
+      <div className="flex items-center justify-between px-6">
         <Link href="/">
           <Image src="/images/logo.svg" alt="logo" height={36} width={95} />
         </Link>
-        <ul className="space-x-5 text-base font-medium text-white *:text-white/50 *:hover:text-white *:transition-colors">
+        <ul className="space-x-5 text-base font-medium text-white *:text-white/50 *:transition-colors *:hover:text-white">
           <li className="inline-block">
             <Link href="/">Home</Link>
           </li>
