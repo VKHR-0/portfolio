@@ -4,7 +4,6 @@ import { FC, PropsWithChildren } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Skeleton from "react-loading-skeleton";
-import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 
 export const SideProjectCard: FC<PropsWithChildren<ISideProject>> = ({

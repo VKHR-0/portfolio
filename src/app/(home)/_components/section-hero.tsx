@@ -5,7 +5,7 @@ import { ArrowUpRight, CircleDot } from "lucide-react";
 import Link from "next/link";
 
 const SectionHero = () => {
-  const handleScrollToAbout = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleScrollToAbout = (_e: React.MouseEvent<HTMLButtonElement>) => {
     window.scrollTo({
       top: Math.abs((document.getElementById("about")?.offsetTop || 0) / 1.15),
       behavior: "smooth",
