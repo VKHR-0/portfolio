@@ -8,7 +8,7 @@ import SectionProjects from "./_components/section-projects";
 import SectionSideProject from "./_components/section-side-projects";
 import { unstable_cacheLife as cacheLife } from "next/cache";
 
-export const getProjects = async (): Promise<IProject[]> => {
+const getProjects = async (): Promise<IProject[]> => {
   "use cache";
 
   cacheLife("days");
