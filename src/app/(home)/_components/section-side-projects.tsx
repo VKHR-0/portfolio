@@ -36,7 +36,10 @@ const SectionSideProject = ({ sideProjects }: SectionSideProjectProps) => {
         </div>
 
         <div className="absolute bottom-12 left-1/2 z-10 -translate-x-1/2 transform">
-          <Link href="/projects" className="flex items-center justify-center">
+          <Link
+            href="/side-projects"
+            className="flex items-center justify-center"
+          >
             <ArrowDown className="text-white" size={48} />
           </Link>
         </div>

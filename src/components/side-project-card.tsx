@@ -17,7 +17,7 @@ export const SideProjectCard: FC<PropsWithChildren<ISideProject>> = ({
     <article className="shadow-card inset-shadow-card-inner rounded-3xl bg-black p-5">
       <Link
         className="relative block"
-        href={`/project/${_id}`}
+        href={`/side-project/${_id}`}
         style={{ height: `${height}px` }}
       >
         <Image
