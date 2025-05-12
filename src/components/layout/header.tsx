@@ -20,7 +20,7 @@ const Header = () => {
         <Link href="/">
           <Image src="/images/logo.svg" alt="logo" height={36} width={95} />
         </Link>
-        <ul className="space-x-5 text-base font-medium text-white *:text-white/50 *:transition-colors *:hover:text-white">
+        <ul className="space-x-5 text-base font-medium text-white *:relative *:text-white/50 *:transition-all *:duration-300 *:after:absolute *:after:bottom-0 *:after:left-0 *:after:h-[2px] *:after:w-0 *:after:bg-white *:after:transition-all *:after:duration-300 *:hover:text-white *:hover:after:w-full">
           <li className="inline-block">
             <Link href="/">Home</Link>
           </li>

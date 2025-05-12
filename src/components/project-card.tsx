@@ -33,7 +33,7 @@ export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
           </Link>
         </h3>
         <Link href={`/project/${_id}`} className="inline-block">
-          <span className="inset-shadow-circle flex h-12 w-12 items-center justify-center rounded-full bg-black">
+          <span className="circle-button">
             <ArrowUpRight size={32} className="inline text-white" />
           </span>
         </Link>

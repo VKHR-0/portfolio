@@ -43,10 +43,26 @@
 
 @layer components {
   .black-button {
-    @apply button inset-shadow-card-inner shadow-card to-gray from-black-primary bg-linear-to-t to-[450%] text-white;
+    @apply button inset-shadow-card-inner shadow-card to-gray from-black-primary bg-linear-to-t to-[450%] text-white transition-all duration-300;
+  }
+
+  .black-button:hover {
+    @apply -translate-y-0.5 transform cursor-pointer to-[400%] shadow-lg;
   }
 
   .white-button {
-    @apply button inset-shadow-card-inner-inverted shadow-card-inverted to-gray bg-linear-to-t from-white to-[200%];
+    @apply button inset-shadow-card-inner-inverted shadow-card-inverted to-gray bg-linear-to-t from-white to-[200%] transition-all duration-300;
+  }
+
+  .white-button:hover {
+    @apply -translate-y-0.5 transform cursor-pointer to-[150%] shadow-lg;
+  }
+
+  .circle-button {
+    @apply inset-shadow-circle flex h-14 w-14 items-center justify-center rounded-full bg-black transition-all duration-300;
+  }
+
+  .circle-button:hover {
+    @apply -translate-y-0.5 transform cursor-pointer to-[150%] shadow-lg;
   }
 }

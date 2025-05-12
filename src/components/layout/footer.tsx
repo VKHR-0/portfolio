@@ -8,11 +8,11 @@ const Footer = () => {
         <Link className="max-lg:mx-auto" href="/">
           <Image src="/images/logo.svg" alt="logo" height={36} width={95} />
         </Link>
-        <ul className="flex gap-4 text-xl *:flex *:gap-2 max-lg:flex-wrap max-lg:justify-center">
-          <li>
+        <ul className="flex gap-4 text-xl *:flex *:gap-2 *:transition-all *:duration-300 max-lg:flex-wrap max-lg:justify-center">
+          <li className="hover:-translate-y-1">
             <Link
               href="https://github.com/0Empty0"
-              className="font-medium"
+              className="font-medium hover:text-white"
               target="_blank"
             >
               <Image
@@ -25,10 +25,10 @@ const Footer = () => {
               @0Empty0
             </Link>
           </li>
-          <li>
+          <li className="hover:-translate-y-1">
             <Link
               href="https://t.me/emptyType"
-              className="font-medium"
+              className="font-medium hover:text-white"
               target="_blank"
             >
               <Image
@@ -41,10 +41,10 @@ const Footer = () => {
               @emptyType
             </Link>
           </li>
-          <li>
+          <li className="hover:-translate-y-1">
             <Link
               href="https://twitter.com/Empty_type"
-              className="font-medium"
+              className="font-medium hover:text-white"
               target="_blank"
             >
               <Image
@@ -57,10 +57,10 @@ const Footer = () => {
               @Empty_type
             </Link>
           </li>
-          <li>
+          <li className="hover:-translate-y-1">
             <Link
               href="mailto:viktor.harhatt@gmail.com"
-              className="font-medium"
+              className="font-medium hover:text-white"
               target="_blank"
             >
               <Image

@@ -11,7 +11,7 @@ const SectionHero = () => {
       id="home"
     >
       <div className="container mx-auto">
-        <div className="mt-24 flex flex-col gap-6">
+        <div className="relative z-10 mt-24 flex flex-col gap-6">
           <div className="font-kanit shadow-card inset-shadow-card-inner flex w-fit items-center gap-2 rounded-3xl border border-white/25 bg-black px-4 py-3 text-sm text-white">
             <CircleDot size={16} className="inline" /> Software Engineer &amp;
             Full-Stack Developer
@@ -22,7 +22,7 @@ const SectionHero = () => {
                 Viktor <span className="text-white/60">Harhat</span>
               </span>
               <Link href="#about" className="inline-block">
-                <span className="inset-shadow-circle flex h-14 w-14 items-center justify-center rounded-full bg-black">
+                <span className="circle-button">
                   <ArrowUpRight size={32} className="inline text-white" />
                 </span>
               </Link>
@@ -43,7 +43,7 @@ const SectionHero = () => {
             </Link>
           </div>
         </div>
-        <div className="absolute inset-0">
+        <div className="pointer-events-none absolute inset-0">
           <MainPanelScene />
         </div>
       </div>

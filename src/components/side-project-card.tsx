@@ -34,8 +34,8 @@ export const SideProjectCard: FC<PropsWithChildren<ISideProject>> = ({
             {title}
           </Link>
         </h3>
-        <Link href={`/project/${_id}`} className="inline-block">
-          <span className="inset-shadow-circle flex h-12 w-12 items-center justify-center rounded-full bg-black">
+        <Link href={`/side-project/${_id}`} className="inline-block">
+          <span className="circle-button">
             <ArrowUpRight size={32} className="inline text-white" />
           </span>
         </Link>
