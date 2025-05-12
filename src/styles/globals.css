@@ -1,6 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Kanit:wght@100;300;400;500;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Convergence:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap");
-/* @import url('https://fonts.googleapis.com/css2?family=Convergence&display=swap'); */
 
 @import "react-loading-skeleton/dist/skeleton.css";
 
@@ -39,12 +38,12 @@
 }
 
 @utility button {
-  @apply cursor-pointer rounded-full bg-white px-6 py-3.5 text-lg text-black;
+  @apply font-kanit cursor-pointer rounded-full bg-white px-6 py-3.5 text-lg font-medium text-black;
 }
 
 @layer components {
   .black-button {
-    @apply button inset-shadow-card-inner shadow-card to-gray from-black-primary bg-linear-to-t to-[250%] text-white;
+    @apply button inset-shadow-card-inner shadow-card to-gray from-black-primary bg-linear-to-t to-[450%] text-white;
   }
 
   .white-button {

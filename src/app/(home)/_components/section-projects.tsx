@@ -13,14 +13,15 @@ interface SectionProjectsProps {
 
 const SectionProjects = ({ projects }: SectionProjectsProps) => {
   return (
-    <section className="bg-black-primary">
+    <section id="projects" className="bg-black-primary">
       <div className="relative container mx-auto">
         <MasonryGrid columns={2} gap={[4, 6]} className="pb-16">
           {projects.slice(0, 6).map((project) => (
             <ProjectCard key={project._id} {...project} />
           ))}
         </MasonryGrid>
-        <div className="pointer-events-none absolute -right-1/2 bottom-0 -left-1/2 h-72">
+
+        <div className="pointer-events-none absolute -right-1/2 bottom-0 -left-1/2 h-72 w-full">
           <div className="to-black-primary/50 from-black-tertiary h-full w-full bg-gradient-to-t from-25% blur-lg"></div>
           <div className="absolute inset-0 bg-transparent backdrop-blur-[3px]"></div>
         </div>

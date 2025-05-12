@@ -33,7 +33,13 @@ const SectionHero = () => {
           </div>
           <div className="flex gap-4 py-1.5">
             <button className="black-button">See All Projects</button>
-            <button className="white-button">Resume (CV)</button>
+            <Link
+              href="https://drive.google.com/file/d/1poV2F2AHTvpi060R57rmZCQri14vENpQ/view?usp=sharing"
+              target="_blank"
+              className="white-button"
+            >
+              Resume (CV)
+            </Link>
           </div>
         </div>
         <div>{/* <MainPannelScene /> */}</div>

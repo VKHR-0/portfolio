@@ -18,7 +18,9 @@ export default function RootLayout({
     <>
       <Header />
       <Suspense fallback={<Loading />}>
-        <main className="flex-1 basis-auto w-full">{children}</main>
+        <main className="bg-black-primary w-full flex-1 basis-auto">
+          {children}
+        </main>
       </Suspense>
       <Footer />
     </>

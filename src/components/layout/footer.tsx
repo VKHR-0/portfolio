@@ -10,7 +10,11 @@ const Footer = () => {
         </Link>
         <ul className="flex gap-4 text-xl *:flex *:gap-2 max-lg:flex-wrap max-lg:justify-center">
           <li>
-            <Link href="https://github.com/0Empty0" className="font-medium">
+            <Link
+              href="https://github.com/0Empty0"
+              className="font-medium"
+              target="_blank"
+            >
               <Image
                 className="inline"
                 src="/images/icons/github.svg"
@@ -22,7 +26,11 @@ const Footer = () => {
             </Link>
           </li>
           <li>
-            <Link href="https://t.me/emptyType" className="font-medium">
+            <Link
+              href="https://t.me/emptyType"
+              className="font-medium"
+              target="_blank"
+            >
               <Image
                 className="inline"
                 src="/images/icons/telegram.svg"
@@ -34,7 +42,11 @@ const Footer = () => {
             </Link>
           </li>
           <li>
-            <Link href="https://twitter.com/Empty_type" className="font-medium">
+            <Link
+              href="https://twitter.com/Empty_type"
+              className="font-medium"
+              target="_blank"
+            >
               <Image
                 className="inline"
                 src="/images/icons/twitter.svg"
@@ -49,6 +61,7 @@ const Footer = () => {
             <Link
               href="mailto:viktor.harhatt@gmail.com"
               className="font-medium"
+              target="_blank"
             >
               <Image
                 className="inline"

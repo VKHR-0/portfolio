@@ -10,7 +10,6 @@ const useBreakpointValue = <T>(
   const currentBreakpoint = useBreakpoint();
 
   return useMemo(() => {
-    console.log("Values:", values);
     if (typeof values === "object" && values !== null) {
       const typedValues = values as Partial<Record<Breakpoint, T>>;
 
@@ -23,8 +22,6 @@ const useBreakpointValue = <T>(
 
       const breakpoints: Breakpoint[] = ["2xl", "xl", "lg", "md", "sm"];
       const currentIndex = breakpoints.indexOf(currentBreakpoint);
-
-      console.log("Current index:", currentIndex);
 
       for (let i = currentIndex; i < breakpoints.length; i++) {
         const bp = breakpoints[i];
