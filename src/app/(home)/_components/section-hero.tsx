@@ -5,6 +5,13 @@ import { ArrowUpRight, CircleDot } from "lucide-react";
 import Link from "next/link";
 
 const SectionHero = () => {
+  const handleScrollToAbout = (e: React.MouseEvent<HTMLButtonElement>) => {
+    window.scrollTo({
+      top: Math.abs((document.getElementById("about")?.offsetTop || 0) / 1.15),
+      behavior: "smooth",
+    });
+  };
+
   return (
     <section
       className="from-black-secondary to-black-primary relative bg-linear-to-b from-25% pt-24 pb-12"
@@ -21,11 +28,11 @@ const SectionHero = () => {
               <span>
                 Viktor <span className="text-white/60">Harhat</span>
               </span>
-              <Link href="#about" className="inline-block">
+              <button className="inline-block" onClick={handleScrollToAbout}>
                 <span className="circle-button">
                   <ArrowUpRight size={32} className="inline text-white" />
                 </span>
-              </Link>
+              </button>
             </h1>
             <p className="font-convergence max-w-sm text-base text-white/60">
               Some cool text about me Some cool t about m Som bout me Some cool

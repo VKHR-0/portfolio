@@ -5,6 +5,14 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 const Header = () => {
+  const handleScrollToAbout = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    window.scrollTo({
+      top: Math.abs((document.getElementById("about")?.offsetTop || 0) / 1.15),
+      behavior: "smooth",
+    });
+  };
+
   return (
     <motion.header
       initial={{ top: "-100%" }}
@@ -28,7 +36,9 @@ const Header = () => {
             <Link href="/projects">Projects</Link>
           </li>
           <li className="inline-block">
-            <Link href="/#about">About</Link>
+            <Link href="/#about" onClick={handleScrollToAbout}>
+              About
+            </Link>
           </li>
           <li className="inline-block">
             <Link href="/side-projects">Side Projects</Link>

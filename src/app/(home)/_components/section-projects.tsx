@@ -2,10 +2,11 @@
 
 import MasonryGrid from "@/components/masonry-grid";
 import { ProjectCard } from "@/components/project-card";
-
 import IProject from "@/types/project";
+
 import { ArrowDown } from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface SectionProjectsProps {
   projects: IProject[];
@@ -13,7 +14,10 @@ interface SectionProjectsProps {
 
 const SectionProjects = ({ projects }: SectionProjectsProps) => {
   return (
-    <section id="projects" className="bg-black-primary">
+    <motion.section
+      id="projects"
+      className="bg-black-primary sticky top-0 z-10"
+    >
       <div className="relative container mx-auto">
         <MasonryGrid columns={2} gap={[4, 6]} className="pb-16">
           {projects.slice(0, 6).map((project) => (
@@ -32,7 +36,7 @@ const SectionProjects = ({ projects }: SectionProjectsProps) => {
           </Link>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 

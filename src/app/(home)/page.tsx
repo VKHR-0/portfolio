@@ -2,13 +2,13 @@ import { client } from "@/../sanity/lib/client";
 
 import IProject from "@/types/project";
 import ISkill from "@/types/skill";
+import ISideProject from "@/types/side-project";
 
 import SectionAbout from "./_components/section-about";
 import SectionHero from "./_components/section-hero";
 import SectionProjects from "./_components/section-projects";
 import SectionSideProject from "./_components/section-side-projects";
 import { unstable_cacheLife as cacheLife } from "next/cache";
-import ISideProject from "@/types/side-project";
 
 const getProjects = async (): Promise<IProject[]> => {
   "use cache";

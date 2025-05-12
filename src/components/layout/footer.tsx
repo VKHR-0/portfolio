@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const Footer = () => {
   return (
-    <footer className="w-full snap-end p-16 text-zinc-100">
+    <footer className="bg-black-tertiary relative w-full p-16 text-white before:absolute before:inset-0 before:rounded-2xl before:border-t-0 before:border-r-[2px] before:border-b-[3px] before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent">
       <div className="container mx-auto flex justify-between gap-y-6 max-lg:flex-col">
         <Link className="max-lg:mx-auto" href="/">
           <Image src="/images/logo.svg" alt="logo" height={36} width={95} />
