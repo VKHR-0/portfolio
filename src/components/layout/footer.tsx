@@ -4,7 +4,7 @@ import Link from "next/link";
 const Footer = () => {
   return (
     <footer className="w-full snap-end p-16 text-zinc-100">
-      <div className="container mx-auto flex justify-between max-lg:flex-col gap-y-6">
+      <div className="container mx-auto flex justify-between gap-y-6 max-lg:flex-col">
         <Link className="max-lg:mx-auto" href="/">
           <Image src="/images/logo.svg" alt="logo" height={36} width={95} />
         </Link>
@@ -46,7 +46,10 @@ const Footer = () => {
             </Link>
           </li>
           <li>
-            <Link href="mailto:garg.victor11@gmail.com" className="font-medium">
+            <Link
+              href="mailto:viktor.harhatt@gmail.com"
+              className="font-medium"
+            >
               <Image
                 className="inline"
                 src="/images/icons/email.svg"
@@ -54,7 +57,7 @@ const Footer = () => {
                 width={32}
                 height={32}
               />{" "}
-              garg.victor11@gmail.com
+              viktor.harhatt@gmail.com
             </Link>
           </li>
         </ul>
