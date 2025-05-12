@@ -9,10 +9,15 @@ export const ProjectCard: FC<PropsWithChildren<IProject>> = ({
   _id,
   title,
   thumbnail,
+  height,
 }) => {
   return (
     <article className="shadow-card inset-shadow-card-inner rounded-3xl bg-black p-5">
-      <Link className="relative" href={`/project/${_id}`}>
+      <Link
+        className="relative block"
+        href={`/project/${_id}`}
+        style={{ height: `${height}px` }}
+      >
         <Image
           className="!relative rounded-lg object-cover"
           src={thumbnail.asset.url}

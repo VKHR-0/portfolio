@@ -44,6 +44,7 @@
     "typescript": "5.7.3"
   },
   "devDependencies": {
+    "eslint-plugin-unused-imports": "^4.1.4",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11"
   }

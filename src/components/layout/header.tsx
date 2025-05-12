@@ -14,7 +14,7 @@ const Header = () => {
         stiffness: 200,
         damping: 25,
       }}
-      className="shadow-card inset-shadow-card-inner sticky top-8 z-50 w-10/12 max-w-7xl rounded-full border border-white/25 bg-black/75 py-5 backdrop-blur-lg min-xl:w-8/12"
+      className="shadow-card inset-shadow-card-inner sticky top-8 z-50 w-10/12 max-w-7xl self-center rounded-full border border-white/25 bg-black/75 py-5 backdrop-blur-lg min-xl:w-8/12"
     >
       <div className="flex items-center justify-between px-6">
         <Link href="/">

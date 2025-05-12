@@ -18,7 +18,8 @@ const getProjects = async (): Promise<IProject[]> => {
       _id,
       title,
       shortDescription,
-      thumbnail{asset->{url}}
+      thumbnail{asset->{url}},
+      height
     }`;
   const projects: IProject[] = await client.fetch(query);
 

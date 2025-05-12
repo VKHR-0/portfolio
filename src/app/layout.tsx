@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html className="h-full" lang="en">
       <Providers>
-        <body className="bg-black-secondary flex min-h-full w-screen flex-col items-center">
+        <body className="bg-black-secondary flex min-h-full w-screen flex-col">
           {children}
         </body>
       </Providers>

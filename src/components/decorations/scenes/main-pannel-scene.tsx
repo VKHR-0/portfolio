@@ -1,4 +1,3 @@
-import { MeshWobbleMaterial } from "@react-three/drei";
 import FollowedCube from "../followed-cube";
 import Scene from "../scene";
 
