@@ -1,6 +1,7 @@
 import { client } from "@/../sanity/lib/client";
 
 import IProject from "@/types/project";
+import ISkill from "@/types/skill";
 
 import SectionAbout from "./_components/section-about";
 import SectionHero from "./_components/section-hero";
@@ -26,14 +27,34 @@ const getProjects = async (): Promise<IProject[]> => {
   return projects;
 };
 
+const getSkills = async (): Promise<ISkill[]> => {
+  "use cache";
+
+  cacheLife("days");
+
+  const query = `
+    *[_type == "skill"]{
+      _id,
+      title,
+      description,
+      order,
+      badges
+    }`;
+
+  const skills: ISkill[] = await client.fetch(query);
+
+  return skills;
+};
+
 export default async function Home() {
   const projects = await getProjects();
+  const skills = await getSkills();
 
   return (
     <>
       <SectionHero />
       <SectionProjects projects={projects} />
-      <SectionAbout />
+      <SectionAbout skills={skills} />
       <SectionSideProject />
     </>
   );

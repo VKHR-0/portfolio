@@ -1,7 +1,15 @@
+import ISkill from "@/types/skill";
+
+import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
+import React from "react";
 
-const SectionAbout = () => {
+interface SectionAboutProps {
+  skills: ISkill[];
+}
+
+const SectionAbout = ({ skills }: SectionAboutProps) => {
   return (
     <section
       id="about"
@@ -87,73 +95,34 @@ const SectionAbout = () => {
               accumsan arcu tempor id.
             </p>
             <hr className="border-white/75" />
-            <div className="space-y-3">
-              <h4 className="font-kanit text-2xl font-semibold text-white">
-                FrontEnd
-              </h4>
-              <ul className="text-white">
-                <li className="shadow-card inset-shadow-card-inner w-fit rounded-md border border-white/25 px-3 py-1">
-                  <p>React.js</p>
-                </li>
-              </ul>
-              <p>
-                Pellentesque suscipit fringilla libero eu ullamcorper. Cras
-                risus eros, faucibus sit amet augue id, tempus pellentesque
-                eros. In imperdiet tristique tincidunt. Integer lobortis lorem
-                lorem, id accumsan arcu tempor id.
-              </p>
-            </div>
-            <hr className="border-white/75" />
-            <div className="space-y-3">
-              <h4 className="font-kanit text-2xl font-semibold text-white">
-                BackEnd
-              </h4>
-              <ul className="text-white">
-                <li>
-                  <p>React.js</p>
-                </li>
-              </ul>
-              <p>
-                Pellentesque suscipit fringilla libero eu ullamcorper. Cras
-                risus eros, faucibus sit amet augue id, tempus pellentesque
-                eros. In imperdiet tristique tincidunt. Integer lobortis lorem
-                lorem, id accumsan arcu tempor id.
-              </p>
-            </div>
-            <hr className="border-white/75" />
-            <div className="space-y-3">
-              <h4 className="font-kanit text-2xl font-semibold text-white">
-                DevOps
-              </h4>
-              <ul className="text-white">
-                <li>
-                  <p>React.js</p>
-                </li>
-              </ul>
-              <p>
-                Pellentesque suscipit fringilla libero eu ullamcorper. Cras
-                risus eros, faucibus sit amet augue id, tempus pellentesque
-                eros. In imperdiet tristique tincidunt. Integer lobortis lorem
-                lorem, id accumsan arcu tempor id.
-              </p>
-            </div>
-            <hr className="border-white/75" />
-            <div className="space-y-3">
-              <h4 className="font-kanit text-2xl font-semibold text-white">
-                Software Engineering
-              </h4>
-              <ul className="text-white">
-                <li>
-                  <p>React.js</p>
-                </li>
-              </ul>
-              <p>
-                Pellentesque suscipit fringilla libero eu ullamcorper. Cras
-                risus eros, faucibus sit amet augue id, tempus pellentesque
-                eros. In imperdiet tristique tincidunt. Integer lobortis lorem
-                lorem, id accumsan arcu tempor id.
-              </p>
-            </div>
+
+            {skills
+              .slice()
+              .sort((a, b) => a.order - b.order)
+              .map((skill, index) => (
+                <React.Fragment key={skill._id || index}>
+                  <div className="space-y-3">
+                    <h4 className="font-kanit text-2xl font-semibold text-white">
+                      {skill.title}
+                    </h4>
+                    <ul className="flex flex-wrap gap-2.5 text-white">
+                      {skill.badges.map((badge, index) => (
+                        <li
+                          key={index}
+                          className="shadow-card inset-shadow-card-inner w-fit rounded-md border border-white/25 px-3"
+                        >
+                          <p>{badge.technology}</p>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="prose prose-invert max-w-none text-white/60">
+                      <PortableText value={skill.description} />
+                    </div>
+                  </div>
+
+                  <hr className="border-white/75 last:hidden" />
+                </React.Fragment>
+              ))}
           </article>
         </div>
       </div>
