@@ -19,6 +19,11 @@ const sideProject = {
       title: "Link",
     },
     {
+      name: "height",
+      type: "number",
+      title: "Height",
+    },
+    {
       name: "shortDescription",
       type: "string",
       title: "Short Description",

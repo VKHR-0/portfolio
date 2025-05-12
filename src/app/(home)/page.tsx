@@ -8,6 +8,7 @@ import SectionHero from "./_components/section-hero";
 import SectionProjects from "./_components/section-projects";
 import SectionSideProject from "./_components/section-side-projects";
 import { unstable_cacheLife as cacheLife } from "next/cache";
+import ISideProject from "@/types/side-project";
 
 const getProjects = async (): Promise<IProject[]> => {
   "use cache";
@@ -46,16 +47,37 @@ const getSkills = async (): Promise<ISkill[]> => {
   return skills;
 };
 
+const getSideProjects = async (): Promise<ISideProject[]> => {
+  "use cache";
+
+  cacheLife("days");
+
+  const query = `
+    *[_type == "sideProject"]{
+      _id,
+      title,
+      link,
+      description,
+      height,
+      thumbnail{asset->{url}}
+    }`;
+
+  const sideProjects: ISideProject[] = await client.fetch(query);
+
+  return sideProjects;
+};
+
 export default async function Home() {
   const projects = await getProjects();
   const skills = await getSkills();
+  const sideProjects = await getSideProjects();
 
   return (
     <>
       <SectionHero />
       <SectionProjects projects={projects} />
       <SectionAbout skills={skills} />
-      <SectionSideProject />
+      <SectionSideProject sideProjects={sideProjects} />
     </>
   );
 }

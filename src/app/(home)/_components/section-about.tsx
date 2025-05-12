@@ -13,7 +13,7 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
   return (
     <section
       id="about"
-      className="bg-black-tertiary relative rounded-t-2xl pt-8 pb-14 text-white before:absolute before:inset-0 before:rounded-t-2xl before:border-t-[3px] before:border-r-[2px] before:border-b-0 before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent"
+      className="bg-black-tertiary relative rounded-t-2xl pt-8 pb-16 text-white before:absolute before:inset-0 before:rounded-t-2xl before:border-t-[3px] before:border-r-[2px] before:border-b-0 before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent"
     >
       <div className="relative container mx-auto space-y-6">
         <h2 className="font-kanit text-center text-6xl font-bold">About Me</h2>

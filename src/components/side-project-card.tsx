@@ -1,44 +1,46 @@
+import ISideProject from "@/types/side-project";
+
 import { FC, PropsWithChildren } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Skeleton from "react-loading-skeleton";
 import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 
-import IProject from "@/types/project";
-
-export const SideProjectCard: FC<PropsWithChildren<IProject>> = ({
+export const SideProjectCard: FC<PropsWithChildren<ISideProject>> = ({
   _id,
   title,
-  shortDescription,
   thumbnail,
+  height,
 }) => {
   return (
-    <figure className="running-border w-full rounded-3xl p-6">
-      <Link className="relative" href={`/side-project/${_id}`}>
+    <article className="shadow-card inset-shadow-card-inner rounded-3xl bg-black p-5">
+      <Link
+        className="relative block"
+        href={`/project/${_id}`}
+        style={{ height: `${height}px` }}
+      >
         <Image
-          className="!relative aspect-square rounded-lg bg-zinc-300 object-cover"
+          className="!relative rounded-lg object-cover"
           src={thumbnail.asset.url}
           alt={title}
           priority
           fill
         />
       </Link>
-      <figcaption>
-        <h3 className="my-4 text-2xl font-bold">
-          <Link className="relative" href={`/side-project/${_id}`}>
+      <div className="mt-4 flex items-center justify-between">
+        <h3 className="my-4 text-3xl font-medium text-white">
+          <Link className="relative" href={`/project/${_id}`}>
             {title}
           </Link>
         </h3>
-        <p>{shortDescription}</p>
-      </figcaption>
-      <motion.div
-        className="absolute left-0 top-0 h-full w-full rounded-3xl bg-zinc-100"
-        initial={{ height: "100%" }}
-        whileInView={{ height: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.25, ease: "easeOut" }}
-      />
-    </figure>
+        <Link href={`/project/${_id}`} className="inline-block">
+          <span className="inset-shadow-circle flex h-12 w-12 items-center justify-center rounded-full bg-black">
+            <ArrowUpRight size={32} className="inline text-white" />
+          </span>
+        </Link>
+      </div>
+    </article>
   );
 };
 

@@ -6,6 +6,7 @@ export default interface ISideProject {
   link: string;
   description: TypedObject[];
   shortDescription: string;
+  height: number;
   thumbnail: {
     asset: { url: string };
   };
