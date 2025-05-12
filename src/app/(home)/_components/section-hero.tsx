@@ -1,5 +1,6 @@
 "use client";
 
+import MainPanelScene from "@/components/decorations/scenes/main-panel-scene";
 import { ArrowUpRight, CircleDot } from "lucide-react";
 import Link from "next/link";
 
@@ -42,7 +43,9 @@ const SectionHero = () => {
             </Link>
           </div>
         </div>
-        <div>{/* <MainPannelScene /> */}</div>
+        <div className="absolute inset-0">
+          <MainPanelScene />
+        </div>
       </div>
     </section>
   );
