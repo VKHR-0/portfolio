@@ -6,55 +6,16 @@ import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
 interface SectionAboutProps {
   skills: ISkill[];
 }
 
 const SectionAbout = ({ skills }: SectionAboutProps) => {
-  const targetRef = React.useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: targetRef,
-    offset: ["start end", "start start"],
-  });
-
-  const [yOffset, setYOffset] = React.useState("0px");
-
-  React.useEffect(() => {
-    const calculateOffset = () => {
-      if (targetRef.current) {
-        const sectionHeight = targetRef.current.offsetHeight;
-        const windowHeight = window.innerHeight;
-        const offset = sectionHeight - windowHeight;
-        setYOffset(`-${offset}px`);
-      }
-    };
-
-    calculateOffset();
-    window.addEventListener("resize", calculateOffset);
-
-    return () => window.removeEventListener("resize", calculateOffset);
-  }, []);
-
-  const y = useTransform(
-    scrollYProgress,
-    [0.5, 0.75, 1],
-    ["5vh", "0", yOffset],
-  );
-
-  const smoothY = useSpring(y, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
-
   return (
-    <motion.section
-      ref={targetRef}
+    <section
       id="about"
-      style={{ y: smoothY }}
-      className="bg-black-tertiary sticky top-0 z-20 rounded-t-2xl pt-12 pb-16 text-white before:absolute before:inset-0 before:rounded-t-2xl before:border-t-[3px] before:border-r-[2px] before:border-b-0 before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent"
+      className="bg-black-tertiary relative rounded-t-2xl pt-12 pb-16 text-white before:absolute before:inset-0 before:rounded-t-2xl before:border-t-[3px] before:border-r-[2px] before:border-b-0 before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent"
     >
       <div className="relative container mx-auto space-y-12">
         <h2 className="font-kanit text-center text-6xl font-bold">About Me</h2>
@@ -167,7 +128,7 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
           </article>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 };
 

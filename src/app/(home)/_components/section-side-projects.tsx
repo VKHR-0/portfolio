@@ -6,7 +6,6 @@ import ISideProject from "@/types/side-project";
 
 import { ArrowDown } from "lucide-react";
 import Link from "next/link";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import React from "react";
 
 interface SectionSideProjectProps {
@@ -14,25 +13,10 @@ interface SectionSideProjectProps {
 }
 
 const SectionSideProject = ({ sideProjects }: SectionSideProjectProps) => {
-  const targetRefSide = React.useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: targetRefSide,
-    offset: ["start start", "end start"],
-  });
-  const y = useTransform(scrollYProgress, [0, 0.1], ["20vh", "0vh"]);
-
-  const smoothY = useSpring(y, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
-
   return (
-    <motion.section
-      ref={targetRefSide}
+    <section
       id="side-projects"
-      style={{ y: smoothY }}
-      className="bg-black-tertiary sticky top-0 z-30 -mt-3.5 mb-10 rounded-t-2xl pt-8 text-white before:absolute before:inset-0 before:rounded-2xl before:border-t-[3px] before:border-r-[2px] before:border-b-[3px] before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent"
+      className="bg-black-tertiary relative z-10 -mb-12 rounded-2xl pt-8 text-white before:absolute before:inset-0 before:rounded-2xl before:border-t-[3px] before:border-r-[2px] before:border-b-[3px] before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent"
     >
       <div className="relative container mx-auto space-y-6">
         <h2 className="font-kanit text-center text-6xl font-bold">
@@ -63,7 +47,7 @@ const SectionSideProject = ({ sideProjects }: SectionSideProjectProps) => {
           </Link>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 };
 
