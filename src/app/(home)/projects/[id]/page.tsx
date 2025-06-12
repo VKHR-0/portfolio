@@ -88,3 +88,5 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     </main>
   );
 }
+
+export const dynamic = "force-dynamic";

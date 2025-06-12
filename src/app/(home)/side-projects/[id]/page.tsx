@@ -90,3 +90,5 @@ export default async function SideProjectPage({
     </main>
   );
 }
+
+export const dynamic = "force-dynamic";
