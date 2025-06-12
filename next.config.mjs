@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 export default {
   experimental: {
-    dynamicIO: true,
+    useCache: true,
   },
   images: {
     remotePatterns: [
