@@ -73,10 +73,14 @@ export default async function Home() {
   const sideProjects = await getSideProjects();
 
   // Sort projects and side projects by order
-  const sortedProjects = projects.slice().sort((a, b) => a.order - b.order);
+  const sortedProjects = projects
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .slice(0, 4);
   const sortedSideProjects = sideProjects
     .slice()
-    .sort((a, b) => a.order - b.order);
+    .sort((a, b) => a.order - b.order)
+    .slice(0, 4);
 
   return (
     <>
