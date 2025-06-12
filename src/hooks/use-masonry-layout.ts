@@ -1,5 +1,7 @@
 import { useMemo } from "react";
-import useBreakpointValue, { BreakpointValue } from "./use-breakpoint-value";
+import useBreakpointValue, {
+  type BreakpointValue,
+} from "./use-breakpoint-value";
 
 const useMasonryLayout = (
   childrenCount: number,

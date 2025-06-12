@@ -1,4 +1,4 @@
-import { TypedObject } from "sanity";
+import type { TypedObject } from "sanity";
 
 export default interface ISkill {
   _id: string;

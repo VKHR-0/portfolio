@@ -1,8 +1,8 @@
-import { FC, PropsWithChildren } from "react";
+import type { FC, PropsWithChildren } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import IProject from "@/types/project";
+import type IProject from "@/types/project";
 import { ArrowUpRight } from "lucide-react";
 
 export const ProjectCard: FC<PropsWithChildren<IProject>> = ({

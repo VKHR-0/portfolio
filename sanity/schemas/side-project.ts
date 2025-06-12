@@ -14,19 +14,9 @@ const sideProject = {
       title: "Title",
     },
     {
-      name: "link",
-      type: "string",
-      title: "Link",
-    },
-    {
       name: "height",
       type: "number",
       title: "Height",
-    },
-    {
-      name: "shortDescription",
-      type: "string",
-      title: "Short Description",
     },
     {
       name: "description",

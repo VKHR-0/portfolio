@@ -1,7 +1,7 @@
 import { RoundedBox } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
-import { FC, PropsWithChildren, useRef } from "react";
-import { Mesh } from "three";
+import { type FC, type PropsWithChildren, useRef } from "react";
+import type { Mesh } from "three";
 
 interface IFollowedCube {
   args: [number, number, number];

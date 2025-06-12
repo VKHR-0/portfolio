@@ -1,6 +1,6 @@
-import ISideProject from "@/types/side-project";
+import type ISideProject from "@/types/side-project";
 
-import { FC, PropsWithChildren } from "react";
+import type { FC, PropsWithChildren } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Skeleton from "react-loading-skeleton";

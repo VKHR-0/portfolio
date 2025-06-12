@@ -33,7 +33,9 @@ const SectionHero = () => {
             </p>
           </div>
           <div className="flex gap-4 py-1.5">
-            <button className="black-button">See All Projects</button>
+            <button className="black-button" type="button">
+              See All Projects
+            </button>
             <Link
               href="https://drive.google.com/file/d/1poV2F2AHTvpi060R57rmZCQri14vENpQ/view?usp=sharing"
               target="_blank"

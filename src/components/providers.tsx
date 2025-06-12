@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren } from "react";
+import type { FC, PropsWithChildren } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 
 const Providers: FC<PropsWithChildren<unknown>> = ({ children }) => {

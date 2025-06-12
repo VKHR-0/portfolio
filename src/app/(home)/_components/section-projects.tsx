@@ -2,7 +2,7 @@
 
 import MasonryGrid from "@/components/masonry-grid";
 import { ProjectCard } from "@/components/project-card";
-import IProject from "@/types/project";
+import type IProject from "@/types/project";
 
 import { ArrowDown } from "lucide-react";
 import Link from "next/link";
@@ -22,8 +22,8 @@ const SectionProjects = ({ projects }: SectionProjectsProps) => {
         </MasonryGrid>
 
         <div className="pointer-events-none absolute -right-1/2 bottom-0 -left-1/2 h-72 w-full">
-          <div className="to-black-primary/50 from-black-tertiary h-full w-full bg-gradient-to-t from-25% blur-lg"></div>
-          <div className="absolute inset-0 bg-transparent backdrop-blur-[3px]"></div>
+          <div className="to-black-primary/50 from-black-tertiary h-full w-full bg-gradient-to-t from-25% blur-lg" />
+          <div className="absolute inset-0 bg-transparent backdrop-blur-[3px]" />
         </div>
 
         <div className="absolute bottom-12 left-1/2 z-10 -translate-x-1/2 transform">

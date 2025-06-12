@@ -1,6 +1,11 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { FC, useMemo, useRef } from "react";
-import { BufferGeometry, Material, Points, Vector3 } from "three";
+import { type FC, useMemo, useRef } from "react";
+import {
+  type BufferGeometry,
+  type Material,
+  type Points,
+  Vector3,
+} from "three";
 
 interface IDottedCube {
   size: number;

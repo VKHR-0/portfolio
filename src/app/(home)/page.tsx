@@ -1,8 +1,8 @@
 import { client } from "@/../sanity/lib/client";
 
-import IProject from "@/types/project";
-import ISkill from "@/types/skill";
-import ISideProject from "@/types/side-project";
+import type IProject from "@/types/project";
+import type ISkill from "@/types/skill";
+import type ISideProject from "@/types/side-project";
 
 import SectionAbout from "./_components/section-about";
 import SectionHero from "./_components/section-hero";

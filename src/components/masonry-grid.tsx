@@ -1,8 +1,8 @@
 "use client";
 
-import { BreakpointValue } from "@/hooks/use-breakpoint-value";
+import type { BreakpointValue } from "@/hooks/use-breakpoint-value";
 import useMasonryLayout from "@/hooks/use-masonry-layout";
-import { FC, ReactNode, useMemo } from "react";
+import { type FC, type ReactNode, useMemo } from "react";
 
 type Gap = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12 | 16;
 
@@ -86,7 +86,7 @@ const MasonryGrid: FC<MasonryGridProps> = ({
       const columnIndex = index % columnCount;
       if (columnArray[columnIndex]) {
         columnArray[columnIndex].push(
-          <div key={index} className="break-inside-avoid">
+          <div key={`${child}-${columnIndex}`} className="break-inside-avoid">
             {child}
           </div>,
         );
@@ -102,7 +102,7 @@ const MasonryGrid: FC<MasonryGridProps> = ({
         {masonryColumns.map((column, columnIndex) => {
           return (
             <div
-              key={columnIndex}
+              key={columnIndex.toString()}
               className={`flex flex-1 flex-col ${gapClass.y}`}
             >
               {column}

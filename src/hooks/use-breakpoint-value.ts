@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import useBreakpoint, { Breakpoint } from "./use-breakpoint";
+import useBreakpoint, { type Breakpoint } from "./use-breakpoint";
 
 export type BreakpointValue<T> = Partial<Record<Breakpoint, T>> | T;
 

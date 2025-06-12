@@ -1,6 +1,6 @@
 "use client";
 
-import ISkill from "@/types/skill";
+import type ISkill from "@/types/skill";
 
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
@@ -47,7 +47,7 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
                   />
                 </Link>
               </li>
-              <span className="inline-block h-6 w-px bg-white/25"></span>
+              <span className="inline-block h-6 w-px bg-white/25" />
               <li>
                 <Link href="https://t.me/emptyType" target="_blank">
                   <Image
@@ -58,7 +58,7 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
                   />
                 </Link>
               </li>
-              <span className="inline-block h-6 w-px bg-white/25"></span>
+              <span className="inline-block h-6 w-px bg-white/25" />
               <li>
                 <Link href="https://twitter.com/Empty_type" target="_blank">
                   <Image
@@ -69,7 +69,7 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
                   />
                 </Link>
               </li>
-              <span className="inline-block h-6 w-px bg-white/25"></span>
+              <span className="inline-block h-6 w-px bg-white/25" />
               <li>
                 <Link href="mailto:viktor.harhatt@gmail.com" target="_blank">
                   <Image
@@ -118,7 +118,7 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
                     <ul className="flex flex-wrap gap-2.5 text-white">
                       {skill.badges.map((badge, index) => (
                         <li
-                          key={index}
+                          key={`${badge.technology}-${index}`}
                           className="shadow-card inset-shadow-card-inner w-fit rounded-md border border-white/25 px-3"
                         >
                           <p>{badge.technology}</p>
