@@ -1,4 +1,4 @@
-import { type SchemaTypeDefinition } from "sanity";
+import type { SchemaTypeDefinition } from "sanity";
 
 import project from "./schemas/project";
 import sideProject from "./schemas/side-project";

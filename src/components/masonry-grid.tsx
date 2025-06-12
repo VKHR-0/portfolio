@@ -86,7 +86,7 @@ const MasonryGrid: FC<MasonryGridProps> = ({
       const columnIndex = index % columnCount;
       if (columnArray[columnIndex]) {
         columnArray[columnIndex].push(
-          <div key={`${child}-${columnIndex}`} className="break-inside-avoid">
+          <div key={index.toString()} className="break-inside-avoid">
             {child}
           </div>,
         );

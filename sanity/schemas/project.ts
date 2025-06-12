@@ -19,6 +19,12 @@ const project = {
       title: "Height",
     },
     {
+      name: "order",
+      type: "number",
+      title: "Order",
+      description: "Display order for this project",
+    },
+    {
       name: "description",
       title: "Description",
       type: "array",

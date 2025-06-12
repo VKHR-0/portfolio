@@ -19,9 +19,9 @@ const getProjects = async (): Promise<IProject[]> => {
     *[_type == "project"]{
       _id,
       title,
-      shortDescription,
       thumbnail{asset->{url}},
-      height
+      height,
+      order
     }`;
   const projects: IProject[] = await client.fetch(query);
 
@@ -56,10 +56,10 @@ const getSideProjects = async (): Promise<ISideProject[]> => {
     *[_type == "sideProject"]{
       _id,
       title,
-      link,
       description,
       height,
-      thumbnail{asset->{url}}
+      thumbnail{asset->{url}},
+      order
     }`;
 
   const sideProjects: ISideProject[] = await client.fetch(query);
@@ -72,12 +72,18 @@ export default async function Home() {
   const skills = await getSkills();
   const sideProjects = await getSideProjects();
 
+  // Sort projects and side projects by order
+  const sortedProjects = projects.slice().sort((a, b) => a.order - b.order);
+  const sortedSideProjects = sideProjects
+    .slice()
+    .sort((a, b) => a.order - b.order);
+
   return (
     <>
       <SectionHero />
-      <SectionProjects projects={projects} />
+      <SectionProjects projects={sortedProjects} />
       <SectionAbout skills={skills} />
-      <SectionSideProject sideProjects={sideProjects} />
+      <SectionSideProject sideProjects={sortedSideProjects} />
     </>
   );
 }

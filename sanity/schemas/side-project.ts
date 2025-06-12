@@ -19,6 +19,12 @@ const sideProject = {
       title: "Height",
     },
     {
+      name: "order",
+      type: "number",
+      title: "Order",
+      description: "Display order for this side project",
+    },
+    {
       name: "description",
       title: "Description",
       type: "array",

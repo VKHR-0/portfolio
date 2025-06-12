@@ -91,18 +91,19 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
           </aside>
           <article className="shadow-card inset-shadow-card-inner flex w-full max-w-[675px] flex-col gap-8 rounded-2xl bg-black p-6 pb-8 text-white/60">
             <p>
-              I’m a self-motivated software developer with a strong academic
-              background, currently pursuing a degree in IT after starting my
-              journey through independent study. I thrive on building fast,
-              performant systems and intuitive user interfaces.
+              I&apos;m a self-motivated software developer with a strong
+              academic background, currently pursuing a degree in IT after
+              starting my journey through independent study. I thrive on
+              building fast, performant systems and intuitive user interfaces.
               <br />
               <br />
-              Whether it's frontend, backend, or full-stack development, I bring
-              a perfectionist mindset and a deep curiosity to every project. I’m
-              quick to identify gaps in knowledge, eager to learn, and focused
-              on getting to the root of technical challenges. My experience
-              spans freelance work, collaborative university projects, and open
-              source contributions, often including deployment and delivery.
+              Whether it&apos;s frontend, backend, or full-stack development, I
+              bring a perfectionist mindset and a deep curiosity to every
+              project. I&apos;m quick to identify gaps in knowledge, eager to
+              learn, and focused on getting to the root of technical challenges.
+              My experience spans freelance work, collaborative university
+              projects, and open source contributions, often including
+              deployment and delivery.
             </p>
             <hr className="border-white/75" />
 

@@ -4,6 +4,7 @@ export default interface IProject {
   _id: string;
   title: string;
   height: number;
+  order: number;
   description: TypedObject[];
   thumbnail: {
     asset: { url: string };
