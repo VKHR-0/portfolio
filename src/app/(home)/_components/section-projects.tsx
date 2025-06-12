@@ -21,7 +21,7 @@ const SectionProjects = ({ projects }: SectionProjectsProps) => {
           ))}
         </MasonryGrid>
 
-        <div className="pointer-events-none absolute -right-1/2 bottom-0 -left-1/2 h-72 w-full">
+        <div className="pointer-events-none absolute bottom-0 h-72 w-full">
           <div className="to-black-primary/50 from-black-tertiary h-full w-full bg-gradient-to-t from-25% blur-lg" />
           <div className="absolute inset-0 bg-transparent backdrop-blur-[3px]" />
         </div>
