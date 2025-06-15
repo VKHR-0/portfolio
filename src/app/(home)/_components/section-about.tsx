@@ -17,10 +17,10 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
       id="about"
       className="bg-black-tertiary relative rounded-t-2xl pt-12 pb-16 text-white before:absolute before:inset-0 before:rounded-t-2xl before:border-t-[3px] before:border-r-[2px] before:border-b-0 before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent"
     >
-      <div className="relative container mx-auto space-y-12">
+      <div className="relative container mx-auto space-y-12 max-lg:px-4">
         <h2 className="font-kanit text-center text-6xl font-bold">About Me</h2>
-        <div className="flex items-start justify-center gap-10">
-          <aside className="shadow-card inset-shadow-card-inner flex w-full max-w-[425px] flex-col gap-6 rounded-2xl bg-black p-6 pb-8">
+        <div className="flex flex-col items-start justify-center gap-10 lg:flex-row">
+          <aside className="shadow-card inset-shadow-card-inner flex w-full max-w-[425px] flex-col gap-6 rounded-2xl bg-black p-6 pb-8 max-lg:max-w-full max-lg:items-center">
             <Image
               src="/images/me.png"
               alt="Profile"
@@ -89,7 +89,7 @@ const SectionAbout = ({ skills }: SectionAboutProps) => {
               Resume (CV)
             </Link>
           </aside>
-          <article className="shadow-card inset-shadow-card-inner flex w-full max-w-[675px] flex-col gap-8 rounded-2xl bg-black p-6 pb-8 text-white/60">
+          <article className="shadow-card inset-shadow-card-inner flex w-full max-w-[675px] flex-col gap-8 rounded-2xl bg-black p-6 pb-8 text-white/60 max-lg:max-w-full">
             <p>
               I&apos;m a self-motivated software developer with a strong
               academic background, currently pursuing a degree in IT after

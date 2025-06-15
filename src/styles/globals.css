@@ -43,7 +43,7 @@
 
 @layer components {
   .black-button {
-    @apply button inset-shadow-card-inner shadow-card to-gray from-black-primary bg-linear-to-t to-[450%] text-white transition-all duration-300;
+    @apply button inset-shadow-card-inner shadow-card to-gray from-black-primary bg-linear-to-t to-[450%] text-center text-white transition-all duration-300;
   }
 
   .black-button:hover {
@@ -51,7 +51,7 @@
   }
 
   .white-button {
-    @apply button inset-shadow-card-inner-inverted shadow-card-inverted to-gray bg-linear-to-t from-white to-[200%] transition-all duration-300;
+    @apply button inset-shadow-card-inner-inverted shadow-card-inverted to-gray bg-linear-to-t from-white to-[200%] text-center transition-all duration-300;
   }
 
   .white-button:hover {
@@ -59,7 +59,7 @@
   }
 
   .circle-button {
-    @apply inset-shadow-circle flex h-14 w-14 items-center justify-center rounded-full bg-black transition-all duration-300;
+    @apply inset-shadow-circle flex h-14 w-14 items-center justify-center rounded-full bg-black transition-all duration-300 max-lg:h-12 max-lg:w-12;
   }
 
   .circle-button:hover {

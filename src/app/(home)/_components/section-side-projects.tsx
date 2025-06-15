@@ -18,7 +18,7 @@ const SectionSideProject = ({ sideProjects }: SectionSideProjectProps) => {
       id="side-projects"
       className="bg-black-tertiary relative z-10 -mb-12 rounded-2xl pt-8 text-white before:absolute before:inset-0 before:rounded-2xl before:border-t-[3px] before:border-r-[2px] before:border-b-[3px] before:border-l-[2px] before:border-white/25 before:from-white/25 before:to-transparent"
     >
-      <div className="relative container mx-auto space-y-6">
+      <div className="relative container mx-auto space-y-6 max-lg:px-4">
         <h2 className="font-kanit text-center text-6xl font-bold">
           Side Projects
         </h2>
@@ -27,7 +27,7 @@ const SectionSideProject = ({ sideProjects }: SectionSideProjectProps) => {
           about me tet about me
         </p>
 
-        <MasonryGrid columns={2} gap={[4, 6]} className="pb-16">
+        <MasonryGrid gap={[4, 6]} className="pb-16">
           {sideProjects.slice(0, 6).map((sideProject) => (
             <SideProjectCard key={sideProject._id} {...sideProject} />
           ))}

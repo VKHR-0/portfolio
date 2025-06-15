@@ -14,8 +14,8 @@ interface SectionProjectsProps {
 const SectionProjects = ({ projects }: SectionProjectsProps) => {
   return (
     <section id="projects" className="bg-black-primary">
-      <div className="relative container mx-auto">
-        <MasonryGrid columns={2} gap={[4, 6]} className="pb-16">
+      <div className="relative container mx-auto max-lg:px-4">
+        <MasonryGrid gap={[4, 6]} className="pb-16">
           {projects.slice(0, 6).map((project) => (
             <ProjectCard key={project._id} {...project} />
           ))}

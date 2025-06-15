@@ -56,7 +56,7 @@ const gapYToTailwindClass = (gap: Gap): string => {
 
 const MasonryGrid: FC<MasonryGridProps> = ({
   children,
-  columns = { sm: 1, md: 2, lg: 3, xl: 4 },
+  columns = { sm: 1, md: 1, lg: 2, xl: 3 },
   gap = 4,
   className = "",
 }) => {

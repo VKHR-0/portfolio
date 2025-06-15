@@ -1,10 +1,12 @@
 import type ISideProject from "@/types/side-project";
 
-import type { FC, PropsWithChildren } from "react";
+import useBreakpoint from "@/hooks/use-breakpoint";
 import Image from "next/image";
 import Link from "next/link";
+import type { FC, PropsWithChildren } from "react";
+import { useEffect, useRef } from "react";
 import Skeleton from "react-loading-skeleton";
-import { ArrowUpRight } from "lucide-react";
+import CircleButton from "./circle-button";
 
 export const SideProjectCard: FC<PropsWithChildren<ISideProject>> = ({
   _id,
@@ -12,12 +14,35 @@ export const SideProjectCard: FC<PropsWithChildren<ISideProject>> = ({
   thumbnail,
   height,
 }) => {
+  const breakpoint = useBreakpoint();
+  const heightRef = useRef<number>(height);
+
+  useEffect(() => {
+    switch (breakpoint) {
+      case "2xl":
+        heightRef.current = height;
+        break;
+      case "xl":
+        heightRef.current = height * 0.75;
+        break;
+      case "lg":
+        heightRef.current = height * 0.75;
+        break;
+      case "md":
+        heightRef.current = height * 0.5;
+        break;
+      case "sm":
+        heightRef.current = height * 0.5;
+        break;
+    }
+  }, [breakpoint, height]);
+
   return (
     <article className="shadow-card inset-shadow-card-inner rounded-3xl bg-black p-5">
       <Link
         className="relative block"
         href={`/side-projects/${_id}`}
-        style={{ height: `${height}px` }}
+        style={{ height: `${heightRef.current}px` }}
       >
         <Image
           className="!relative rounded-lg object-cover"
@@ -34,9 +59,7 @@ export const SideProjectCard: FC<PropsWithChildren<ISideProject>> = ({
           </Link>
         </h3>
         <Link href={`/side-project/${_id}`} className="inline-block">
-          <span className="circle-button">
-            <ArrowUpRight size={32} className="inline text-white" />
-          </span>
+          <CircleButton />
         </Link>
       </div>
     </article>
