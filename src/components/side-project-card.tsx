@@ -1,3 +1,5 @@
+"use client";
+
 import type ISideProject from "@/types/side-project";
 
 import useBreakpoint from "@/hooks/use-breakpoint";

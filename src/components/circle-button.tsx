@@ -1,3 +1,5 @@
+"use client";
+
 import useBreakpoint from "@/hooks/use-breakpoint";
 import { ArrowUpRight } from "lucide-react";
 import { type FC, useEffect, useRef } from "react";
