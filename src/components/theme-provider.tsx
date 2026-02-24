@@ -1,6 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import React from "react";
-import { setThemeServerFn, type Theme } from "#/functions/theme";
+import { setTheme, type Theme } from "#/functions/theme";
 import { FunctionOnce } from "#/lib/function-once";
 
 type ThemeContext = {
@@ -14,7 +14,7 @@ const ThemeContext = React.createContext<ThemeContext | null>(null);
 
 export function ThemeProvider({ children, theme: defaultTheme }: Props) {
 	const router = useRouter();
-	const [theme, setThemeState] = React.useState<Theme>(defaultTheme);
+	const [themeState, setThemeState] = React.useState<Theme>(defaultTheme);
 	const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(
 		"light",
 	);
@@ -24,7 +24,7 @@ export function ThemeProvider({ children, theme: defaultTheme }: Props) {
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
 		function updateTheme() {
-			const currentTheme = theme;
+			const currentTheme = themeState;
 			root.classList.remove("light", "dark");
 
 			if (currentTheme === "system") {
@@ -42,16 +42,18 @@ export function ThemeProvider({ children, theme: defaultTheme }: Props) {
 		updateTheme();
 
 		return () => mediaQuery.removeEventListener("change", updateTheme);
-	}, [theme]);
+	}, [themeState]);
 
-	function setTheme(value: Theme) {
+	function setThemeWrapper(value: Theme) {
 		setThemeState(value);
-		setThemeServerFn({ data: value }).then(() => router.invalidate());
+		setTheme({ data: value }).then(() => router.invalidate());
 	}
 
 	return (
-		<ThemeContext value={{ theme, setTheme, resolvedTheme }}>
-			<FunctionOnce param={theme}>
+		<ThemeContext
+			value={{ theme: themeState, setTheme: setThemeWrapper, resolvedTheme }}
+		>
+			<FunctionOnce param={themeState}>
 				{(theme) => {
 					if (
 						theme === "dark" ||

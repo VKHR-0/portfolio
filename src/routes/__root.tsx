@@ -14,7 +14,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "#/components/theme-provider";
 import { getAuth } from "#/functions/auth";
-import { getThemeServerFn } from "#/functions/theme";
+import { getTheme } from "#/functions/theme";
 import { authClient } from "#/lib/auth-client";
 import appCss from "../styles.css?url";
 
@@ -52,7 +52,7 @@ export const Route = createRootRouteWithContext<{
 			token,
 		};
 	},
-	loader: () => getThemeServerFn(),
+	loader: () => getTheme(),
 	shellComponent: RootComponent,
 });
 
