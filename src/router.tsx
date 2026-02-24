@@ -1,7 +1,7 @@
 import { ConvexQueryClient } from "@convex-dev/react-query";
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
-import { routerWithQueryClient } from "@tanstack/react-router-with-query";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
 import { routeTree } from "./routeTree.gen";
 
@@ -11,7 +11,9 @@ export function getRouter() {
 		console.error("missing envar CONVEX_URL");
 	}
 
-	const convexQueryClient = new ConvexQueryClient(CONVEX_URL!);
+	const convexQueryClient = new ConvexQueryClient(CONVEX_URL!, {
+		expectAuth: true,
+	});
 
 	const queryClient: QueryClient = new QueryClient({
 		defaultOptions: {
@@ -23,26 +25,32 @@ export function getRouter() {
 	});
 	convexQueryClient.connect(queryClient);
 
-	const router = routerWithQueryClient(
-		createRouter({
-			routeTree,
+	const router = createRouter({
+		routeTree,
 
-			scrollRestoration: true,
-			defaultPreload: "intent",
-			defaultPreloadStaleTime: 0,
+		scrollRestoration: true,
+		defaultPreload: "intent",
+		defaultPreloadStaleTime: 0,
 
-			context: {
-				queryClient,
-			},
+		defaultPendingComponent: () => <div>Loading...</div>,
+		defaultNotFoundComponent: () => <div>Not Found</div>,
 
-			Wrap: ({ children }) => (
-				<ConvexProvider client={convexQueryClient.convexClient}>
-					{children}
-				</ConvexProvider>
-			),
-		}),
+		context: {
+			queryClient,
+			convexQueryClient,
+		},
+
+		Wrap: ({ children }) => (
+			<ConvexProvider client={convexQueryClient.convexClient}>
+				{children}
+			</ConvexProvider>
+		),
+	});
+
+	setupRouterSsrQueryIntegration({
+		router,
 		queryClient,
-	);
+	});
 
 	return router;
 }
