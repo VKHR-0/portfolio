@@ -13,6 +13,7 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "#/components/theme-provider";
+import { Toaster } from "#/components/ui/sonner";
 import { getAuth } from "#/functions/auth";
 import { getTheme } from "#/functions/theme";
 import { authClient } from "#/lib/auth-client";
@@ -42,11 +43,11 @@ export const Route = createRootRouteWithContext<{
 			},
 		],
 	}),
-	beforeLoad: async (ctx) => {
+	beforeLoad: async ({ context }) => {
 		const token = await getAuth();
-		if (token) {
-			ctx.context.convexQueryClient.serverHttpClient?.setAuth(token);
-		}
+
+		if (token) context.convexQueryClient.serverHttpClient?.setAuth(token);
+
 		return {
 			isAuthenticated: !!token,
 			token,
@@ -82,6 +83,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body>
 				{children}
+				<Toaster position="top-center" />
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",
