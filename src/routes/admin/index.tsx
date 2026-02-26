@@ -1,6 +1,4 @@
-import { convexQuery } from "@convex-dev/react-query";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -9,28 +7,37 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { getCurrentUser } from "#/functions/auth";
 import { authClient } from "#/lib/auth-client";
-import { api } from "../../../convex/_generated/api";
+import { isAuthError } from "#/lib/auth-server";
 
 export const Route = createFileRoute("/admin/")({
 	component: RouteComponent,
-	loader: async ({ context }) => {
-		await context.convexQueryClient.queryClient.ensureQueryData(
-			convexQuery(api.auth.getCurrentUser),
-		);
+	loader: async ({ location }) => {
+		try {
+			return await getCurrentUser();
+		} catch (error) {
+			if (isAuthError(error)) {
+				throw redirect({
+					to: "/admin/login",
+					search: {
+						redirect: location.href,
+					},
+				});
+			}
+
+			throw error;
+		}
 	},
 });
 
 function RouteComponent() {
 	const navigate = useNavigate();
-
-	const { data: user } = useSuspenseQuery(
-		convexQuery(api.auth.getCurrentUser, {}),
-	);
+	const user = Route.useLoaderData();
 
 	return (
-		<main className="mx-auto flex min-h-screen w-full max-w-3xl items-center px-4 py-12">
-			<Card className="w-full">
+		<section className="grid w-full place-items-center">
+			<Card className="w-full max-w-3xl">
 				<CardHeader>
 					<CardTitle>Admin Profile</CardTitle>
 					<CardDescription>
@@ -77,6 +84,6 @@ function RouteComponent() {
 					</Button>
 				</CardContent>
 			</Card>
-		</main>
+		</section>
 	);
 }

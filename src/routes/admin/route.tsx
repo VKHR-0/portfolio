@@ -14,5 +14,13 @@ export const Route = createFileRoute("/admin")({
 			});
 		}
 	},
-	component: () => <Outlet />,
+	component: AdminLayout,
 });
+
+function AdminLayout() {
+	return (
+		<main className="mx-auto flex min-h-screen w-full">
+			<Outlet />
+		</main>
+	);
+}

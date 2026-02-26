@@ -71,8 +71,8 @@ function RouteComponent() {
 	});
 
 	return (
-		<main className="flex min-h-screen items-center justify-center bg-linear-to-b from-background to-muted/40 px-4 py-12">
-			<Card className="w-full max-w-md gap-4">
+		<section className="grid w-full place-items-center">
+			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle>Admin Login</CardTitle>
 					<CardDescription>
@@ -176,6 +176,6 @@ function RouteComponent() {
 					</form.Subscribe>
 				</CardFooter>
 			</Card>
-		</main>
+		</section>
 	);
 }

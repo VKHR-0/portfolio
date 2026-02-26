@@ -13,9 +13,9 @@ export const isAuthError = (error: unknown) => {
 export const {
 	handler,
 	getToken,
-	fetchAuthQuery,
-	fetchAuthMutation,
-	fetchAuthAction,
+	fetchAuthQuery: convexAuthQuery,
+	fetchAuthMutation: convexAuthMutation,
+	fetchAuthAction: convexAuthAction,
 } = convexBetterAuthReactStart({
 	convexUrl: env.VITE_CONVEX_URL,
 	convexSiteUrl: env.VITE_CONVEX_SITE_URL,

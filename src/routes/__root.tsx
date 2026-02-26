@@ -14,6 +14,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "#/components/theme-provider";
 import { Toaster } from "#/components/ui/sonner";
+import { TooltipProvider } from "#/components/ui/tooltip";
 import { getAuth } from "#/functions/auth";
 import { getTheme } from "#/functions/theme";
 import { authClient } from "#/lib/auth-client";
@@ -67,9 +68,11 @@ function RootComponent() {
 			initialToken={context.token}
 		>
 			<ThemeProvider theme={theme}>
-				<RootDocument>
-					<Outlet />
-				</RootDocument>
+				<TooltipProvider>
+					<RootDocument>
+						<Outlet />
+					</RootDocument>
+				</TooltipProvider>
 			</ThemeProvider>
 		</ConvexBetterAuthProvider>
 	);
