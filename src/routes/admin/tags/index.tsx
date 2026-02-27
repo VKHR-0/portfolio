@@ -38,14 +38,14 @@ function RouteComponent() {
 	const tags = result?.page ?? [];
 
 	return (
-		<section className="w-full p-4">
-			<Card>
+		<section className="flex min-h-full w-full p-4">
+			<Card className="flex-1">
 				<CardHeader>
 					<CardTitle>Tags</CardTitle>
 					<CardDescription>Manage post tags.</CardDescription>
 				</CardHeader>
 
-				<CardContent>
+				<CardContent className="flex-1">
 					<Table>
 						<TableHeader>
 							<TableRow>
