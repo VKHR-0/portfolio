@@ -5,6 +5,8 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
+import { api } from "convex/_generated/api";
+import { useQuery } from "convex/react";
 import {
 	Sidebar,
 	SidebarContent,
@@ -17,6 +19,10 @@ import {
 	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarMenuSkeleton,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
 	SidebarProvider,
 	SidebarTrigger,
 } from "#/components/ui/sidebar";
@@ -39,6 +45,8 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminLayout() {
+	const recentPosts = useQuery(api.adminSidebar.listRecentPosts, { limit: 5 });
+
 	return (
 		<SidebarProvider>
 			<Sidebar collapsible="icon" variant="floating">
@@ -74,6 +82,31 @@ function AdminLayout() {
 										<span className="sr-only">Create post</span>
 									</SidebarMenuAction>
 								</SidebarMenuItem>
+								{recentPosts === undefined && (
+									<SidebarMenuSkeleton className="px-2" showIcon />
+								)}
+								{recentPosts?.length === 0 && (
+									<SidebarMenuSub>
+										<SidebarMenuSubItem>
+											<SidebarMenuSubButton>
+												<span>No recent posts yet</span>
+											</SidebarMenuSubButton>
+										</SidebarMenuSubItem>
+									</SidebarMenuSub>
+								)}
+								{recentPosts && recentPosts.length > 0 && (
+									<SidebarMenuSub>
+										{recentPosts.map((post) => (
+											<SidebarMenuSubItem key={post._id}>
+												<SidebarMenuSubButton
+													render={<Link to="/admin/posts" />}
+												>
+													<span>{post.title}</span>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+										))}
+									</SidebarMenuSub>
+								)}
 								<SidebarMenuItem>
 									<SidebarMenuButton render={<Link to="/admin/projects" />}>
 										<span>Projects</span>
