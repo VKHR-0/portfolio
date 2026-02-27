@@ -1,4 +1,4 @@
-import { IconSettings } from "@tabler/icons-react";
+import { IconPlus, IconSettings } from "@tabler/icons-react";
 import {
 	createFileRoute,
 	Link,
@@ -9,8 +9,12 @@ import {
 	Sidebar,
 	SidebarContent,
 	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
+	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarProvider,
@@ -53,7 +57,83 @@ function AdminLayout() {
 						/>
 					</div>
 				</SidebarHeader>
-				<SidebarContent>Content</SidebarContent>
+				<SidebarContent>
+					<SidebarGroup>
+						<SidebarGroupLabel>Content</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								<SidebarMenuItem>
+									<SidebarMenuButton render={<Link to="/admin/posts" />}>
+										<span>Posts</span>
+									</SidebarMenuButton>
+									<SidebarMenuAction
+										render={<Link to="/admin/posts/new" />}
+										title="Create post"
+									>
+										<IconPlus />
+										<span className="sr-only">Create post</span>
+									</SidebarMenuAction>
+								</SidebarMenuItem>
+								<SidebarMenuItem>
+									<SidebarMenuButton render={<Link to="/admin/projects" />}>
+										<span>Projects</span>
+									</SidebarMenuButton>
+									<SidebarMenuAction
+										render={<Link to="/admin/projects/new" />}
+										title="Create project"
+									>
+										<IconPlus />
+										<span className="sr-only">Create project</span>
+									</SidebarMenuAction>
+								</SidebarMenuItem>
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+
+					<SidebarGroup>
+						<SidebarGroupLabel>Taxonomy</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								<SidebarMenuItem>
+									<SidebarMenuButton render={<Link to="/admin/tags" />}>
+										<span>Tags</span>
+									</SidebarMenuButton>
+									<SidebarMenuAction
+										render={<Link to="/admin/tags/new" />}
+										title="Create tag"
+									>
+										<IconPlus />
+										<span className="sr-only">Create tag</span>
+									</SidebarMenuAction>
+								</SidebarMenuItem>
+								<SidebarMenuItem>
+									<SidebarMenuButton render={<Link to="/admin/series" />}>
+										<span>Series</span>
+									</SidebarMenuButton>
+									<SidebarMenuAction
+										render={<Link to="/admin/series/new" />}
+										title="Create series"
+									>
+										<IconPlus />
+										<span className="sr-only">Create series</span>
+									</SidebarMenuAction>
+								</SidebarMenuItem>
+								<SidebarMenuItem>
+									<SidebarMenuButton render={<Link to="/admin/categories" />}>
+										<span>Categories</span>
+									</SidebarMenuButton>
+									<SidebarMenuAction
+										render={<Link to="/admin/categories/new" />}
+										title="Create category"
+									>
+										<IconPlus />
+										<span className="sr-only">Create category</span>
+									</SidebarMenuAction>
+								</SidebarMenuItem>
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				</SidebarContent>
 				<SidebarFooter>
 					<SidebarMenu>
 						<SidebarMenuItem>
