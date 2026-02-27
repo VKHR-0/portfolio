@@ -56,6 +56,9 @@ function AdminLayout() {
 	const recentPosts = useQuery(api.functions.posts.listRecentPosts, {
 		limit: 5,
 	});
+	const recentProjects = useQuery(api.functions.projects.listRecentProjects, {
+		limit: 5,
+	});
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
@@ -143,6 +146,32 @@ function AdminLayout() {
 										<span className="sr-only">Create project</span>
 									</SidebarMenuAction>
 								</SidebarMenuItem>
+								{recentProjects === undefined && (
+									<SidebarMenuSkeleton className="px-2" showIcon />
+								)}
+								{recentProjects?.length === 0 && (
+									<SidebarMenuSub>
+										<SidebarMenuSubItem>
+											<SidebarMenuSubButton>
+												<span>No recent projects yet</span>
+											</SidebarMenuSubButton>
+										</SidebarMenuSubItem>
+									</SidebarMenuSub>
+								)}
+								{recentProjects && recentProjects.length > 0 && (
+									<SidebarMenuSub>
+										{recentProjects.map((project) => (
+											<SidebarMenuSubItem key={project._id}>
+												<SidebarMenuSubButton
+													isActive={pathname.startsWith("/admin/projects")}
+													render={<Link to="/admin/projects" />}
+												>
+													<span>{project.title}</span>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+										))}
+									</SidebarMenuSub>
+								)}
 							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
