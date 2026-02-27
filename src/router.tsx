@@ -1,9 +1,27 @@
 import { ConvexQueryClient } from "@convex-dev/react-query";
 import { QueryClient } from "@tanstack/react-query";
-import { createRouter } from "@tanstack/react-router";
+import { createRouteMask, createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
 import { routeTree } from "./routeTree.gen";
+
+const createTagMask = createRouteMask({
+	routeTree,
+	from: "/admin/tags/new",
+	to: "/admin/tags",
+});
+
+const createSeriesMask = createRouteMask({
+	routeTree,
+	from: "/admin/series/new",
+	to: "/admin/series",
+});
+
+const createCategoryMask = createRouteMask({
+	routeTree,
+	from: "/admin/categories/new",
+	to: "/admin/categories",
+});
 
 export function getRouter() {
 	const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
@@ -27,6 +45,7 @@ export function getRouter() {
 
 	const router = createRouter({
 		routeTree,
+		routeMasks: [createTagMask, createSeriesMask, createCategoryMask],
 
 		scrollRestoration: true,
 		defaultPreload: "intent",
