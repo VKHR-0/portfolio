@@ -1,4 +1,11 @@
-import { IconPlus, IconSettings } from "@tabler/icons-react";
+import {
+	IconBriefcase,
+	IconFileText,
+	IconLayoutSidebar,
+	IconPlus,
+	IconSettings,
+	IconTag,
+} from "@tabler/icons-react";
 import {
 	createFileRoute,
 	Link,
@@ -72,6 +79,7 @@ function AdminLayout() {
 							<SidebarMenu>
 								<SidebarMenuItem>
 									<SidebarMenuButton render={<Link to="/admin/posts" />}>
+										<IconFileText />
 										<span>Posts</span>
 									</SidebarMenuButton>
 									<SidebarMenuAction
@@ -109,6 +117,7 @@ function AdminLayout() {
 								)}
 								<SidebarMenuItem>
 									<SidebarMenuButton render={<Link to="/admin/projects" />}>
+										<IconBriefcase />
 										<span>Projects</span>
 									</SidebarMenuButton>
 									<SidebarMenuAction
@@ -129,6 +138,7 @@ function AdminLayout() {
 							<SidebarMenu>
 								<SidebarMenuItem>
 									<SidebarMenuButton render={<Link to="/admin/tags" />}>
+										<IconTag />
 										<span>Tags</span>
 									</SidebarMenuButton>
 									<SidebarMenuAction
@@ -141,6 +151,7 @@ function AdminLayout() {
 								</SidebarMenuItem>
 								<SidebarMenuItem>
 									<SidebarMenuButton render={<Link to="/admin/series" />}>
+										<IconLayoutSidebar />
 										<span>Series</span>
 									</SidebarMenuButton>
 									<SidebarMenuAction
@@ -153,6 +164,7 @@ function AdminLayout() {
 								</SidebarMenuItem>
 								<SidebarMenuItem>
 									<SidebarMenuButton render={<Link to="/admin/categories" />}>
+										<IconLayoutSidebar />
 										<span>Categories</span>
 									</SidebarMenuButton>
 									<SidebarMenuAction
