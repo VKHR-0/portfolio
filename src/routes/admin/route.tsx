@@ -78,7 +78,10 @@ function AdminLayout() {
 						<SidebarGroupContent>
 							<SidebarMenu>
 								<SidebarMenuItem>
-									<SidebarMenuButton render={<Link to="/admin/posts" />}>
+									<SidebarMenuButton
+										tooltip="Posts"
+										render={<Link to="/admin/posts" />}
+									>
 										<IconFileText />
 										<span>Posts</span>
 									</SidebarMenuButton>
@@ -116,7 +119,10 @@ function AdminLayout() {
 									</SidebarMenuSub>
 								)}
 								<SidebarMenuItem>
-									<SidebarMenuButton render={<Link to="/admin/projects" />}>
+									<SidebarMenuButton
+										tooltip="Projects"
+										render={<Link to="/admin/projects" />}
+									>
 										<IconBriefcase />
 										<span>Projects</span>
 									</SidebarMenuButton>
@@ -137,7 +143,10 @@ function AdminLayout() {
 						<SidebarGroupContent>
 							<SidebarMenu>
 								<SidebarMenuItem>
-									<SidebarMenuButton render={<Link to="/admin/tags" />}>
+									<SidebarMenuButton
+										tooltip="Tags"
+										render={<Link to="/admin/tags" />}
+									>
 										<IconTag />
 										<span>Tags</span>
 									</SidebarMenuButton>
@@ -150,7 +159,10 @@ function AdminLayout() {
 									</SidebarMenuAction>
 								</SidebarMenuItem>
 								<SidebarMenuItem>
-									<SidebarMenuButton render={<Link to="/admin/series" />}>
+									<SidebarMenuButton
+										tooltip="Series"
+										render={<Link to="/admin/series" />}
+									>
 										<IconLayoutSidebar />
 										<span>Series</span>
 									</SidebarMenuButton>
@@ -163,7 +175,10 @@ function AdminLayout() {
 									</SidebarMenuAction>
 								</SidebarMenuItem>
 								<SidebarMenuItem>
-									<SidebarMenuButton render={<Link to="/admin/categories" />}>
+									<SidebarMenuButton
+										tooltip="Categories"
+										render={<Link to="/admin/categories" />}
+									>
 										<IconLayoutSidebar />
 										<span>Categories</span>
 									</SidebarMenuButton>
