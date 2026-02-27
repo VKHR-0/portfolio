@@ -11,6 +11,7 @@ import {
 	Link,
 	Outlet,
 	redirect,
+	useRouterState,
 } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
@@ -53,6 +54,9 @@ export const Route = createFileRoute("/admin")({
 
 function AdminLayout() {
 	const recentPosts = useQuery(api.adminSidebar.listRecentPosts, { limit: 5 });
+	const pathname = useRouterState({
+		select: (state) => state.location.pathname,
+	});
 
 	return (
 		<SidebarProvider>
@@ -79,6 +83,7 @@ function AdminLayout() {
 							<SidebarMenu>
 								<SidebarMenuItem>
 									<SidebarMenuButton
+										isActive={pathname.startsWith("/admin/posts")}
 										tooltip="Posts"
 										render={<Link to="/admin/posts" />}
 									>
@@ -110,6 +115,7 @@ function AdminLayout() {
 										{recentPosts.map((post) => (
 											<SidebarMenuSubItem key={post._id}>
 												<SidebarMenuSubButton
+													isActive={pathname.startsWith("/admin/posts")}
 													render={<Link to="/admin/posts" />}
 												>
 													<span>{post.title}</span>
@@ -120,6 +126,7 @@ function AdminLayout() {
 								)}
 								<SidebarMenuItem>
 									<SidebarMenuButton
+										isActive={pathname.startsWith("/admin/projects")}
 										tooltip="Projects"
 										render={<Link to="/admin/projects" />}
 									>
@@ -144,6 +151,7 @@ function AdminLayout() {
 							<SidebarMenu>
 								<SidebarMenuItem>
 									<SidebarMenuButton
+										isActive={pathname.startsWith("/admin/tags")}
 										tooltip="Tags"
 										render={<Link to="/admin/tags" />}
 									>
@@ -160,6 +168,7 @@ function AdminLayout() {
 								</SidebarMenuItem>
 								<SidebarMenuItem>
 									<SidebarMenuButton
+										isActive={pathname.startsWith("/admin/series")}
 										tooltip="Series"
 										render={<Link to="/admin/series" />}
 									>
@@ -176,6 +185,7 @@ function AdminLayout() {
 								</SidebarMenuItem>
 								<SidebarMenuItem>
 									<SidebarMenuButton
+										isActive={pathname.startsWith("/admin/categories")}
 										tooltip="Categories"
 										render={<Link to="/admin/categories" />}
 									>
