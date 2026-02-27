@@ -3,7 +3,7 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { Sidebar } from "#/components/sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
-import { getCurrentUser } from "#/functions/auth";
+import { getCurrentUserId } from "#/functions/auth";
 
 export const Route = createFileRoute("/admin")({
 	beforeLoad: async ({ context, location }) => {
@@ -20,25 +20,25 @@ export const Route = createFileRoute("/admin")({
 		}
 	},
 	loader: async ({ context }) => {
-		const user = await getCurrentUser();
+		const id = await getCurrentUserId();
 
 		await Promise.all([
 			context.queryClient.ensureQueryData(
 				convexQuery(api.functions.posts.listRecentPosts, {
 					limit: 5,
-					authorId: user._id,
+					authorId: id,
 				}),
 			),
 			context.queryClient.ensureQueryData(
 				convexQuery(api.functions.projects.listRecentProjects, {
 					limit: 5,
-					authorId: user._id,
+					authorId: id,
 				}),
 			),
 		]);
 
 		return {
-			authorId: user._id,
+			authorId: id,
 		};
 	},
 	component: AdminLayout,
