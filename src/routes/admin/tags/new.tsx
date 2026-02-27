@@ -21,17 +21,14 @@ import {
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import { Spinner } from "#/components/ui/spinner";
-import { toSlug } from "#/lib/slug";
+import { SLUG_PATTERN, toSlug } from "#/lib/slug";
 
 const createTagSchema = z.object({
 	name: z.string().trim().min(1, "Name is required."),
 	slug: z
 		.string()
 		.trim()
-		.regex(
-			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-			"Use lowercase letters, numbers, and hyphens.",
-		)
+		.regex(SLUG_PATTERN, "Use lowercase letters, numbers, and hyphens.")
 		.or(z.literal("")),
 });
 
@@ -146,8 +143,9 @@ function RouteComponent() {
 												field.handleChange(toSlug(field.state.value));
 											}}
 											onChange={(event) => {
-												setIsSlugManuallyEdited(true);
-												field.handleChange(event.target.value);
+												const nextSlug = event.target.value;
+												setIsSlugManuallyEdited(nextSlug.length > 0);
+												field.handleChange(nextSlug);
 											}}
 											aria-invalid={isInvalid}
 										/>
