@@ -36,6 +36,7 @@ function RouteComponent() {
 	});
 
 	const categories = result?.page ?? [];
+	const pageLabel = `Page ${cursors.length}`;
 
 	return (
 		<section className="flex min-h-full w-full p-4">
@@ -58,13 +59,23 @@ function RouteComponent() {
 						<TableBody>
 							{result === undefined && (
 								<TableRow>
-									<TableCell colSpan={4}>Loading categories...</TableCell>
+									<TableCell
+										colSpan={4}
+										className="h-24 text-center text-muted-foreground"
+									>
+										Loading categories...
+									</TableCell>
 								</TableRow>
 							)}
 
 							{result && categories.length === 0 && (
 								<TableRow>
-									<TableCell colSpan={4}>No categories found.</TableCell>
+									<TableCell
+										colSpan={4}
+										className="h-24 text-center text-muted-foreground"
+									>
+										No categories found.
+									</TableCell>
 								</TableRow>
 							)}
 
@@ -91,10 +102,12 @@ function RouteComponent() {
 						onClick={() => {
 							setCursors((prev) => prev.slice(0, -1));
 						}}
-						disabled={cursors.length === 1}
+						disabled={cursors.length === 1 || result === undefined}
 					>
 						Previous
 					</Button>
+
+					<span className="text-muted-foreground text-sm">{pageLabel}</span>
 
 					<Button
 						type="button"
