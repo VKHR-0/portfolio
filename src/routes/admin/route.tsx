@@ -208,6 +208,7 @@ function AdminLayout() {
 					<SidebarMenu>
 						<SidebarMenuItem>
 							<SidebarMenuButton
+								isActive={pathname.startsWith("/admin/settings")}
 								tooltip="Settings"
 								render={<Link to="/admin/settings" />}
 							>
