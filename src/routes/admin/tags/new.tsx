@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useMutation } from "convex/react";
 import { useState } from "react";
+import { SLUG_PATTERN, toSlug } from "shared/slug";
 import { toast } from "sonner";
 import z from "zod";
 import { Button } from "#/components/ui/button";
@@ -22,7 +23,6 @@ import {
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import { Spinner } from "#/components/ui/spinner";
-import { SLUG_PATTERN, toSlug } from "#/lib/slug";
 
 const createTagSchema = z.object({
 	name: z.string().trim().min(1, "Name is required."),

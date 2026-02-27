@@ -1,5 +1,6 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
+import { toSlug } from "../../shared/slug";
 import { mutation, query } from "../_generated/server";
 
 export const list = query({
@@ -13,15 +14,6 @@ export const list = query({
 	},
 });
 
-function normalizeSlug(value: string) {
-	return value
-		.toLowerCase()
-		.trim()
-		.replace(/[^a-z0-9\s-]/g, "")
-		.replace(/\s+/g, "-")
-		.replace(/-+/g, "-");
-}
-
 export const createCategory = mutation({
 	args: {
 		name: v.string(),
@@ -30,7 +22,7 @@ export const createCategory = mutation({
 	},
 	handler: async (ctx, args) => {
 		const name = args.name.trim();
-		const slug = normalizeSlug(args.slug?.trim() || name);
+		const slug = toSlug(args.slug?.trim() || name);
 		const description = args.description?.trim() || undefined;
 
 		if (!name) {
