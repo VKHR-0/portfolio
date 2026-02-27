@@ -14,7 +14,7 @@ export default defineSchema({
 			v.literal("archived"),
 		),
 
-		authorId: v.id("user"),
+		authorId: v.string(),
 
 		repositoryUrl: v.optional(v.string()),
 		demoUrl: v.optional(v.string()),
@@ -38,7 +38,7 @@ export default defineSchema({
 		categoryId: v.optional(v.id("categories")),
 		seriesId: v.optional(v.id("series")),
 
-		authorId: v.id("user"),
+		authorId: v.string(),
 
 		tags: v.array(v.id("tags")),
 	})

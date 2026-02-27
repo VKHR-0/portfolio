@@ -4,12 +4,14 @@ import { query } from "../_generated/server";
 export const listRecentProjects = query({
 	args: {
 		limit: v.optional(v.number()),
+		authorId: v.string(),
 	},
 	handler: async (ctx, args) => {
 		const limit = Math.min(Math.max(args.limit ?? 5, 1), 20);
 		const projects = await ctx.db
 			.query("projects")
 			.withIndex("by_creation_time")
+			.filter((q) => q.eq(q.field("authorId"), args.authorId))
 			.order("desc")
 			.take(limit);
 

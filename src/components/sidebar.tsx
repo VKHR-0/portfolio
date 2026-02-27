@@ -10,6 +10,7 @@ import {
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
+import type { FunctionArgs } from "convex/server";
 import { Suspense } from "react";
 import {
 	Sidebar,
@@ -30,7 +31,11 @@ import {
 	SidebarTrigger,
 } from "#/components/ui/sidebar";
 
-function AdminSidebar() {
+type SidebarAuthorId = FunctionArgs<
+	typeof api.functions.posts.listRecentPosts
+>["authorId"];
+
+function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
@@ -78,6 +83,7 @@ function AdminSidebar() {
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
 								<RecentPostsMenu
+									authorId={authorId}
 									isActive={pathname.startsWith("/admin/posts")}
 								/>
 							</Suspense>
@@ -103,6 +109,7 @@ function AdminSidebar() {
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
 								<RecentProjectsMenu
+									authorId={authorId}
 									isActive={pathname.startsWith("/admin/projects")}
 								/>
 							</Suspense>
@@ -187,9 +194,15 @@ function AdminSidebar() {
 	);
 }
 
-function RecentPostsMenu({ isActive }: { isActive: boolean }) {
+function RecentPostsMenu({
+	authorId,
+	isActive,
+}: {
+	authorId: SidebarAuthorId;
+	isActive: boolean;
+}) {
 	const { data: recentPosts } = useSuspenseQuery(
-		convexQuery(api.functions.posts.listRecentPosts, { limit: 5 }),
+		convexQuery(api.functions.posts.listRecentPosts, { authorId, limit: 5 }),
 	);
 
 	if (recentPosts.length === 0) {
@@ -220,9 +233,18 @@ function RecentPostsMenu({ isActive }: { isActive: boolean }) {
 	);
 }
 
-function RecentProjectsMenu({ isActive }: { isActive: boolean }) {
+function RecentProjectsMenu({
+	authorId,
+	isActive,
+}: {
+	authorId: SidebarAuthorId;
+	isActive: boolean;
+}) {
 	const { data: recentProjects } = useSuspenseQuery(
-		convexQuery(api.functions.projects.listRecentProjects, { limit: 5 }),
+		convexQuery(api.functions.projects.listRecentProjects, {
+			authorId,
+			limit: 5,
+		}),
 	);
 
 	if (recentProjects.length === 0) {

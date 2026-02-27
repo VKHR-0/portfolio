@@ -11,3 +11,10 @@ export const getCurrentUser = createServerFn({ method: "GET" }).handler(
 		return await convexAuthQuery(api.auth.getCurrentUser, {});
 	},
 );
+
+export const getCurrentUserId = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const user = await convexAuthQuery(api.auth.getCurrentUser, {});
+		return user?._id ?? null;
+	},
+);

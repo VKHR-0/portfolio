@@ -16,12 +16,14 @@ export const list = query({
 export const listRecentPosts = query({
 	args: {
 		limit: v.optional(v.number()),
+		authorId: v.string(),
 	},
 	handler: async (ctx, args) => {
 		const limit = Math.min(Math.max(args.limit ?? 5, 1), 20);
 		const posts = await ctx.db
 			.query("posts")
 			.withIndex("by_creation_time")
+			.filter((q) => q.eq(q.field("authorId"), args.authorId))
 			.order("desc")
 			.take(limit);
 
