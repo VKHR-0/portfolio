@@ -1,9 +1,117 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { api } from "convex/_generated/api";
+import { useQuery } from "convex/react";
+import { useState } from "react";
+import { Button } from "#/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "#/components/ui/card";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "#/components/ui/table";
 
 export const Route = createFileRoute("/admin/series/")({
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	return <div>Hello "/admin/series/"!</div>;
+	const [cursors, setCursors] = useState<Array<string | null>>([null]);
+	const currentCursor = cursors[cursors.length - 1];
+
+	const result = useQuery(api.functions.series.list, {
+		paginationOpts: {
+			numItems: 10,
+			cursor: currentCursor,
+		},
+	});
+
+	const series = result?.page ?? [];
+
+	return (
+		<section className="flex min-h-full w-full p-4">
+			<Card className="flex-1">
+				<CardHeader>
+					<CardTitle>Series</CardTitle>
+					<CardDescription>Manage post series.</CardDescription>
+				</CardHeader>
+
+				<CardContent className="flex-1">
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Name</TableHead>
+								<TableHead>Slug</TableHead>
+								<TableHead>Description</TableHead>
+								<TableHead>Created</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{result === undefined && (
+								<TableRow>
+									<TableCell colSpan={4}>Loading series...</TableCell>
+								</TableRow>
+							)}
+
+							{result && series.length === 0 && (
+								<TableRow>
+									<TableCell colSpan={4}>No series found.</TableCell>
+								</TableRow>
+							)}
+
+							{series.map((item) => (
+								<TableRow key={item._id}>
+									<TableCell className="font-medium">{item.name}</TableCell>
+									<TableCell>{item.slug}</TableCell>
+									<TableCell className="max-w-[360px] truncate text-muted-foreground">
+										{item.description || "-"}
+									</TableCell>
+									<TableCell>
+										{new Date(item._creationTime).toLocaleString()}
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				</CardContent>
+
+				<CardFooter className="justify-between">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => {
+							setCursors((prev) => prev.slice(0, -1));
+						}}
+						disabled={cursors.length === 1}
+					>
+						Previous
+					</Button>
+
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => {
+							if (!result?.continueCursor) {
+								return;
+							}
+
+							setCursors((prev) => [...prev, result.continueCursor]);
+						}}
+						disabled={result === undefined || result.isDone}
+					>
+						Next
+					</Button>
+				</CardFooter>
+			</Card>
+		</section>
+	);
 }
