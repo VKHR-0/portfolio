@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useMutation } from "convex/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import z from "zod";
 import { Button } from "#/components/ui/button";
 import {
@@ -40,7 +41,6 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const createTag = useMutation(api.functions.tags.createTag);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 
 	const form = useForm({
 		defaultValues: {
@@ -51,8 +51,6 @@ function RouteComponent() {
 			onSubmit: createTagSchema,
 		},
 		onSubmit: async ({ value }) => {
-			setError(null);
-
 			try {
 				await createTag({
 					name: value.name,
@@ -61,7 +59,7 @@ function RouteComponent() {
 
 				void navigate({ to: "/admin/tags" });
 			} catch (mutationError: unknown) {
-				setError(
+				toast.error(
 					mutationError instanceof Error
 						? mutationError.message
 						: "Unable to create tag.",
@@ -157,8 +155,6 @@ function RouteComponent() {
 							}}
 						</form.Field>
 					</FieldGroup>
-
-					{error ? <p className="text-destructive text-sm">{error}</p> : null}
 
 					<DialogFooter>
 						<form.Subscribe
