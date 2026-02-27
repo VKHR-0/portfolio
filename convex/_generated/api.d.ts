@@ -8,7 +8,7 @@
  * @module
  */
 
-import type * as adminSidebar from "../adminSidebar.js";
+import type * as adminSidebar from "../admin-sidebar.js";
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
 import type * as posts from "../posts.js";
