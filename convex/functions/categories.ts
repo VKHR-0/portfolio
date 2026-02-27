@@ -1,5 +1,17 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { mutation, query } from "../_generated/server";
+
+export const list = query({
+	args: { paginationOpts: paginationOptsValidator },
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query("categories")
+			.withIndex("by_creation_time")
+			.order("desc")
+			.paginate(args.paginationOpts);
+	},
+});
 
 function normalizeSlug(value: string) {
 	return value
