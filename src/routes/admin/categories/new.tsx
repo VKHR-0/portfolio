@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/categories/new")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const createCategory = useMutation(api.taxonomy.createCategory);
+	const createCategory = useMutation(api.functions.categories.createCategory);
 	const [name, setName] = useState("");
 	const [slug, setSlug] = useState("");
 	const [description, setDescription] = useState("");

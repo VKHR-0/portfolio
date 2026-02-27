@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/series/new")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const createSeries = useMutation(api.taxonomy.createSeries);
+	const createSeries = useMutation(api.functions.series.createSeries);
 	const [name, setName] = useState("");
 	const [slug, setSlug] = useState("");
 	const [description, setDescription] = useState("");

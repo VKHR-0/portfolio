@@ -19,7 +19,7 @@ export const Route = createFileRoute("/admin/tags/new")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const createTag = useMutation(api.taxonomy.createTag);
+	const createTag = useMutation(api.functions.tags.createTag);
 	const [name, setName] = useState("");
 	const [slug, setSlug] = useState("");
 	const [error, setError] = useState<string | null>(null);

@@ -53,7 +53,9 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminLayout() {
-	const recentPosts = useQuery(api.adminSidebar.listRecentPosts, { limit: 5 });
+	const recentPosts = useQuery(api.functions.posts.listRecentPosts, {
+		limit: 5,
+	});
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});

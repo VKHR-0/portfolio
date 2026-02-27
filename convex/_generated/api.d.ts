@@ -8,11 +8,13 @@
  * @module
  */
 
-import type * as adminSidebar from "../admin-sidebar.js";
 import type * as auth from "../auth.js";
+import type * as functions_categories from "../functions/categories.js";
+import type * as functions_general from "../functions/general.js";
+import type * as functions_posts from "../functions/posts.js";
+import type * as functions_series from "../functions/series.js";
+import type * as functions_tags from "../functions/tags.js";
 import type * as http from "../http.js";
-import type * as posts from "../posts.js";
-import type * as taxonomy from "../taxonomy.js";
 
 import type {
   ApiFromModules,
@@ -21,11 +23,13 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  adminSidebar: typeof adminSidebar;
   auth: typeof auth;
+  "functions/categories": typeof functions_categories;
+  "functions/general": typeof functions_general;
+  "functions/posts": typeof functions_posts;
+  "functions/series": typeof functions_series;
+  "functions/tags": typeof functions_tags;
   http: typeof http;
-  posts: typeof posts;
-  taxonomy: typeof taxonomy;
 }>;
 
 /**
