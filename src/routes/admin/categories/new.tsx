@@ -1,7 +1,9 @@
+import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useMutation } from "convex/react";
 import { useState } from "react";
+import z from "zod";
 import { Button } from "#/components/ui/button";
 import {
 	Dialog,
@@ -11,8 +13,29 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#/components/ui/dialog";
+import {
+	Field,
+	FieldError,
+	FieldGroup,
+	FieldLabel,
+} from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
+import { Spinner } from "#/components/ui/spinner";
 import { Textarea } from "#/components/ui/textarea";
+import { toSlug } from "#/lib/slug";
+
+const createCategorySchema = z.object({
+	name: z.string().trim().min(1, "Name is required."),
+	slug: z
+		.string()
+		.trim()
+		.regex(
+			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+			"Use lowercase letters, numbers, and hyphens.",
+		)
+		.or(z.literal("")),
+	description: z.string(),
+});
 
 export const Route = createFileRoute("/admin/categories/new")({
 	component: RouteComponent,
@@ -21,11 +44,38 @@ export const Route = createFileRoute("/admin/categories/new")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const createCategory = useMutation(api.functions.categories.createCategory);
-	const [name, setName] = useState("");
-	const [slug, setSlug] = useState("");
-	const [description, setDescription] = useState("");
+	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [isSaving, setIsSaving] = useState(false);
+
+	const form = useForm({
+		defaultValues: {
+			name: "",
+			slug: "",
+			description: "",
+		},
+		validators: {
+			onSubmit: createCategorySchema,
+		},
+		onSubmit: async ({ value }) => {
+			setError(null);
+
+			try {
+				await createCategory({
+					name: value.name,
+					slug: value.slug || undefined,
+					description: value.description || undefined,
+				});
+
+				void navigate({ to: "/admin/categories" });
+			} catch (mutationError: unknown) {
+				setError(
+					mutationError instanceof Error
+						? mutationError.message
+						: "Unable to create category.",
+				);
+			}
+		},
+	});
 
 	const closeModal = () => {
 		void navigate({ to: "/admin/categories" });
@@ -42,63 +92,143 @@ function RouteComponent() {
 				</DialogHeader>
 
 				<form
-					className="space-y-3"
+					className="space-y-4"
+					id="admin-create-category-form"
 					onSubmit={(event) => {
 						event.preventDefault();
-						setError(null);
-						setIsSaving(true);
-
-						createCategory({
-							name,
-							slug: slug || undefined,
-							description: description || undefined,
-						})
-							.then(() => {
-								void navigate({ to: "/admin/categories" });
-							})
-							.catch((mutationError: unknown) => {
-								setError(
-									mutationError instanceof Error
-										? mutationError.message
-										: "Unable to create category.",
-								);
-							})
-							.finally(() => {
-								setIsSaving(false);
-							});
+						event.stopPropagation();
+						void form.handleSubmit();
 					}}
 				>
-					<Input
-						autoFocus
-						placeholder="Name"
-						value={name}
-						onChange={(event) => setName(event.target.value)}
-						required
-					/>
-					<Input
-						placeholder="Slug (optional)"
-						value={slug}
-						onChange={(event) => setSlug(event.target.value)}
-					/>
-					<Textarea
-						placeholder="Description (optional)"
-						value={description}
-						onChange={(event) => setDescription(event.target.value)}
-					/>
+					<FieldGroup>
+						<form.Field name="name">
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+
+								return (
+									<Field data-invalid={isInvalid}>
+										<FieldLabel htmlFor={field.name}>Name</FieldLabel>
+										<Input
+											autoFocus
+											id={field.name}
+											name={field.name}
+											placeholder="Category name"
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(event) => {
+												const nextName = event.target.value;
+												field.handleChange(nextName);
+
+												if (!isSlugManuallyEdited) {
+													form.setFieldValue("slug", toSlug(nextName));
+												}
+											}}
+											aria-invalid={isInvalid}
+										/>
+										{isInvalid && (
+											<FieldError errors={field.state.meta.errors} />
+										)}
+									</Field>
+								);
+							}}
+						</form.Field>
+
+						<form.Field name="slug">
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+
+								return (
+									<Field data-invalid={isInvalid}>
+										<FieldLabel htmlFor={field.name}>Slug</FieldLabel>
+										<Input
+											id={field.name}
+											name={field.name}
+											placeholder="auto-generated"
+											value={field.state.value}
+											onBlur={() => {
+												field.handleBlur();
+												field.handleChange(toSlug(field.state.value));
+											}}
+											onChange={(event) => {
+												setIsSlugManuallyEdited(true);
+												field.handleChange(event.target.value);
+											}}
+											aria-invalid={isInvalid}
+										/>
+										{isInvalid && (
+											<FieldError errors={field.state.meta.errors} />
+										)}
+									</Field>
+								);
+							}}
+						</form.Field>
+
+						<form.Field name="description">
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+
+								return (
+									<Field data-invalid={isInvalid}>
+										<FieldLabel htmlFor={field.name}>Description</FieldLabel>
+										<Textarea
+											id={field.name}
+											name={field.name}
+											placeholder="Description (optional)"
+											value={field.state.value}
+											onBlur={field.handleBlur}
+											onChange={(event) =>
+												field.handleChange(event.target.value)
+											}
+											aria-invalid={isInvalid}
+										/>
+										{isInvalid && (
+											<FieldError errors={field.state.meta.errors} />
+										)}
+									</Field>
+								);
+							}}
+						</form.Field>
+					</FieldGroup>
+
 					{error ? <p className="text-destructive text-sm">{error}</p> : null}
 
 					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={closeModal}
-							disabled={isSaving}
+						<form.Subscribe
+							selector={(state) => ({
+								canSubmit: state.canSubmit,
+								isSubmitting: state.isSubmitting,
+							})}
 						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={isSaving || !name.trim()}>
-							{isSaving ? "Creating..." : "Create"}
-						</Button>
+							{({ canSubmit, isSubmitting }) => (
+								<>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={closeModal}
+										disabled={isSubmitting}
+									>
+										Cancel
+									</Button>
+									<Button
+										type="submit"
+										form="admin-create-category-form"
+										disabled={!canSubmit}
+									>
+										{isSubmitting ? (
+											<>
+												<Spinner />
+												Creating...
+											</>
+										) : (
+											<>Create</>
+										)}
+									</Button>
+								</>
+							)}
+						</form.Subscribe>
 					</DialogFooter>
 				</form>
 			</DialogContent>
