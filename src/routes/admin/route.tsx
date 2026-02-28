@@ -51,7 +51,7 @@ function AdminLayout() {
 		<SidebarProvider>
 			<Sidebar authorId={authorId} />
 
-			<main className="mx-auto flex min-h-screen w-full py-2 pr-2">
+			<main className="mx-auto flex min-h-screen w-full py-2 pr-2 pl-2 md:pl-0">
 				<Outlet />
 			</main>
 		</SidebarProvider>
