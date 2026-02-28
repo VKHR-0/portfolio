@@ -54,6 +54,7 @@ type PostMetadataFormValues = z.infer<typeof postMetadataSchema>;
 function RouteComponent() {
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 	const [isTagsPickerOpen, setIsTagsPickerOpen] = useState(false);
+	const [tagsQuery, setTagsQuery] = useState("");
 	const seriesResult = useQuery(api.functions.series.list, {
 		paginationOpts: {
 			numItems: 100,
@@ -95,6 +96,11 @@ function RouteComponent() {
 		value: tag._id,
 		label: tag.name,
 	}));
+
+	const isSeriesLoading = seriesResult === undefined;
+	const isCategoriesLoading = categoriesResult === undefined;
+	const isProjectsLoading = projectsResult === undefined;
+	const isTagsLoading = tagsResult === undefined;
 
 	const defaultValues: PostMetadataFormValues = {
 		title: "",
@@ -252,11 +258,12 @@ function RouteComponent() {
 										<ComboboxInput
 											id={field.name}
 											placeholder="Search series"
+											disabled={isSeriesLoading && seriesOptions.length === 0}
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
 											<ComboboxEmpty>
-												{seriesResult === undefined
+												{isSeriesLoading
 													? "Loading series..."
 													: "No series found."}
 											</ComboboxEmpty>
@@ -271,6 +278,9 @@ function RouteComponent() {
 											</ComboboxList>
 										</ComboboxContent>
 									</Combobox>
+									<p className="text-muted-foreground text-xs">
+										Optional. Link this post to a single series.
+									</p>
 								</Field>
 							);
 						}}
@@ -295,11 +305,14 @@ function RouteComponent() {
 										<ComboboxInput
 											id={field.name}
 											placeholder="Search categories"
+											disabled={
+												isCategoriesLoading && categoryOptions.length === 0
+											}
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
 											<ComboboxEmpty>
-												{categoriesResult === undefined
+												{isCategoriesLoading
 													? "Loading categories..."
 													: "No categories found."}
 											</ComboboxEmpty>
@@ -314,6 +327,9 @@ function RouteComponent() {
 											</ComboboxList>
 										</ComboboxContent>
 									</Combobox>
+									<p className="text-muted-foreground text-xs">
+										Optional. Use one category for primary classification.
+									</p>
 								</Field>
 							);
 						}}
@@ -338,11 +354,14 @@ function RouteComponent() {
 										<ComboboxInput
 											id={field.name}
 											placeholder="Search projects"
+											disabled={
+												isProjectsLoading && projectOptions.length === 0
+											}
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
 											<ComboboxEmpty>
-												{projectsResult === undefined
+												{isProjectsLoading
 													? "Loading projects..."
 													: "No projects found."}
 											</ComboboxEmpty>
@@ -357,6 +376,9 @@ function RouteComponent() {
 											</ComboboxList>
 										</ComboboxContent>
 									</Combobox>
+									<p className="text-muted-foreground text-xs">
+										Optional. Attach a related project.
+									</p>
 								</Field>
 							);
 						}}
@@ -393,36 +415,60 @@ function RouteComponent() {
 								</div>
 
 								{isTagsPickerOpen && (
-									<Combobox
-										multiple
-										items={tagOptions}
-										value={selectedTags}
-										onValueChange={(value) => {
-											field.handleChange(value.map((tag) => tag.value));
-										}}
-									>
-										<ComboboxInput
-											id={field.name}
-											placeholder="Search tags"
-											showClear={selectedTags.length > 0}
-										/>
-										<ComboboxContent>
-											<ComboboxEmpty>
-												{tagsResult === undefined
-													? "Loading tags..."
-													: "No tags found."}
-											</ComboboxEmpty>
-											<ComboboxList>
-												<ComboboxCollection>
-													{(item: { value: string; label: string }) => (
-														<ComboboxItem key={item.value} value={item}>
-															{item.label}
-														</ComboboxItem>
-													)}
-												</ComboboxCollection>
-											</ComboboxList>
-										</ComboboxContent>
-									</Combobox>
+									<>
+										<Combobox
+											multiple
+											items={tagOptions}
+											value={selectedTags}
+											inputValue={tagsQuery}
+											onInputValueChange={setTagsQuery}
+											onValueChange={(value) => {
+												field.handleChange(value.map((tag) => tag.value));
+												setTagsQuery("");
+											}}
+										>
+											<ComboboxInput
+												id={field.name}
+												placeholder="Search tags"
+												disabled={isTagsLoading && tagOptions.length === 0}
+												showClear={tagsQuery.length > 0}
+												onKeyDown={(event) => {
+													if (event.key === "Escape") {
+														event.preventDefault();
+														setIsTagsPickerOpen(false);
+														setTagsQuery("");
+													}
+												}}
+											/>
+											<ComboboxContent>
+												<ComboboxEmpty>
+													{isTagsLoading ? "Loading tags..." : "No tags found."}
+												</ComboboxEmpty>
+												<ComboboxList>
+													<ComboboxCollection>
+														{(item: { value: string; label: string }) => (
+															<ComboboxItem key={item.value} value={item}>
+																{item.label}
+															</ComboboxItem>
+														)}
+													</ComboboxCollection>
+												</ComboboxList>
+											</ComboboxContent>
+										</Combobox>
+										<div className="flex items-center justify-end">
+											<Button
+												type="button"
+												size="xs"
+												variant="outline"
+												onClick={() => {
+													setIsTagsPickerOpen(false);
+													setTagsQuery("");
+												}}
+											>
+												Done
+											</Button>
+										</div>
+									</>
 								)}
 
 								{selectedTags.length > 0 && (
