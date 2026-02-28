@@ -3,6 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouteMask, createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
+import { env } from "./env";
 import { routeTree } from "./routeTree.gen";
 
 const createTagMask = createRouteMask({
@@ -24,12 +25,7 @@ const createCategoryMask = createRouteMask({
 });
 
 export function getRouter() {
-	const CONVEX_URL = import.meta.env.VITE_CONVEX_URL;
-	if (!CONVEX_URL) {
-		console.error("missing envar CONVEX_URL");
-	}
-
-	const convexQueryClient = new ConvexQueryClient(CONVEX_URL!, {
+	const convexQueryClient = new ConvexQueryClient(env.VITE_CONVEX_URL, {
 		expectAuth: true,
 	});
 
