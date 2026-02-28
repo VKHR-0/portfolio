@@ -50,6 +50,49 @@ export const createSeries = mutation({
 	},
 });
 
+export const updateSeries = mutation({
+	args: {
+		id: v.id("series"),
+		name: v.string(),
+		slug: v.optional(v.string()),
+		description: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const existingSeries = await ctx.db.get(args.id);
+
+		if (!existingSeries) {
+			throw new Error("Series not found.");
+		}
+
+		const name = args.name.trim();
+		const slug = toSlug(args.slug?.trim() || name);
+		const description = args.description?.trim() || undefined;
+
+		if (!name) {
+			throw new Error("Name is required.");
+		}
+
+		if (!slug) {
+			throw new Error("Slug is required.");
+		}
+
+		const conflictingSeries = await ctx.db
+			.query("series")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (conflictingSeries && conflictingSeries._id !== args.id) {
+			throw new Error("Series with this slug already exists.");
+		}
+
+		await ctx.db.patch(args.id, {
+			name,
+			slug,
+			description,
+		});
+	},
+});
+
 export const deleteSeries = mutation({
 	args: {
 		id: v.id("series"),

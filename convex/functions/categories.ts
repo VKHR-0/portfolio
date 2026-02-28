@@ -50,6 +50,49 @@ export const createCategory = mutation({
 	},
 });
 
+export const updateCategory = mutation({
+	args: {
+		id: v.id("categories"),
+		name: v.string(),
+		slug: v.optional(v.string()),
+		description: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const existingCategory = await ctx.db.get(args.id);
+
+		if (!existingCategory) {
+			throw new Error("Category not found.");
+		}
+
+		const name = args.name.trim();
+		const slug = toSlug(args.slug?.trim() || name);
+		const description = args.description?.trim() || undefined;
+
+		if (!name) {
+			throw new Error("Name is required.");
+		}
+
+		if (!slug) {
+			throw new Error("Slug is required.");
+		}
+
+		const conflictingCategory = await ctx.db
+			.query("categories")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (conflictingCategory && conflictingCategory._id !== args.id) {
+			throw new Error("Category with this slug already exists.");
+		}
+
+		await ctx.db.patch(args.id, {
+			name,
+			slug,
+			description,
+		});
+	},
+});
+
 export const deleteCategory = mutation({
 	args: {
 		id: v.id("categories"),

@@ -47,6 +47,46 @@ export const createTag = mutation({
 	},
 });
 
+export const updateTag = mutation({
+	args: {
+		id: v.id("tags"),
+		name: v.string(),
+		slug: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const existingTag = await ctx.db.get(args.id);
+
+		if (!existingTag) {
+			throw new Error("Tag not found.");
+		}
+
+		const name = args.name.trim();
+		const slug = toSlug(args.slug?.trim() || name);
+
+		if (!name) {
+			throw new Error("Name is required.");
+		}
+
+		if (!slug) {
+			throw new Error("Slug is required.");
+		}
+
+		const conflictingTag = await ctx.db
+			.query("tags")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (conflictingTag && conflictingTag._id !== args.id) {
+			throw new Error("Tag with this slug already exists.");
+		}
+
+		await ctx.db.patch(args.id, {
+			name,
+			slug,
+		});
+	},
+});
+
 export const deleteTag = mutation({
 	args: {
 		id: v.id("tags"),
