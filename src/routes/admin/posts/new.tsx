@@ -1,4 +1,4 @@
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconX } from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
@@ -53,6 +53,7 @@ type PostMetadataFormValues = z.infer<typeof postMetadataSchema>;
 
 function RouteComponent() {
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+	const [isTagsPickerOpen, setIsTagsPickerOpen] = useState(false);
 	const seriesResult = useQuery(api.functions.series.list, {
 		paginationOpts: {
 			numItems: 100,
@@ -71,6 +72,12 @@ function RouteComponent() {
 			cursor: null,
 		},
 	});
+	const tagsResult = useQuery(api.functions.tags.list, {
+		paginationOpts: {
+			numItems: 200,
+			cursor: null,
+		},
+	});
 
 	const seriesOptions = (seriesResult?.page ?? []).map((series) => ({
 		value: series._id,
@@ -83,6 +90,10 @@ function RouteComponent() {
 	const projectOptions = (projectsResult?.page ?? []).map((project) => ({
 		value: project._id,
 		label: project.title,
+	}));
+	const tagOptions = (tagsResult?.page ?? []).map((tag) => ({
+		value: tag._id,
+		label: tag.name,
 	}));
 
 	const defaultValues: PostMetadataFormValues = {
@@ -353,26 +364,96 @@ function RouteComponent() {
 				</div>
 
 				<form.Field name="tagIds">
-					{(field) => (
-						<Field className="gap-2">
-							<FieldLabel htmlFor={field.name}>Tags</FieldLabel>
-							<div className="flex items-center gap-2 text-muted-foreground text-sm">
-								<Button
-									type="button"
-									size="icon-xs"
-									variant="outline"
-									aria-label="Add tags"
-								>
-									<IconPlus />
-								</Button>
-								<span>
-									{field.state.value.length === 0
-										? "No tags selected"
-										: `${field.state.value.length} tags selected`}
-								</span>
-							</div>
-						</Field>
-					)}
+					{(field) => {
+						const selectedTagIds = field.state.value;
+						const selectedTags = tagOptions.filter((tag) =>
+							selectedTagIds.includes(tag.value),
+						);
+
+						return (
+							<Field className="gap-2">
+								<FieldLabel htmlFor={field.name}>Tags</FieldLabel>
+								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+									<Button
+										type="button"
+										size="icon-xs"
+										variant="outline"
+										aria-label="Toggle tags picker"
+										onClick={() => {
+											setIsTagsPickerOpen((previous) => !previous);
+										}}
+									>
+										<IconPlus />
+									</Button>
+									<span>
+										{selectedTags.length === 0
+											? "No tags selected"
+											: `${selectedTags.length} tags selected`}
+									</span>
+								</div>
+
+								{isTagsPickerOpen && (
+									<Combobox
+										multiple
+										items={tagOptions}
+										value={selectedTags}
+										onValueChange={(value) => {
+											field.handleChange(value.map((tag) => tag.value));
+										}}
+									>
+										<ComboboxInput
+											id={field.name}
+											placeholder="Search tags"
+											showClear={selectedTags.length > 0}
+										/>
+										<ComboboxContent>
+											<ComboboxEmpty>
+												{tagsResult === undefined
+													? "Loading tags..."
+													: "No tags found."}
+											</ComboboxEmpty>
+											<ComboboxList>
+												<ComboboxCollection>
+													{(item: { value: string; label: string }) => (
+														<ComboboxItem key={item.value} value={item}>
+															{item.label}
+														</ComboboxItem>
+													)}
+												</ComboboxCollection>
+											</ComboboxList>
+										</ComboboxContent>
+									</Combobox>
+								)}
+
+								{selectedTags.length > 0 && (
+									<div className="flex flex-wrap gap-2 pt-1">
+										{selectedTags.map((tag) => (
+											<div
+												key={tag.value}
+												className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"
+											>
+												<span>{tag.label}</span>
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon-xs"
+													className="-mr-1"
+													aria-label={`Remove ${tag.label}`}
+													onClick={() => {
+														field.handleChange(
+															selectedTagIds.filter((id) => id !== tag.value),
+														);
+													}}
+												>
+													<IconX className="size-3" />
+												</Button>
+											</div>
+										))}
+									</div>
+								)}
+							</Field>
+						);
+					}}
 				</form.Field>
 			</CardHeader>
 			<CardContent className="px-6 pb-6 md:px-10 md:pb-10">
