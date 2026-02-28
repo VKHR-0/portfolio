@@ -265,7 +265,7 @@ function RouteComponent() {
 					</div>
 				</div>
 
-				<div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
+				<div className="flex flex-wrap items-center gap-2">
 					<form.Field name="seriesId">
 						{(field) => {
 							const selected = seriesOptions.find(
@@ -273,7 +273,7 @@ function RouteComponent() {
 							);
 
 							return (
-								<div className="min-w-40 flex-1">
+								<div className="shrink-0">
 									<Combobox
 										items={seriesOptions}
 										value={selected ?? null}
@@ -285,7 +285,7 @@ function RouteComponent() {
 											id={field.name}
 											aria-label="Series"
 											placeholder="Series"
-											className="h-7"
+											className="h-7 w-[10rem]"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
@@ -313,7 +313,7 @@ function RouteComponent() {
 							);
 
 							return (
-								<div className="min-w-40 flex-1">
+								<div className="shrink-0">
 									<Combobox
 										items={categoryOptions}
 										value={selected ?? null}
@@ -325,7 +325,7 @@ function RouteComponent() {
 											id={field.name}
 											aria-label="Category"
 											placeholder="Category"
-											className="h-7"
+											className="h-7 w-[10rem]"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
@@ -353,7 +353,7 @@ function RouteComponent() {
 							);
 
 							return (
-								<div className="min-w-40 flex-1">
+								<div className="shrink-0">
 									<Combobox
 										items={projectOptions}
 										value={selected ?? null}
@@ -365,7 +365,7 @@ function RouteComponent() {
 											id={field.name}
 											aria-label="Project"
 											placeholder="Project"
-											className="h-7"
+											className="h-7 w-[10rem]"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
