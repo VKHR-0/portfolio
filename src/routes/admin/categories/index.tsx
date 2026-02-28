@@ -1,9 +1,8 @@
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
-import { Button } from "#/components/ui/button";
+import { CursorPagination } from "#/components/cursor-pagination";
 import {
 	Card,
 	CardContent,
@@ -39,12 +38,6 @@ function RouteComponent() {
 
 	const categories = result?.page ?? [];
 	const pageCount = cursors.length;
-	const pageWindowStart = Math.max(1, Math.min(currentPage - 2, pageCount - 4));
-	const pageWindowEnd = Math.min(pageCount, pageWindowStart + 4);
-	const visiblePages = Array.from(
-		{ length: pageWindowEnd - pageWindowStart + 1 },
-		(_, index) => pageWindowStart + index,
-	);
 	const canGoPrevious = currentPage > 1;
 	const canGoNext =
 		result !== undefined &&
@@ -98,49 +91,19 @@ function RouteComponent() {
 				</Table>
 			</CardContent>
 
-			<CardFooter className="justify-between gap-2">
-				<Button
-					type="button"
-					variant="outline"
-					size="icon"
-					onClick={() => {
+			<CardFooter>
+				<CursorPagination
+					currentPage={currentPage}
+					pageCount={pageCount}
+					canGoPrevious={canGoPrevious}
+					canGoNext={canGoNext}
+					onPrevious={() => {
 						setCurrentPage((prev) => Math.max(1, prev - 1));
 					}}
-					disabled={!canGoPrevious}
-					aria-label="Go to previous page"
-				>
-					<IconChevronLeft className="size-4" />
-				</Button>
-
-				<div className="flex items-center gap-1">
-					{pageWindowStart > 1 ? (
-						<span className="px-2 text-muted-foreground text-sm">...</span>
-					) : null}
-
-					{visiblePages.map((page) => (
-						<Button
-							key={page}
-							type="button"
-							variant={page === currentPage ? "default" : "outline"}
-							size="sm"
-							onClick={() => {
-								setCurrentPage(page);
-							}}
-						>
-							{page}
-						</Button>
-					))}
-
-					{pageWindowEnd < pageCount ? (
-						<span className="px-2 text-muted-foreground text-sm">...</span>
-					) : null}
-				</div>
-
-				<Button
-					type="button"
-					variant="outline"
-					size="icon"
-					onClick={() => {
+					onSelectPage={(page) => {
+						setCurrentPage(page);
+					}}
+					onNext={() => {
 						if (currentPage < pageCount) {
 							setCurrentPage((prev) => prev + 1);
 							return;
@@ -153,11 +116,7 @@ function RouteComponent() {
 						setCursors((prev) => [...prev, result.continueCursor]);
 						setCurrentPage((prev) => prev + 1);
 					}}
-					disabled={!canGoNext}
-					aria-label="Go to next page"
-				>
-					<IconChevronRight className="size-4" />
-				</Button>
+				/>
 			</CardFooter>
 		</Card>
 	);
