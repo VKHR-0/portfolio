@@ -3,7 +3,12 @@ import { IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
-import { useState } from "react";
+import type { Id } from "convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import type { FocusEvent, KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toSlug } from "shared/slug";
+import { toast } from "sonner";
 import { CursorPagination } from "#/components/cursor-pagination";
 import { Button } from "#/components/ui/button";
 import {
@@ -14,6 +19,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { Input } from "#/components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -45,6 +51,27 @@ function RouteComponent() {
 	const [cursors, setCursors] = useState<Array<string | null>>([null]);
 	const [currentPage, setCurrentPage] = useState(1);
 	const currentCursor = cursors[currentPage - 1] ?? null;
+	const updateCategory = useMutation(api.functions.categories.updateCategory);
+
+	const [editingCategoryId, setEditingCategoryId] =
+		useState<Id<"categories"> | null>(null);
+	const [editingDraft, setEditingDraft] = useState({
+		name: "",
+		slug: "",
+		description: "",
+	});
+	const [initialDraft, setInitialDraft] = useState({
+		name: "",
+		slug: "",
+		description: "",
+	});
+	const [focusField, setFocusField] = useState<"name" | "slug" | "description">(
+		"name",
+	);
+	const [isSavingEdit, setIsSavingEdit] = useState(false);
+	const nameInputRef = useRef<HTMLInputElement>(null);
+	const slugInputRef = useRef<HTMLInputElement>(null);
+	const descriptionInputRef = useRef<HTMLInputElement>(null);
 
 	const { data: result } = useQuery(listCategoriesQuery(currentCursor));
 
@@ -54,6 +81,131 @@ function RouteComponent() {
 	const canGoNext =
 		result !== undefined &&
 		(currentPage < pageCount || result.isDone === false);
+
+	useEffect(() => {
+		if (!editingCategoryId) {
+			return;
+		}
+
+		if (focusField === "name") {
+			nameInputRef.current?.focus();
+			nameInputRef.current?.select();
+			return;
+		}
+
+		if (focusField === "slug") {
+			slugInputRef.current?.focus();
+			slugInputRef.current?.select();
+			return;
+		}
+
+		descriptionInputRef.current?.focus();
+		descriptionInputRef.current?.select();
+	}, [editingCategoryId, focusField]);
+
+	const startEditing = (
+		category: {
+			_id: Id<"categories">;
+			name: string;
+			slug: string;
+			description?: string;
+		},
+		field: "name" | "slug" | "description",
+	) => {
+		setEditingCategoryId(category._id);
+		setEditingDraft({
+			name: category.name,
+			slug: category.slug,
+			description: category.description ?? "",
+		});
+		setInitialDraft({
+			name: category.name,
+			slug: category.slug,
+			description: category.description ?? "",
+		});
+		setFocusField(field);
+	};
+
+	const cancelEditing = () => {
+		if (isSavingEdit) {
+			return;
+		}
+
+		setEditingCategoryId(null);
+	};
+
+	const saveEditing = async () => {
+		if (!editingCategoryId || isSavingEdit) {
+			return;
+		}
+
+		const name = editingDraft.name.trim();
+		const slug = toSlug(editingDraft.slug);
+		const description = editingDraft.description.trim();
+
+		if (!name) {
+			toast.error("Name is required.");
+			nameInputRef.current?.focus();
+			return;
+		}
+
+		if (!slug) {
+			toast.error("Slug is required.");
+			slugInputRef.current?.focus();
+			return;
+		}
+
+		if (
+			name === initialDraft.name &&
+			slug === initialDraft.slug &&
+			description === initialDraft.description
+		) {
+			setEditingCategoryId(null);
+			return;
+		}
+
+		setIsSavingEdit(true);
+
+		try {
+			await updateCategory({
+				id: editingCategoryId,
+				name,
+				slug,
+				description: description || undefined,
+			});
+			setEditingCategoryId(null);
+		} catch (mutationError: unknown) {
+			toast.error(
+				mutationError instanceof Error
+					? mutationError.message
+					: "Unable to update category.",
+			);
+		} finally {
+			setIsSavingEdit(false);
+		}
+	};
+
+	const handleInputBlur = (event: FocusEvent<HTMLInputElement>) => {
+		const nextTarget = event.relatedTarget as HTMLElement | null;
+		if (nextTarget?.dataset.editableCell === "true") {
+			return;
+		}
+
+		void saveEditing();
+	};
+
+	const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === "Enter") {
+			event.preventDefault();
+			void saveEditing();
+			return;
+		}
+
+		if (event.key === "Escape") {
+			event.preventDefault();
+			cancelEditing();
+		}
+	};
 
 	return (
 		<>
@@ -104,12 +256,82 @@ function RouteComponent() {
 
 							{categories.map((category) => (
 								<TableRow key={category._id}>
-									<TableCell className="truncate font-medium">
-										{category.name}
+									<TableCell
+										className="truncate font-medium"
+										onDoubleClick={() => {
+											startEditing(category, "name");
+										}}
+									>
+										{editingCategoryId === category._id ? (
+											<Input
+												ref={nameInputRef}
+												data-editable-cell="true"
+												value={editingDraft.name}
+												disabled={isSavingEdit}
+												onChange={(event) => {
+													const nextName = event.target.value;
+													setEditingDraft((previous) => ({
+														...previous,
+														name: nextName,
+														slug: toSlug(nextName),
+													}));
+												}}
+												onBlur={handleInputBlur}
+												onKeyDown={handleInputKeyDown}
+											/>
+										) : (
+											category.name
+										)}
 									</TableCell>
-									<TableCell className="truncate">{category.slug}</TableCell>
-									<TableCell className="truncate text-muted-foreground">
-										{category.description || "-"}
+									<TableCell
+										className="truncate"
+										onDoubleClick={() => {
+											startEditing(category, "slug");
+										}}
+									>
+										{editingCategoryId === category._id ? (
+											<Input
+												ref={slugInputRef}
+												data-editable-cell="true"
+												value={editingDraft.slug}
+												disabled={isSavingEdit}
+												onChange={(event) => {
+													setEditingDraft((previous) => ({
+														...previous,
+														slug: event.target.value,
+													}));
+												}}
+												onBlur={handleInputBlur}
+												onKeyDown={handleInputKeyDown}
+											/>
+										) : (
+											category.slug
+										)}
+									</TableCell>
+									<TableCell
+										className="truncate text-muted-foreground"
+										onDoubleClick={() => {
+											startEditing(category, "description");
+										}}
+									>
+										{editingCategoryId === category._id ? (
+											<Input
+												ref={descriptionInputRef}
+												data-editable-cell="true"
+												value={editingDraft.description}
+												disabled={isSavingEdit}
+												onChange={(event) => {
+													setEditingDraft((previous) => ({
+														...previous,
+														description: event.target.value,
+													}));
+												}}
+												onBlur={handleInputBlur}
+												onKeyDown={handleInputKeyDown}
+											/>
+										) : (
+											category.description || "-"
+										)}
 									</TableCell>
 									<TableCell>
 										{new Date(category._creationTime).toLocaleString()}
