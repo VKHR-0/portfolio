@@ -39,18 +39,18 @@ function RouteComponent() {
 	const pageLabel = `Page ${cursors.length}`;
 
 	return (
-		<Card className="flex-1">
+		<Card className="min-w-0 flex-1">
 			<CardHeader>
 				<CardTitle>Tags</CardTitle>
 				<CardDescription>Manage post tags.</CardDescription>
 			</CardHeader>
 
-			<CardContent className="flex-1">
-				<Table>
+			<CardContent className="min-w-0 flex-1">
+				<Table className="table-fixed">
 					<TableHeader>
 						<TableRow>
-							<TableHead>Name</TableHead>
-							<TableHead>Slug</TableHead>
+							<TableHead className="w-[35%]">Name</TableHead>
+							<TableHead className="w-[35%]">Slug</TableHead>
 							<TableHead>Created</TableHead>
 						</TableRow>
 					</TableHeader>
@@ -79,8 +79,10 @@ function RouteComponent() {
 
 						{tags.map((tag) => (
 							<TableRow key={tag._id}>
-								<TableCell className="font-medium">{tag.name}</TableCell>
-								<TableCell>{tag.slug}</TableCell>
+								<TableCell className="truncate font-medium">
+									{tag.name}
+								</TableCell>
+								<TableCell className="truncate">{tag.slug}</TableCell>
 								<TableCell>
 									{new Date(tag._creationTime).toLocaleString()}
 								</TableCell>

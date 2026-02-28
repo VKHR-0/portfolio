@@ -38,19 +38,19 @@ function RouteComponent() {
 	const categories = result?.page ?? [];
 
 	return (
-		<Card className="flex-1">
+		<Card className="min-w-0 flex-1">
 			<CardHeader>
 				<CardTitle>Categories</CardTitle>
 				<CardDescription>Manage post categories.</CardDescription>
 			</CardHeader>
 
-			<CardContent className="flex-1">
-				<Table>
+			<CardContent className="min-w-0 flex-1">
+				<Table className="table-fixed">
 					<TableHeader>
 						<TableRow>
-							<TableHead>Name</TableHead>
-							<TableHead>Slug</TableHead>
-							<TableHead>Description</TableHead>
+							<TableHead className="w-[22%]">Name</TableHead>
+							<TableHead className="w-[22%]">Slug</TableHead>
+							<TableHead className="w-[36%]">Description</TableHead>
 							<TableHead>Created</TableHead>
 						</TableRow>
 					</TableHeader>
@@ -69,9 +69,11 @@ function RouteComponent() {
 
 						{categories.map((category) => (
 							<TableRow key={category._id}>
-								<TableCell className="font-medium">{category.name}</TableCell>
-								<TableCell>{category.slug}</TableCell>
-								<TableCell className="max-w-[360px] truncate text-muted-foreground">
+								<TableCell className="truncate font-medium">
+									{category.name}
+								</TableCell>
+								<TableCell className="truncate">{category.slug}</TableCell>
+								<TableCell className="truncate text-muted-foreground">
 									{category.description || "-"}
 								</TableCell>
 								<TableCell>
