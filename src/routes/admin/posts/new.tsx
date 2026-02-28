@@ -1,7 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useState } from "react";
@@ -103,39 +103,27 @@ function RouteComponent() {
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 	const [isTagsPickerOpen, setIsTagsPickerOpen] = useState(false);
 	const [tagsQuery, setTagsQuery] = useState("");
-	const seriesQuery = useQuery(listSeriesQuery());
-	const categoriesQuery = useQuery(listCategoriesQuery());
-	const projectsQuery = useQuery(listProjectsQuery());
-	const tagsQueryResult = useQuery(listTagsQuery());
+	const { data: seriesResult } = useSuspenseQuery(listSeriesQuery());
+	const { data: categoriesResult } = useSuspenseQuery(listCategoriesQuery());
+	const { data: projectsResult } = useSuspenseQuery(listProjectsQuery());
+	const { data: tagsResult } = useSuspenseQuery(listTagsQuery());
 
-	const seriesResult = seriesQuery.data;
-	const categoriesResult = categoriesQuery.data;
-	const projectsResult = projectsQuery.data;
-	const tagsResult = tagsQueryResult.data;
-
-	const seriesOptions = (seriesResult?.page ?? []).map((series) => ({
+	const seriesOptions = seriesResult.page.map((series) => ({
 		value: series._id,
 		label: series.name,
 	}));
-	const categoryOptions = (categoriesResult?.page ?? []).map((category) => ({
+	const categoryOptions = categoriesResult.page.map((category) => ({
 		value: category._id,
 		label: category.name,
 	}));
-	const projectOptions = (projectsResult?.page ?? []).map((project) => ({
+	const projectOptions = projectsResult.page.map((project) => ({
 		value: project._id,
 		label: project.title,
 	}));
-	const tagOptions = (tagsResult?.page ?? []).map((tag) => ({
+	const tagOptions = tagsResult.page.map((tag) => ({
 		value: tag._id,
 		label: tag.name,
 	}));
-
-	const isSeriesLoading = seriesQuery.isPending && seriesResult === undefined;
-	const isCategoriesLoading =
-		categoriesQuery.isPending && categoriesResult === undefined;
-	const isProjectsLoading =
-		projectsQuery.isPending && projectsResult === undefined;
-	const isTagsLoading = tagsQueryResult.isPending && tagsResult === undefined;
 
 	const defaultValues: PostMetadataFormValues = {
 		title: "",
@@ -157,8 +145,8 @@ function RouteComponent() {
 
 	return (
 		<Card className="min-w-0 flex-1">
-			<CardHeader className="space-y-6 px-6 py-7 md:px-10 md:py-10">
-				<div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_auto] md:gap-5">
+			<CardHeader className="space-y-5 px-6 py-7 md:px-10 md:py-10">
+				<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_auto] md:gap-5">
 					<div>
 						<form.Field name="title">
 							{(field) => {
@@ -197,7 +185,7 @@ function RouteComponent() {
 						</form.Field>
 					</div>
 
-					<div className="md:pt-2">
+					<div>
 						<form.Field name="slug">
 							{(field) => {
 								const isInvalid =
@@ -234,7 +222,7 @@ function RouteComponent() {
 						</form.Field>
 					</div>
 
-					<div className="md:pt-2">
+					<div>
 						<form.Field name="status">
 							{(field) => {
 								const isInvalid =
@@ -254,7 +242,11 @@ function RouteComponent() {
 												}
 											}}
 										>
-											<SelectTrigger id={field.name} className="w-[10rem]">
+											<SelectTrigger
+												id={field.name}
+												size="sm"
+												className="w-[8.5rem]"
+											>
 												<SelectValue placeholder="Select status" />
 											</SelectTrigger>
 											<SelectContent>
@@ -273,7 +265,7 @@ function RouteComponent() {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+				<div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
 					<form.Field name="seriesId">
 						{(field) => {
 							const selected = seriesOptions.find(
@@ -281,8 +273,7 @@ function RouteComponent() {
 							);
 
 							return (
-								<Field className="gap-1.5">
-									<FieldLabel htmlFor={field.name}>Series</FieldLabel>
+								<div className="min-w-40 flex-1">
 									<Combobox
 										items={seriesOptions}
 										value={selected ?? null}
@@ -292,16 +283,13 @@ function RouteComponent() {
 									>
 										<ComboboxInput
 											id={field.name}
-											placeholder="Search series"
-											disabled={isSeriesLoading && seriesOptions.length === 0}
+											aria-label="Series"
+											placeholder="Series"
+											className="h-7"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
-											<ComboboxEmpty>
-												{isSeriesLoading
-													? "Loading series..."
-													: "No series found."}
-											</ComboboxEmpty>
+											<ComboboxEmpty>No series found.</ComboboxEmpty>
 											<ComboboxList>
 												<ComboboxCollection>
 													{(item: { value: string; label: string }) => (
@@ -313,10 +301,7 @@ function RouteComponent() {
 											</ComboboxList>
 										</ComboboxContent>
 									</Combobox>
-									<p className="text-muted-foreground text-xs">
-										Optional. Link this post to a single series.
-									</p>
-								</Field>
+								</div>
 							);
 						}}
 					</form.Field>
@@ -328,8 +313,7 @@ function RouteComponent() {
 							);
 
 							return (
-								<Field className="gap-1.5">
-									<FieldLabel htmlFor={field.name}>Category</FieldLabel>
+								<div className="min-w-40 flex-1">
 									<Combobox
 										items={categoryOptions}
 										value={selected ?? null}
@@ -339,18 +323,13 @@ function RouteComponent() {
 									>
 										<ComboboxInput
 											id={field.name}
-											placeholder="Search categories"
-											disabled={
-												isCategoriesLoading && categoryOptions.length === 0
-											}
+											aria-label="Category"
+											placeholder="Category"
+											className="h-7"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
-											<ComboboxEmpty>
-												{isCategoriesLoading
-													? "Loading categories..."
-													: "No categories found."}
-											</ComboboxEmpty>
+											<ComboboxEmpty>No categories found.</ComboboxEmpty>
 											<ComboboxList>
 												<ComboboxCollection>
 													{(item: { value: string; label: string }) => (
@@ -362,10 +341,7 @@ function RouteComponent() {
 											</ComboboxList>
 										</ComboboxContent>
 									</Combobox>
-									<p className="text-muted-foreground text-xs">
-										Optional. Use one category for primary classification.
-									</p>
-								</Field>
+								</div>
 							);
 						}}
 					</form.Field>
@@ -377,8 +353,7 @@ function RouteComponent() {
 							);
 
 							return (
-								<Field className="gap-1.5">
-									<FieldLabel htmlFor={field.name}>Project</FieldLabel>
+								<div className="min-w-40 flex-1">
 									<Combobox
 										items={projectOptions}
 										value={selected ?? null}
@@ -388,18 +363,13 @@ function RouteComponent() {
 									>
 										<ComboboxInput
 											id={field.name}
-											placeholder="Search projects"
-											disabled={
-												isProjectsLoading && projectOptions.length === 0
-											}
+											aria-label="Project"
+											placeholder="Project"
+											className="h-7"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
-											<ComboboxEmpty>
-												{isProjectsLoading
-													? "Loading projects..."
-													: "No projects found."}
-											</ComboboxEmpty>
+											<ComboboxEmpty>No projects found.</ComboboxEmpty>
 											<ComboboxList>
 												<ComboboxCollection>
 													{(item: { value: string; label: string }) => (
@@ -411,10 +381,36 @@ function RouteComponent() {
 											</ComboboxList>
 										</ComboboxContent>
 									</Combobox>
-									<p className="text-muted-foreground text-xs">
-										Optional. Attach a related project.
-									</p>
-								</Field>
+								</div>
+							);
+						}}
+					</form.Field>
+
+					<form.Field name="tagIds">
+						{(field) => {
+							const selectedTags = tagOptions.filter((tag) =>
+								field.state.value.includes(tag.value),
+							);
+
+							return (
+								<div className="flex items-center gap-2 md:shrink-0">
+									<Button
+										type="button"
+										size="icon-xs"
+										variant="outline"
+										aria-label="Toggle tags picker"
+										onClick={() => {
+											setIsTagsPickerOpen((previous) => !previous);
+										}}
+									>
+										<IconPlus />
+									</Button>
+									<span className="whitespace-nowrap text-muted-foreground text-xs">
+										{selectedTags.length === 0
+											? "No tags"
+											: `${selectedTags.length} tags`}
+									</span>
+								</div>
 							);
 						}}
 					</form.Field>
@@ -465,7 +461,7 @@ function RouteComponent() {
 											<ComboboxInput
 												id={field.name}
 												placeholder="Search tags"
-												disabled={isTagsLoading && tagOptions.length === 0}
+												aria-label="Tags"
 												showClear={tagsQuery.length > 0}
 												onKeyDown={(event) => {
 													if (event.key === "Escape") {
@@ -476,9 +472,7 @@ function RouteComponent() {
 												}}
 											/>
 											<ComboboxContent>
-												<ComboboxEmpty>
-													{isTagsLoading ? "Loading tags..." : "No tags found."}
-												</ComboboxEmpty>
+												<ComboboxEmpty>No tags found.</ComboboxEmpty>
 												<ComboboxList>
 													<ComboboxCollection>
 														{(item: { value: string; label: string }) => (
