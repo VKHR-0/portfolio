@@ -1,6 +1,7 @@
+import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
-import { useQuery } from "convex/react";
 import { useState } from "react";
 import { CursorPagination } from "#/components/cursor-pagination";
 import {
@@ -20,7 +21,21 @@ import {
 	TableRow,
 } from "#/components/ui/table";
 
+const PAGE_SIZE = 10;
+
+function listSeriesQuery(cursor: string | null) {
+	return convexQuery(api.functions.series.list, {
+		paginationOpts: {
+			numItems: PAGE_SIZE,
+			cursor,
+		},
+	});
+}
+
 export const Route = createFileRoute("/admin/series")({
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData(listSeriesQuery(null));
+	},
 	component: RouteComponent,
 });
 
@@ -29,12 +44,7 @@ function RouteComponent() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const currentCursor = cursors[currentPage - 1] ?? null;
 
-	const result = useQuery(api.functions.series.list, {
-		paginationOpts: {
-			numItems: 10,
-			cursor: currentCursor,
-		},
-	});
+	const { data: result } = useQuery(listSeriesQuery(currentCursor));
 
 	const series = result?.page ?? [];
 	const pageCount = cursors.length;
