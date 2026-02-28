@@ -104,291 +104,288 @@ function RouteComponent() {
 	});
 
 	return (
-		<div className="mx-auto w-full max-w-5xl p-4 md:p-6">
-			<form
-				className="space-y-4"
-				onSubmit={(event) => {
-					event.preventDefault();
-					event.stopPropagation();
-					void form.handleSubmit();
-				}}
-			>
-				<Card className="border-border/70 bg-gradient-to-b from-background to-muted/20 shadow-sm">
-					<CardHeader className="space-y-6 px-6 py-7 md:px-10 md:py-10">
-						<div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_auto] md:gap-5">
-							<div>
-								<form.Field name="title">
-									{(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-
-										return (
-											<Field data-invalid={isInvalid} className="gap-1.5">
-												<FieldLabel htmlFor={field.name} className="sr-only">
-													Title
-												</FieldLabel>
-												<Input
-													autoFocus
-													id={field.name}
-													name={field.name}
-													placeholder="Untitled post"
-													value={field.state.value}
-													onBlur={field.handleBlur}
-													onChange={(event) => {
-														const nextTitle = event.target.value;
-														field.handleChange(nextTitle);
-
-														if (!isSlugManuallyEdited) {
-															form.setFieldValue("slug", toSlug(nextTitle));
-														}
-													}}
-													aria-invalid={isInvalid}
-													className="h-12 rounded-none border-0 border-input border-b-2 px-0 font-semibold text-3xl shadow-none focus-visible:border-ring focus-visible:ring-0 md:text-4xl"
-												/>
-												{isInvalid && (
-													<FieldError errors={field.state.meta.errors} />
-												)}
-											</Field>
-										);
-									}}
-								</form.Field>
-							</div>
-
-							<div className="md:pt-2">
-								<form.Field name="slug">
-									{(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-
-										return (
-											<Field data-invalid={isInvalid} className="gap-1.5">
-												<FieldLabel htmlFor={field.name} className="sr-only">
-													Slug
-												</FieldLabel>
-												<Input
-													id={field.name}
-													name={field.name}
-													placeholder="post-slug"
-													value={field.state.value}
-													onBlur={() => {
-														field.handleBlur();
-														field.handleChange(toSlug(field.state.value));
-													}}
-													onChange={(event) => {
-														const nextSlug = event.target.value;
-														setIsSlugManuallyEdited(nextSlug.length > 0);
-														field.handleChange(nextSlug);
-													}}
-													aria-invalid={isInvalid}
-													className="h-8 rounded-none border-0 border-input border-b px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
-												/>
-												{isInvalid && (
-													<FieldError errors={field.state.meta.errors} />
-												)}
-											</Field>
-										);
-									}}
-								</form.Field>
-							</div>
-
-							<div className="md:pt-2">
-								<form.Field name="status">
-									{(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-
-										return (
-											<Field data-invalid={isInvalid} className="gap-1.5">
-												<FieldLabel htmlFor={field.name} className="sr-only">
-													Status
-												</FieldLabel>
-												<Select
-													name={field.name}
-													value={field.state.value}
-													onValueChange={(value) => {
-														if (value) {
-															field.handleChange(value);
-														}
-													}}
-												>
-													<SelectTrigger id={field.name} className="w-[10rem]">
-														<SelectValue placeholder="Select status" />
-													</SelectTrigger>
-													<SelectContent>
-														<SelectItem value="draft">Draft</SelectItem>
-														<SelectItem value="private">Private</SelectItem>
-														<SelectItem value="public">Public</SelectItem>
-													</SelectContent>
-												</Select>
-												{isInvalid && (
-													<FieldError errors={field.state.meta.errors} />
-												)}
-											</Field>
-										);
-									}}
-								</form.Field>
-							</div>
-						</div>
-
-						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-							<form.Field name="seriesId">
+		<form
+			onSubmit={(event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				void form.handleSubmit();
+			}}
+		>
+			<Card>
+				<CardHeader className="space-y-6 px-6 py-7 md:px-10 md:py-10">
+					<div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_auto] md:gap-5">
+						<div>
+							<form.Field name="title">
 								{(field) => {
-									const selected = seriesOptions.find(
-										(option) => option.value === field.state.value,
-									);
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
 
 									return (
-										<Field className="gap-1.5">
-											<FieldLabel htmlFor={field.name}>Series</FieldLabel>
-											<Combobox
-												items={seriesOptions}
-												value={selected ?? null}
-												onValueChange={(value) => {
-													field.handleChange(value?.value ?? "");
+										<Field data-invalid={isInvalid} className="gap-1.5">
+											<FieldLabel htmlFor={field.name} className="sr-only">
+												Title
+											</FieldLabel>
+											<Input
+												autoFocus
+												id={field.name}
+												name={field.name}
+												placeholder="Untitled post"
+												value={field.state.value}
+												onBlur={field.handleBlur}
+												onChange={(event) => {
+													const nextTitle = event.target.value;
+													field.handleChange(nextTitle);
+
+													if (!isSlugManuallyEdited) {
+														form.setFieldValue("slug", toSlug(nextTitle));
+													}
 												}}
-											>
-												<ComboboxInput
-													id={field.name}
-													placeholder="Search series"
-													showClear={Boolean(field.state.value)}
-												/>
-												<ComboboxContent>
-													<ComboboxEmpty>
-														{seriesResult === undefined
-															? "Loading series..."
-															: "No series found."}
-													</ComboboxEmpty>
-													<ComboboxList>
-														<ComboboxCollection>
-															{(item: { value: string; label: string }) => (
-																<ComboboxItem key={item.value} value={item}>
-																	{item.label}
-																</ComboboxItem>
-															)}
-														</ComboboxCollection>
-													</ComboboxList>
-												</ComboboxContent>
-											</Combobox>
-										</Field>
-									);
-								}}
-							</form.Field>
-
-							<form.Field name="categoryId">
-								{(field) => {
-									const selected = categoryOptions.find(
-										(option) => option.value === field.state.value,
-									);
-
-									return (
-										<Field className="gap-1.5">
-											<FieldLabel htmlFor={field.name}>Category</FieldLabel>
-											<Combobox
-												items={categoryOptions}
-												value={selected ?? null}
-												onValueChange={(value) => {
-													field.handleChange(value?.value ?? "");
-												}}
-											>
-												<ComboboxInput
-													id={field.name}
-													placeholder="Search categories"
-													showClear={Boolean(field.state.value)}
-												/>
-												<ComboboxContent>
-													<ComboboxEmpty>
-														{categoriesResult === undefined
-															? "Loading categories..."
-															: "No categories found."}
-													</ComboboxEmpty>
-													<ComboboxList>
-														<ComboboxCollection>
-															{(item: { value: string; label: string }) => (
-																<ComboboxItem key={item.value} value={item}>
-																	{item.label}
-																</ComboboxItem>
-															)}
-														</ComboboxCollection>
-													</ComboboxList>
-												</ComboboxContent>
-											</Combobox>
-										</Field>
-									);
-								}}
-							</form.Field>
-
-							<form.Field name="projectId">
-								{(field) => {
-									const selected = projectOptions.find(
-										(option) => option.value === field.state.value,
-									);
-
-									return (
-										<Field className="gap-1.5">
-											<FieldLabel htmlFor={field.name}>Project</FieldLabel>
-											<Combobox
-												items={projectOptions}
-												value={selected ?? null}
-												onValueChange={(value) => {
-													field.handleChange(value?.value ?? "");
-												}}
-											>
-												<ComboboxInput
-													id={field.name}
-													placeholder="Search projects"
-													showClear={Boolean(field.state.value)}
-												/>
-												<ComboboxContent>
-													<ComboboxEmpty>
-														{projectsResult === undefined
-															? "Loading projects..."
-															: "No projects found."}
-													</ComboboxEmpty>
-													<ComboboxList>
-														<ComboboxCollection>
-															{(item: { value: string; label: string }) => (
-																<ComboboxItem key={item.value} value={item}>
-																	{item.label}
-																</ComboboxItem>
-															)}
-														</ComboboxCollection>
-													</ComboboxList>
-												</ComboboxContent>
-											</Combobox>
+												aria-invalid={isInvalid}
+												className="h-12 rounded-none border-0 border-input border-b-2 px-0 font-semibold text-3xl shadow-none focus-visible:border-ring focus-visible:ring-0 md:text-4xl"
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
 										</Field>
 									);
 								}}
 							</form.Field>
 						</div>
 
-						<form.Field name="tagIds">
-							{(field) => (
-								<Field className="gap-2">
-									<FieldLabel htmlFor={field.name}>Tags</FieldLabel>
-									<div className="flex items-center gap-2 text-muted-foreground text-sm">
-										<Button
-											type="button"
-											size="icon-xs"
-											variant="outline"
-											aria-label="Add tags"
+						<div className="md:pt-2">
+							<form.Field name="slug">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+
+									return (
+										<Field data-invalid={isInvalid} className="gap-1.5">
+											<FieldLabel htmlFor={field.name} className="sr-only">
+												Slug
+											</FieldLabel>
+											<Input
+												id={field.name}
+												name={field.name}
+												placeholder="post-slug"
+												value={field.state.value}
+												onBlur={() => {
+													field.handleBlur();
+													field.handleChange(toSlug(field.state.value));
+												}}
+												onChange={(event) => {
+													const nextSlug = event.target.value;
+													setIsSlugManuallyEdited(nextSlug.length > 0);
+													field.handleChange(nextSlug);
+												}}
+												aria-invalid={isInvalid}
+												className="h-8 rounded-none border-0 border-input border-b px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
+											/>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+						</div>
+
+						<div className="md:pt-2">
+							<form.Field name="status">
+								{(field) => {
+									const isInvalid =
+										field.state.meta.isTouched && !field.state.meta.isValid;
+
+									return (
+										<Field data-invalid={isInvalid} className="gap-1.5">
+											<FieldLabel htmlFor={field.name} className="sr-only">
+												Status
+											</FieldLabel>
+											<Select
+												name={field.name}
+												value={field.state.value}
+												onValueChange={(value) => {
+													if (value) {
+														field.handleChange(value);
+													}
+												}}
+											>
+												<SelectTrigger id={field.name} className="w-[10rem]">
+													<SelectValue placeholder="Select status" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="draft">Draft</SelectItem>
+													<SelectItem value="private">Private</SelectItem>
+													<SelectItem value="public">Public</SelectItem>
+												</SelectContent>
+											</Select>
+											{isInvalid && (
+												<FieldError errors={field.state.meta.errors} />
+											)}
+										</Field>
+									);
+								}}
+							</form.Field>
+						</div>
+					</div>
+
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<form.Field name="seriesId">
+							{(field) => {
+								const selected = seriesOptions.find(
+									(option) => option.value === field.state.value,
+								);
+
+								return (
+									<Field className="gap-1.5">
+										<FieldLabel htmlFor={field.name}>Series</FieldLabel>
+										<Combobox
+											items={seriesOptions}
+											value={selected ?? null}
+											onValueChange={(value) => {
+												field.handleChange(value?.value ?? "");
+											}}
 										>
-											<IconPlus />
-										</Button>
-										<span>
-											{field.state.value.length === 0
-												? "No tags selected"
-												: `${field.state.value.length} tags selected`}
-										</span>
-									</div>
-								</Field>
-							)}
+											<ComboboxInput
+												id={field.name}
+												placeholder="Search series"
+												showClear={Boolean(field.state.value)}
+											/>
+											<ComboboxContent>
+												<ComboboxEmpty>
+													{seriesResult === undefined
+														? "Loading series..."
+														: "No series found."}
+												</ComboboxEmpty>
+												<ComboboxList>
+													<ComboboxCollection>
+														{(item: { value: string; label: string }) => (
+															<ComboboxItem key={item.value} value={item}>
+																{item.label}
+															</ComboboxItem>
+														)}
+													</ComboboxCollection>
+												</ComboboxList>
+											</ComboboxContent>
+										</Combobox>
+									</Field>
+								);
+							}}
 						</form.Field>
-					</CardHeader>
-					<CardContent className="px-6 pb-6 md:px-10 md:pb-10">
-						<div className="min-h-10" />
-					</CardContent>
-				</Card>
-			</form>
-		</div>
+
+						<form.Field name="categoryId">
+							{(field) => {
+								const selected = categoryOptions.find(
+									(option) => option.value === field.state.value,
+								);
+
+								return (
+									<Field className="gap-1.5">
+										<FieldLabel htmlFor={field.name}>Category</FieldLabel>
+										<Combobox
+											items={categoryOptions}
+											value={selected ?? null}
+											onValueChange={(value) => {
+												field.handleChange(value?.value ?? "");
+											}}
+										>
+											<ComboboxInput
+												id={field.name}
+												placeholder="Search categories"
+												showClear={Boolean(field.state.value)}
+											/>
+											<ComboboxContent>
+												<ComboboxEmpty>
+													{categoriesResult === undefined
+														? "Loading categories..."
+														: "No categories found."}
+												</ComboboxEmpty>
+												<ComboboxList>
+													<ComboboxCollection>
+														{(item: { value: string; label: string }) => (
+															<ComboboxItem key={item.value} value={item}>
+																{item.label}
+															</ComboboxItem>
+														)}
+													</ComboboxCollection>
+												</ComboboxList>
+											</ComboboxContent>
+										</Combobox>
+									</Field>
+								);
+							}}
+						</form.Field>
+
+						<form.Field name="projectId">
+							{(field) => {
+								const selected = projectOptions.find(
+									(option) => option.value === field.state.value,
+								);
+
+								return (
+									<Field className="gap-1.5">
+										<FieldLabel htmlFor={field.name}>Project</FieldLabel>
+										<Combobox
+											items={projectOptions}
+											value={selected ?? null}
+											onValueChange={(value) => {
+												field.handleChange(value?.value ?? "");
+											}}
+										>
+											<ComboboxInput
+												id={field.name}
+												placeholder="Search projects"
+												showClear={Boolean(field.state.value)}
+											/>
+											<ComboboxContent>
+												<ComboboxEmpty>
+													{projectsResult === undefined
+														? "Loading projects..."
+														: "No projects found."}
+												</ComboboxEmpty>
+												<ComboboxList>
+													<ComboboxCollection>
+														{(item: { value: string; label: string }) => (
+															<ComboboxItem key={item.value} value={item}>
+																{item.label}
+															</ComboboxItem>
+														)}
+													</ComboboxCollection>
+												</ComboboxList>
+											</ComboboxContent>
+										</Combobox>
+									</Field>
+								);
+							}}
+						</form.Field>
+					</div>
+
+					<form.Field name="tagIds">
+						{(field) => (
+							<Field className="gap-2">
+								<FieldLabel htmlFor={field.name}>Tags</FieldLabel>
+								<div className="flex items-center gap-2 text-muted-foreground text-sm">
+									<Button
+										type="button"
+										size="icon-xs"
+										variant="outline"
+										aria-label="Add tags"
+									>
+										<IconPlus />
+									</Button>
+									<span>
+										{field.state.value.length === 0
+											? "No tags selected"
+											: `${field.state.value.length} tags selected`}
+									</span>
+								</div>
+							</Field>
+						)}
+					</form.Field>
+				</CardHeader>
+				<CardContent className="px-6 pb-6 md:px-10 md:pb-10">
+					<div className="min-h-10" />
+				</CardContent>
+			</Card>
+		</form>
 	);
 }
