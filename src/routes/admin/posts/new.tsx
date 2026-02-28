@@ -17,6 +17,7 @@ import {
 	ComboboxInput,
 	ComboboxItem,
 	ComboboxList,
+	useComboboxAnchor,
 } from "#/components/ui/combobox";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
@@ -103,6 +104,7 @@ function RouteComponent() {
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 	const [isTagsPickerOpen, setIsTagsPickerOpen] = useState(false);
 	const [tagsQuery, setTagsQuery] = useState("");
+	const tagsAnchorRef = useComboboxAnchor();
 	const { data: seriesResult } = useSuspenseQuery(listSeriesQuery());
 	const { data: categoriesResult } = useSuspenseQuery(listCategoriesQuery());
 	const { data: projectsResult } = useSuspenseQuery(listProjectsQuery());
@@ -393,14 +395,23 @@ function RouteComponent() {
 							);
 
 							return (
-								<div className="flex items-center gap-2 md:shrink-0">
+								<div
+									ref={tagsAnchorRef}
+									className="flex items-center gap-2 md:shrink-0"
+								>
 									<Button
 										type="button"
 										size="icon-xs"
 										variant="outline"
 										aria-label="Toggle tags picker"
 										onClick={() => {
-											setIsTagsPickerOpen((previous) => !previous);
+											setIsTagsPickerOpen((previous) => {
+												if (previous) {
+													setTagsQuery("");
+												}
+
+												return !previous;
+											});
 										}}
 									>
 										<IconPlus />
@@ -425,66 +436,55 @@ function RouteComponent() {
 
 						return (
 							<Field className="gap-2">
-								<FieldLabel htmlFor={field.name}>Tags</FieldLabel>
-								<div className="flex items-center gap-2 text-muted-foreground text-sm">
-									<Button
-										type="button"
-										size="icon-xs"
-										variant="outline"
-										aria-label="Toggle tags picker"
-										onClick={() => {
-											setIsTagsPickerOpen((previous) => !previous);
-										}}
+								<Combobox
+									multiple
+									items={tagOptions}
+									value={selectedTags}
+									open={isTagsPickerOpen}
+									onOpenChange={(open) => {
+										setIsTagsPickerOpen(open);
+										if (!open) {
+											setTagsQuery("");
+										}
+									}}
+									inputValue={tagsQuery}
+									onInputValueChange={setTagsQuery}
+									onValueChange={(value) => {
+										field.handleChange(value.map((tag) => tag.value));
+										setTagsQuery("");
+									}}
+								>
+									<ComboboxContent
+										anchor={tagsAnchorRef}
+										side="top"
+										align="start"
+										className="w-[22rem] min-w-[22rem]"
 									>
-										<IconPlus />
-									</Button>
-									<span>
-										{selectedTags.length === 0
-											? "No tags selected"
-											: `${selectedTags.length} tags selected`}
-									</span>
-								</div>
-
-								{isTagsPickerOpen && (
-									<>
-										<Combobox
-											multiple
-											items={tagOptions}
-											value={selectedTags}
-											inputValue={tagsQuery}
-											onInputValueChange={setTagsQuery}
-											onValueChange={(value) => {
-												field.handleChange(value.map((tag) => tag.value));
-												setTagsQuery("");
+										<ComboboxInput
+											id={field.name}
+											placeholder="Search tags"
+											aria-label="Tags"
+											showTrigger={false}
+											showClear={tagsQuery.length > 0}
+											onKeyDown={(event) => {
+												if (event.key === "Escape") {
+													event.preventDefault();
+													setIsTagsPickerOpen(false);
+													setTagsQuery("");
+												}
 											}}
-										>
-											<ComboboxInput
-												id={field.name}
-												placeholder="Search tags"
-												aria-label="Tags"
-												showClear={tagsQuery.length > 0}
-												onKeyDown={(event) => {
-													if (event.key === "Escape") {
-														event.preventDefault();
-														setIsTagsPickerOpen(false);
-														setTagsQuery("");
-													}
-												}}
-											/>
-											<ComboboxContent>
-												<ComboboxEmpty>No tags found.</ComboboxEmpty>
-												<ComboboxList>
-													<ComboboxCollection>
-														{(item: { value: string; label: string }) => (
-															<ComboboxItem key={item.value} value={item}>
-																{item.label}
-															</ComboboxItem>
-														)}
-													</ComboboxCollection>
-												</ComboboxList>
-											</ComboboxContent>
-										</Combobox>
-										<div className="flex items-center justify-end">
+										/>
+										<ComboboxEmpty>No tags found.</ComboboxEmpty>
+										<ComboboxList>
+											<ComboboxCollection>
+												{(item: { value: string; label: string }) => (
+													<ComboboxItem key={item.value} value={item}>
+														{item.label}
+													</ComboboxItem>
+												)}
+											</ComboboxCollection>
+										</ComboboxList>
+										<div className="flex items-center justify-end p-1 pt-0">
 											<Button
 												type="button"
 												size="xs"
@@ -497,8 +497,8 @@ function RouteComponent() {
 												Done
 											</Button>
 										</div>
-									</>
-								)}
+									</ComboboxContent>
+								</Combobox>
 
 								{selectedTags.length > 0 && (
 									<div className="flex flex-wrap gap-2 pt-1">
