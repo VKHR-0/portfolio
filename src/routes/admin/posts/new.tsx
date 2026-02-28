@@ -103,10 +103,15 @@ function RouteComponent() {
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 	const [isTagsPickerOpen, setIsTagsPickerOpen] = useState(false);
 	const [tagsQuery, setTagsQuery] = useState("");
-	const { data: seriesResult } = useQuery(listSeriesQuery());
-	const { data: categoriesResult } = useQuery(listCategoriesQuery());
-	const { data: projectsResult } = useQuery(listProjectsQuery());
-	const { data: tagsResult } = useQuery(listTagsQuery());
+	const seriesQuery = useQuery(listSeriesQuery());
+	const categoriesQuery = useQuery(listCategoriesQuery());
+	const projectsQuery = useQuery(listProjectsQuery());
+	const tagsQueryResult = useQuery(listTagsQuery());
+
+	const seriesResult = seriesQuery.data;
+	const categoriesResult = categoriesQuery.data;
+	const projectsResult = projectsQuery.data;
+	const tagsResult = tagsQueryResult.data;
 
 	const seriesOptions = (seriesResult?.page ?? []).map((series) => ({
 		value: series._id,
@@ -125,10 +130,12 @@ function RouteComponent() {
 		label: tag.name,
 	}));
 
-	const isSeriesLoading = seriesResult === undefined;
-	const isCategoriesLoading = categoriesResult === undefined;
-	const isProjectsLoading = projectsResult === undefined;
-	const isTagsLoading = tagsResult === undefined;
+	const isSeriesLoading = seriesQuery.isPending && seriesResult === undefined;
+	const isCategoriesLoading =
+		categoriesQuery.isPending && categoriesResult === undefined;
+	const isProjectsLoading =
+		projectsQuery.isPending && projectsResult === undefined;
+	const isTagsLoading = tagsQueryResult.isPending && tagsResult === undefined;
 
 	const defaultValues: PostMetadataFormValues = {
 		title: "",
