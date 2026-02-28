@@ -1,0 +1,10 @@
+{
+	"file_scan_exclusions": [
+		"**/.DS_Store",
+		"**/bun.lock",
+		"**/.git",
+		"**/.tanstack",
+		"**/.output",
+		"**/node_modules",
+	]
+}
