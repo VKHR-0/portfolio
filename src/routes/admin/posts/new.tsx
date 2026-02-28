@@ -1,8 +1,19 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
+import { api } from "convex/_generated/api";
+import { useQuery } from "convex/react";
 import { useState } from "react";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import z from "zod";
+import {
+	Combobox,
+	ComboboxCollection,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from "#/components/ui/combobox";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import {
@@ -39,6 +50,37 @@ type PostMetadataFormValues = z.infer<typeof postMetadataSchema>;
 
 function RouteComponent() {
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+	const seriesResult = useQuery(api.functions.series.list, {
+		paginationOpts: {
+			numItems: 100,
+			cursor: null,
+		},
+	});
+	const categoriesResult = useQuery(api.functions.categories.list, {
+		paginationOpts: {
+			numItems: 100,
+			cursor: null,
+		},
+	});
+	const projectsResult = useQuery(api.functions.projects.list, {
+		paginationOpts: {
+			numItems: 100,
+			cursor: null,
+		},
+	});
+
+	const seriesOptions = (seriesResult?.page ?? []).map((series) => ({
+		value: series._id,
+		label: series.name,
+	}));
+	const categoryOptions = (categoriesResult?.page ?? []).map((category) => ({
+		value: category._id,
+		label: category.name,
+	}));
+	const projectOptions = (projectsResult?.page ?? []).map((project) => ({
+		value: project._id,
+		label: project.title,
+	}));
 
 	const defaultValues: PostMetadataFormValues = {
 		title: "",
@@ -68,44 +110,7 @@ function RouteComponent() {
 					void form.handleSubmit();
 				}}
 			>
-				<div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[minmax(12rem,16rem)_1fr_auto] md:gap-5">
-					<div className="md:pt-2">
-						<form.Field name="slug">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-
-								return (
-									<Field data-invalid={isInvalid} className="gap-1.5">
-										<FieldLabel htmlFor={field.name} className="sr-only">
-											Slug
-										</FieldLabel>
-										<Input
-											id={field.name}
-											name={field.name}
-											placeholder="post-slug"
-											value={field.state.value}
-											onBlur={() => {
-												field.handleBlur();
-												field.handleChange(toSlug(field.state.value));
-											}}
-											onChange={(event) => {
-												const nextSlug = event.target.value;
-												setIsSlugManuallyEdited(nextSlug.length > 0);
-												field.handleChange(nextSlug);
-											}}
-											aria-invalid={isInvalid}
-											className="h-8 rounded-none border-0 border-input border-b px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
-										/>
-										{isInvalid && (
-											<FieldError errors={field.state.meta.errors} />
-										)}
-									</Field>
-								);
-							}}
-						</form.Field>
-					</div>
-
+				<div className="grid grid-cols-1 items-start gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_auto] md:gap-5">
 					<div>
 						<form.Field name="title">
 							{(field) => {
@@ -134,6 +139,43 @@ function RouteComponent() {
 											}}
 											aria-invalid={isInvalid}
 											className="h-12 rounded-none border-0 border-input border-b-2 px-0 font-semibold text-3xl shadow-none focus-visible:border-ring focus-visible:ring-0 md:text-4xl"
+										/>
+										{isInvalid && (
+											<FieldError errors={field.state.meta.errors} />
+										)}
+									</Field>
+								);
+							}}
+						</form.Field>
+					</div>
+
+					<div className="md:pt-2">
+						<form.Field name="slug">
+							{(field) => {
+								const isInvalid =
+									field.state.meta.isTouched && !field.state.meta.isValid;
+
+								return (
+									<Field data-invalid={isInvalid} className="gap-1.5">
+										<FieldLabel htmlFor={field.name} className="sr-only">
+											Slug
+										</FieldLabel>
+										<Input
+											id={field.name}
+											name={field.name}
+											placeholder="post-slug"
+											value={field.state.value}
+											onBlur={() => {
+												field.handleBlur();
+												field.handleChange(toSlug(field.state.value));
+											}}
+											onChange={(event) => {
+												const nextSlug = event.target.value;
+												setIsSlugManuallyEdited(nextSlug.length > 0);
+												field.handleChange(nextSlug);
+											}}
+											aria-invalid={isInvalid}
+											className="h-8 rounded-none border-0 border-input border-b px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
 										/>
 										{isInvalid && (
 											<FieldError errors={field.state.meta.errors} />
@@ -181,6 +223,137 @@ function RouteComponent() {
 							}}
 						</form.Field>
 					</div>
+				</div>
+
+				<div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+					<form.Field name="seriesId">
+						{(field) => {
+							const selected = seriesOptions.find(
+								(option) => option.value === field.state.value,
+							);
+
+							return (
+								<Field className="gap-1.5">
+									<FieldLabel htmlFor={field.name}>Series</FieldLabel>
+									<Combobox
+										items={seriesOptions}
+										value={selected ?? null}
+										onValueChange={(value) => {
+											field.handleChange(value?.value ?? "");
+										}}
+									>
+										<ComboboxInput
+											id={field.name}
+											placeholder="Search series"
+											showClear={Boolean(field.state.value)}
+										/>
+										<ComboboxContent>
+											<ComboboxEmpty>
+												{seriesResult === undefined
+													? "Loading series..."
+													: "No series found."}
+											</ComboboxEmpty>
+											<ComboboxList>
+												<ComboboxCollection>
+													{(item: { value: string; label: string }) => (
+														<ComboboxItem key={item.value} value={item}>
+															{item.label}
+														</ComboboxItem>
+													)}
+												</ComboboxCollection>
+											</ComboboxList>
+										</ComboboxContent>
+									</Combobox>
+								</Field>
+							);
+						}}
+					</form.Field>
+
+					<form.Field name="categoryId">
+						{(field) => {
+							const selected = categoryOptions.find(
+								(option) => option.value === field.state.value,
+							);
+
+							return (
+								<Field className="gap-1.5">
+									<FieldLabel htmlFor={field.name}>Category</FieldLabel>
+									<Combobox
+										items={categoryOptions}
+										value={selected ?? null}
+										onValueChange={(value) => {
+											field.handleChange(value?.value ?? "");
+										}}
+									>
+										<ComboboxInput
+											id={field.name}
+											placeholder="Search categories"
+											showClear={Boolean(field.state.value)}
+										/>
+										<ComboboxContent>
+											<ComboboxEmpty>
+												{categoriesResult === undefined
+													? "Loading categories..."
+													: "No categories found."}
+											</ComboboxEmpty>
+											<ComboboxList>
+												<ComboboxCollection>
+													{(item: { value: string; label: string }) => (
+														<ComboboxItem key={item.value} value={item}>
+															{item.label}
+														</ComboboxItem>
+													)}
+												</ComboboxCollection>
+											</ComboboxList>
+										</ComboboxContent>
+									</Combobox>
+								</Field>
+							);
+						}}
+					</form.Field>
+
+					<form.Field name="projectId">
+						{(field) => {
+							const selected = projectOptions.find(
+								(option) => option.value === field.state.value,
+							);
+
+							return (
+								<Field className="gap-1.5">
+									<FieldLabel htmlFor={field.name}>Project</FieldLabel>
+									<Combobox
+										items={projectOptions}
+										value={selected ?? null}
+										onValueChange={(value) => {
+											field.handleChange(value?.value ?? "");
+										}}
+									>
+										<ComboboxInput
+											id={field.name}
+											placeholder="Search projects"
+											showClear={Boolean(field.state.value)}
+										/>
+										<ComboboxContent>
+											<ComboboxEmpty>
+												{projectsResult === undefined
+													? "Loading projects..."
+													: "No projects found."}
+											</ComboboxEmpty>
+											<ComboboxList>
+												<ComboboxCollection>
+													{(item: { value: string; label: string }) => (
+														<ComboboxItem key={item.value} value={item}>
+															{item.label}
+														</ComboboxItem>
+													)}
+												</ComboboxCollection>
+											</ComboboxList>
+										</ComboboxContent>
+									</Combobox>
+								</Field>
+							);
+						}}
+					</form.Field>
 				</div>
 			</form>
 		</div>
