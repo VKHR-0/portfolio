@@ -95,6 +95,15 @@ function RouteComponent() {
 		tag: { _id: Id<"tags">; name: string; slug: string },
 		field: "name" | "slug",
 	) => {
+		if (isSavingEdit) {
+			return;
+		}
+
+		if (editingTagId === tag._id) {
+			setFocusField(field);
+			return;
+		}
+
 		setEditingTagId(tag._id);
 		setEditingDraft({
 			name: tag.name,
@@ -231,7 +240,8 @@ function RouteComponent() {
 							{tags.map((tag) => (
 								<TableRow key={tag._id}>
 									<TableCell
-										className="truncate font-medium"
+										className="cursor-text select-none truncate font-medium"
+										title="Double-click to edit"
 										onDoubleClick={() => {
 											startEditing(tag, "name");
 										}}
@@ -258,7 +268,8 @@ function RouteComponent() {
 										)}
 									</TableCell>
 									<TableCell
-										className="truncate"
+										className="cursor-text select-none truncate"
+										title="Double-click to edit"
 										onDoubleClick={() => {
 											startEditing(tag, "slug");
 										}}

@@ -113,6 +113,15 @@ function RouteComponent() {
 		},
 		field: "name" | "slug" | "description",
 	) => {
+		if (isSavingEdit) {
+			return;
+		}
+
+		if (editingSeriesId === item._id) {
+			setFocusField(field);
+			return;
+		}
+
 		setEditingSeriesId(item._id);
 		setEditingDraft({
 			name: item.name,
@@ -258,7 +267,8 @@ function RouteComponent() {
 							{series.map((item) => (
 								<TableRow key={item._id}>
 									<TableCell
-										className="truncate font-medium"
+										className="cursor-text select-none truncate font-medium"
+										title="Double-click to edit"
 										onDoubleClick={() => {
 											startEditing(item, "name");
 										}}
@@ -285,7 +295,8 @@ function RouteComponent() {
 										)}
 									</TableCell>
 									<TableCell
-										className="truncate"
+										className="cursor-text select-none truncate"
+										title="Double-click to edit"
 										onDoubleClick={() => {
 											startEditing(item, "slug");
 										}}
@@ -310,7 +321,8 @@ function RouteComponent() {
 										)}
 									</TableCell>
 									<TableCell
-										className="truncate text-muted-foreground"
+										className="cursor-text select-none truncate text-muted-foreground"
+										title="Double-click to edit"
 										onDoubleClick={() => {
 											startEditing(item, "description");
 										}}
