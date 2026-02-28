@@ -49,3 +49,36 @@ export const createCategory = mutation({
 		});
 	},
 });
+
+export const deleteCategory = mutation({
+	args: {
+		id: v.id("categories"),
+	},
+	handler: async (ctx, args) => {
+		const category = await ctx.db.get(args.id);
+
+		if (!category) {
+			throw new Error("Category not found.");
+		}
+
+		const associatedPost = await ctx.db
+			.query("posts")
+			.withIndex("by_category", (q) => q.eq("categoryId", args.id))
+			.first();
+
+		const projects = await ctx.db.query("projects").collect();
+		const associatedProject = projects.find((project) => {
+			const projectRecord = project as Record<string, unknown>;
+
+			return projectRecord.categoryId === args.id;
+		});
+
+		if (associatedPost || associatedProject) {
+			throw new Error(
+				"Cannot delete category while it is associated with posts or projects.",
+			);
+		}
+
+		await ctx.db.delete(args.id);
+	},
+});

@@ -49,3 +49,36 @@ export const createSeries = mutation({
 		});
 	},
 });
+
+export const deleteSeries = mutation({
+	args: {
+		id: v.id("series"),
+	},
+	handler: async (ctx, args) => {
+		const series = await ctx.db.get(args.id);
+
+		if (!series) {
+			throw new Error("Series not found.");
+		}
+
+		const associatedPost = await ctx.db
+			.query("posts")
+			.withIndex("by_series", (q) => q.eq("seriesId", args.id))
+			.first();
+
+		const projects = await ctx.db.query("projects").collect();
+		const associatedProject = projects.find((project) => {
+			const projectRecord = project as Record<string, unknown>;
+
+			return projectRecord.seriesId === args.id;
+		});
+
+		if (associatedPost || associatedProject) {
+			throw new Error(
+				"Cannot delete series while it is associated with posts or projects.",
+			);
+		}
+
+		await ctx.db.delete(args.id);
+	},
+});

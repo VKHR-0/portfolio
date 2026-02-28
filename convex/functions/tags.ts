@@ -46,3 +46,40 @@ export const createTag = mutation({
 		});
 	},
 });
+
+export const deleteTag = mutation({
+	args: {
+		id: v.id("tags"),
+	},
+	handler: async (ctx, args) => {
+		const tag = await ctx.db.get(args.id);
+
+		if (!tag) {
+			throw new Error("Tag not found.");
+		}
+
+		const posts = await ctx.db.query("posts").collect();
+		const associatedPost = posts.find((post) =>
+			post.tags.some((tagId) => tagId === args.id),
+		);
+
+		const projects = await ctx.db.query("projects").collect();
+		const associatedProject = projects.find((project) => {
+			const projectRecord = project as Record<string, unknown>;
+
+			if (!Array.isArray(projectRecord.tags)) {
+				return false;
+			}
+
+			return projectRecord.tags.some((tagId) => tagId === args.id);
+		});
+
+		if (associatedPost || associatedProject) {
+			throw new Error(
+				"Cannot delete tag while it is associated with posts or projects.",
+			);
+		}
+
+		await ctx.db.delete(args.id);
+	},
+});
