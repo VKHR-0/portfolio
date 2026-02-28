@@ -29,7 +29,9 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as AdminTagsNewRouteImport } from './routes/admin/tags/new'
 import { Route as AdminSeriesNewRouteImport } from './routes/admin/series/new'
 import { Route as AdminProjectsNewRouteImport } from './routes/admin/projects/new'
+import { Route as AdminProjectsSlugIdRouteImport } from './routes/admin/projects/$slugId'
 import { Route as AdminPostsNewRouteImport } from './routes/admin/posts/new'
+import { Route as AdminPostsSlugIdRouteImport } from './routes/admin/posts/$slugId'
 import { Route as AdminCategoriesNewRouteImport } from './routes/admin/categories/new'
 import { Route as HomeProjectsSlugIdRouteImport } from './routes/_home/projects/$slugId'
 import { Route as HomePostsSlugIdRouteImport } from './routes/_home/posts/$slugId'
@@ -133,9 +135,19 @@ const AdminProjectsNewRoute = AdminProjectsNewRouteImport.update({
   path: '/projects/new',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminProjectsSlugIdRoute = AdminProjectsSlugIdRouteImport.update({
+  id: '/projects/$slugId',
+  path: '/projects/$slugId',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminPostsNewRoute = AdminPostsNewRouteImport.update({
   id: '/posts/new',
   path: '/posts/new',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminPostsSlugIdRoute = AdminPostsSlugIdRouteImport.update({
+  id: '/posts/$slugId',
+  path: '/posts/$slugId',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCategoriesNewRoute = AdminCategoriesNewRouteImport.update({
@@ -166,7 +178,9 @@ export interface FileRoutesByFullPath {
   '/posts/$slugId': typeof HomePostsSlugIdRoute
   '/projects/$slugId': typeof HomeProjectsSlugIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
+  '/admin/posts/$slugId': typeof AdminPostsSlugIdRoute
   '/admin/posts/new': typeof AdminPostsNewRoute
+  '/admin/projects/$slugId': typeof AdminProjectsSlugIdRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
@@ -187,7 +201,9 @@ export interface FileRoutesByTo {
   '/posts/$slugId': typeof HomePostsSlugIdRoute
   '/projects/$slugId': typeof HomeProjectsSlugIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
+  '/admin/posts/$slugId': typeof AdminPostsSlugIdRoute
   '/admin/posts/new': typeof AdminPostsNewRoute
+  '/admin/projects/$slugId': typeof AdminProjectsSlugIdRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
@@ -214,7 +230,9 @@ export interface FileRoutesById {
   '/_home/posts/$slugId': typeof HomePostsSlugIdRoute
   '/_home/projects/$slugId': typeof HomeProjectsSlugIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
+  '/admin/posts/$slugId': typeof AdminPostsSlugIdRoute
   '/admin/posts/new': typeof AdminPostsNewRoute
+  '/admin/projects/$slugId': typeof AdminProjectsSlugIdRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
@@ -241,7 +259,9 @@ export interface FileRouteTypes {
     | '/posts/$slugId'
     | '/projects/$slugId'
     | '/admin/categories/new'
+    | '/admin/posts/$slugId'
     | '/admin/posts/new'
+    | '/admin/projects/$slugId'
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
@@ -262,7 +282,9 @@ export interface FileRouteTypes {
     | '/posts/$slugId'
     | '/projects/$slugId'
     | '/admin/categories/new'
+    | '/admin/posts/$slugId'
     | '/admin/posts/new'
+    | '/admin/projects/$slugId'
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
@@ -288,7 +310,9 @@ export interface FileRouteTypes {
     | '/_home/posts/$slugId'
     | '/_home/projects/$slugId'
     | '/admin/categories/new'
+    | '/admin/posts/$slugId'
     | '/admin/posts/new'
+    | '/admin/projects/$slugId'
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
@@ -450,11 +474,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProjectsNewRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/projects/$slugId': {
+      id: '/admin/projects/$slugId'
+      path: '/projects/$slugId'
+      fullPath: '/admin/projects/$slugId'
+      preLoaderRoute: typeof AdminProjectsSlugIdRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/posts/new': {
       id: '/admin/posts/new'
       path: '/posts/new'
       fullPath: '/admin/posts/new'
       preLoaderRoute: typeof AdminPostsNewRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/posts/$slugId': {
+      id: '/admin/posts/$slugId'
+      path: '/posts/$slugId'
+      fullPath: '/admin/posts/$slugId'
+      preLoaderRoute: typeof AdminPostsSlugIdRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/categories/new': {
@@ -528,7 +566,9 @@ interface AdminRouteRouteChildren {
   AdminLoginRoute: typeof AdminLoginRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminPostsSlugIdRoute: typeof AdminPostsSlugIdRoute
   AdminPostsNewRoute: typeof AdminPostsNewRoute
+  AdminProjectsSlugIdRoute: typeof AdminProjectsSlugIdRoute
   AdminProjectsNewRoute: typeof AdminProjectsNewRoute
   AdminPostsIndexRoute: typeof AdminPostsIndexRoute
   AdminProjectsIndexRoute: typeof AdminProjectsIndexRoute
@@ -541,7 +581,9 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminLoginRoute: AdminLoginRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminPostsSlugIdRoute: AdminPostsSlugIdRoute,
   AdminPostsNewRoute: AdminPostsNewRoute,
+  AdminProjectsSlugIdRoute: AdminProjectsSlugIdRoute,
   AdminProjectsNewRoute: AdminProjectsNewRoute,
   AdminPostsIndexRoute: AdminPostsIndexRoute,
   AdminProjectsIndexRoute: AdminProjectsIndexRoute,
