@@ -12,7 +12,7 @@ type InlineEditSubmitArgs<TId, TValues extends InlineEditValues> = {
 
 type InlineEditOptions<TId, TValues extends InlineEditValues> = {
 	emptyValues: TValues;
-	onSubmit: (args: InlineEditSubmitArgs<TId, TValues>) => Promise<void | false>;
+	onSubmit: (args: InlineEditSubmitArgs<TId, TValues>) => Promise<undefined | false>;
 	onError?: (error: unknown) => void;
 	isUnchanged?: (args: { value: TValues; initialValue: TValues }) => boolean;
 	shouldSkipBlurSave?: (nextTarget: HTMLElement | null) => boolean;
