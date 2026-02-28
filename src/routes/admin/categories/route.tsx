@@ -1,9 +1,11 @@
 import { convexQuery } from "@convex-dev/react-query";
+import { IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useState } from "react";
 import { CursorPagination } from "#/components/cursor-pagination";
+import { Button } from "#/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -56,9 +58,15 @@ function RouteComponent() {
 	return (
 		<>
 			<Card className="min-w-0 flex-1">
-				<CardHeader>
-					<CardTitle>Categories</CardTitle>
-					<CardDescription>Manage post categories.</CardDescription>
+				<CardHeader className="flex flex-row items-start justify-between gap-3">
+					<div>
+						<CardTitle>Categories</CardTitle>
+						<CardDescription>Manage post categories.</CardDescription>
+					</div>
+					<Button render={<Link to="/admin/categories/new" />}>
+						<IconPlus />
+						Create new
+					</Button>
 				</CardHeader>
 
 				<CardContent className="min-w-0 flex-1">
