@@ -15,6 +15,9 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminTagsRouteRouteImport } from './routes/admin/tags/route'
+import { Route as AdminSeriesRouteRouteImport } from './routes/admin/series/route'
+import { Route as AdminCategoriesRouteRouteImport } from './routes/admin/categories/route'
 import { Route as AdminTagsIndexRouteImport } from './routes/admin/tags/index'
 import { Route as AdminSeriesIndexRouteImport } from './routes/admin/series/index'
 import { Route as AdminProjectsIndexRouteImport } from './routes/admin/projects/index'
@@ -56,15 +59,30 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const AdminTagsIndexRoute = AdminTagsIndexRouteImport.update({
-  id: '/tags/',
-  path: '/tags/',
+const AdminTagsRouteRoute = AdminTagsRouteRouteImport.update({
+  id: '/tags',
+  path: '/tags',
   getParentRoute: () => AdminRouteRoute,
 } as any)
-const AdminSeriesIndexRoute = AdminSeriesIndexRouteImport.update({
-  id: '/series/',
-  path: '/series/',
+const AdminSeriesRouteRoute = AdminSeriesRouteRouteImport.update({
+  id: '/series',
+  path: '/series',
   getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminCategoriesRouteRoute = AdminCategoriesRouteRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminTagsIndexRoute = AdminTagsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminTagsRouteRoute,
+} as any)
+const AdminSeriesIndexRoute = AdminSeriesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminSeriesRouteRoute,
 } as any)
 const AdminProjectsIndexRoute = AdminProjectsIndexRouteImport.update({
   id: '/projects/',
@@ -77,9 +95,9 @@ const AdminPostsIndexRoute = AdminPostsIndexRouteImport.update({
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCategoriesIndexRoute = AdminCategoriesIndexRouteImport.update({
-  id: '/categories/',
-  path: '/categories/',
-  getParentRoute: () => AdminRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminCategoriesRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -87,14 +105,14 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminTagsNewRoute = AdminTagsNewRouteImport.update({
-  id: '/tags/new',
-  path: '/tags/new',
-  getParentRoute: () => AdminRouteRoute,
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminTagsRouteRoute,
 } as any)
 const AdminSeriesNewRoute = AdminSeriesNewRouteImport.update({
-  id: '/series/new',
-  path: '/series/new',
-  getParentRoute: () => AdminRouteRoute,
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminSeriesRouteRoute,
 } as any)
 const AdminProjectsNewRoute = AdminProjectsNewRouteImport.update({
   id: '/projects/new',
@@ -107,14 +125,17 @@ const AdminPostsNewRoute = AdminPostsNewRouteImport.update({
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminCategoriesNewRoute = AdminCategoriesNewRouteImport.update({
-  id: '/categories/new',
-  path: '/categories/new',
-  getParentRoute: () => AdminRouteRoute,
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminCategoriesRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/': typeof HomeIndexRoute
+  '/admin/categories': typeof AdminCategoriesRouteRouteWithChildren
+  '/admin/series': typeof AdminSeriesRouteRouteWithChildren
+  '/admin/tags': typeof AdminTagsRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
@@ -151,6 +172,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/admin': typeof AdminRouteRouteWithChildren
   '/_home': typeof HomeRouteWithChildren
+  '/admin/categories': typeof AdminCategoriesRouteRouteWithChildren
+  '/admin/series': typeof AdminSeriesRouteRouteWithChildren
+  '/admin/tags': typeof AdminTagsRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/_home/': typeof HomeIndexRoute
@@ -172,6 +196,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/admin'
     | '/'
+    | '/admin/categories'
+    | '/admin/series'
+    | '/admin/tags'
     | '/admin/login'
     | '/admin/settings'
     | '/admin/'
@@ -207,6 +234,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/admin'
     | '/_home'
+    | '/admin/categories'
+    | '/admin/series'
+    | '/admin/tags'
     | '/admin/login'
     | '/admin/settings'
     | '/_home/'
@@ -274,19 +304,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/tags': {
+      id: '/admin/tags'
+      path: '/tags'
+      fullPath: '/admin/tags'
+      preLoaderRoute: typeof AdminTagsRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/series': {
+      id: '/admin/series'
+      path: '/series'
+      fullPath: '/admin/series'
+      preLoaderRoute: typeof AdminSeriesRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/tags/': {
       id: '/admin/tags/'
-      path: '/tags'
+      path: '/'
       fullPath: '/admin/tags/'
       preLoaderRoute: typeof AdminTagsIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
+      parentRoute: typeof AdminTagsRouteRoute
     }
     '/admin/series/': {
       id: '/admin/series/'
-      path: '/series'
+      path: '/'
       fullPath: '/admin/series/'
       preLoaderRoute: typeof AdminSeriesIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
+      parentRoute: typeof AdminSeriesRouteRoute
     }
     '/admin/projects/': {
       id: '/admin/projects/'
@@ -304,10 +355,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/categories/': {
       id: '/admin/categories/'
-      path: '/categories'
+      path: '/'
       fullPath: '/admin/categories/'
       preLoaderRoute: typeof AdminCategoriesIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
+      parentRoute: typeof AdminCategoriesRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -318,17 +369,17 @@ declare module '@tanstack/react-router' {
     }
     '/admin/tags/new': {
       id: '/admin/tags/new'
-      path: '/tags/new'
+      path: '/new'
       fullPath: '/admin/tags/new'
       preLoaderRoute: typeof AdminTagsNewRouteImport
-      parentRoute: typeof AdminRouteRoute
+      parentRoute: typeof AdminTagsRouteRoute
     }
     '/admin/series/new': {
       id: '/admin/series/new'
-      path: '/series/new'
+      path: '/new'
       fullPath: '/admin/series/new'
       preLoaderRoute: typeof AdminSeriesNewRouteImport
-      parentRoute: typeof AdminRouteRoute
+      parentRoute: typeof AdminSeriesRouteRoute
     }
     '/admin/projects/new': {
       id: '/admin/projects/new'
@@ -346,44 +397,78 @@ declare module '@tanstack/react-router' {
     }
     '/admin/categories/new': {
       id: '/admin/categories/new'
-      path: '/categories/new'
+      path: '/new'
       fullPath: '/admin/categories/new'
       preLoaderRoute: typeof AdminCategoriesNewRouteImport
-      parentRoute: typeof AdminRouteRoute
+      parentRoute: typeof AdminCategoriesRouteRoute
     }
   }
 }
 
-interface AdminRouteRouteChildren {
-  AdminLoginRoute: typeof AdminLoginRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminIndexRoute: typeof AdminIndexRoute
+interface AdminCategoriesRouteRouteChildren {
   AdminCategoriesNewRoute: typeof AdminCategoriesNewRoute
-  AdminPostsNewRoute: typeof AdminPostsNewRoute
-  AdminProjectsNewRoute: typeof AdminProjectsNewRoute
-  AdminSeriesNewRoute: typeof AdminSeriesNewRoute
-  AdminTagsNewRoute: typeof AdminTagsNewRoute
   AdminCategoriesIndexRoute: typeof AdminCategoriesIndexRoute
-  AdminPostsIndexRoute: typeof AdminPostsIndexRoute
-  AdminProjectsIndexRoute: typeof AdminProjectsIndexRoute
+}
+
+const AdminCategoriesRouteRouteChildren: AdminCategoriesRouteRouteChildren = {
+  AdminCategoriesNewRoute: AdminCategoriesNewRoute,
+  AdminCategoriesIndexRoute: AdminCategoriesIndexRoute,
+}
+
+const AdminCategoriesRouteRouteWithChildren =
+  AdminCategoriesRouteRoute._addFileChildren(AdminCategoriesRouteRouteChildren)
+
+interface AdminSeriesRouteRouteChildren {
+  AdminSeriesNewRoute: typeof AdminSeriesNewRoute
   AdminSeriesIndexRoute: typeof AdminSeriesIndexRoute
+}
+
+const AdminSeriesRouteRouteChildren: AdminSeriesRouteRouteChildren = {
+  AdminSeriesNewRoute: AdminSeriesNewRoute,
+  AdminSeriesIndexRoute: AdminSeriesIndexRoute,
+}
+
+const AdminSeriesRouteRouteWithChildren =
+  AdminSeriesRouteRoute._addFileChildren(AdminSeriesRouteRouteChildren)
+
+interface AdminTagsRouteRouteChildren {
+  AdminTagsNewRoute: typeof AdminTagsNewRoute
   AdminTagsIndexRoute: typeof AdminTagsIndexRoute
 }
 
+const AdminTagsRouteRouteChildren: AdminTagsRouteRouteChildren = {
+  AdminTagsNewRoute: AdminTagsNewRoute,
+  AdminTagsIndexRoute: AdminTagsIndexRoute,
+}
+
+const AdminTagsRouteRouteWithChildren = AdminTagsRouteRoute._addFileChildren(
+  AdminTagsRouteRouteChildren,
+)
+
+interface AdminRouteRouteChildren {
+  AdminCategoriesRouteRoute: typeof AdminCategoriesRouteRouteWithChildren
+  AdminSeriesRouteRoute: typeof AdminSeriesRouteRouteWithChildren
+  AdminTagsRouteRoute: typeof AdminTagsRouteRouteWithChildren
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminPostsNewRoute: typeof AdminPostsNewRoute
+  AdminProjectsNewRoute: typeof AdminProjectsNewRoute
+  AdminPostsIndexRoute: typeof AdminPostsIndexRoute
+  AdminProjectsIndexRoute: typeof AdminProjectsIndexRoute
+}
+
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminCategoriesRouteRoute: AdminCategoriesRouteRouteWithChildren,
+  AdminSeriesRouteRoute: AdminSeriesRouteRouteWithChildren,
+  AdminTagsRouteRoute: AdminTagsRouteRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
-  AdminCategoriesNewRoute: AdminCategoriesNewRoute,
   AdminPostsNewRoute: AdminPostsNewRoute,
   AdminProjectsNewRoute: AdminProjectsNewRoute,
-  AdminSeriesNewRoute: AdminSeriesNewRoute,
-  AdminTagsNewRoute: AdminTagsNewRoute,
-  AdminCategoriesIndexRoute: AdminCategoriesIndexRoute,
   AdminPostsIndexRoute: AdminPostsIndexRoute,
   AdminProjectsIndexRoute: AdminProjectsIndexRoute,
-  AdminSeriesIndexRoute: AdminSeriesIndexRoute,
-  AdminTagsIndexRoute: AdminTagsIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
