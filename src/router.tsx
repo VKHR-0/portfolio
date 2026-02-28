@@ -3,7 +3,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouteMask, createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
-import { env } from "./env";
+import { env } from "#/env";
 import { routeTree } from "./routeTree.gen";
 
 const createTagMask = createRouteMask({

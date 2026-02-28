@@ -63,13 +63,23 @@ function RouteComponent() {
 					<TableBody>
 						{result === undefined && (
 							<TableRow>
-								<TableCell colSpan={4}>Loading categories...</TableCell>
+								<TableCell
+									colSpan={4}
+									className="h-24 text-center text-muted-foreground"
+								>
+									Loading categories...
+								</TableCell>
 							</TableRow>
 						)}
 
 						{result && categories.length === 0 && (
 							<TableRow>
-								<TableCell colSpan={4}>No categories found.</TableCell>
+								<TableCell
+									colSpan={4}
+									className="h-24 text-center text-muted-foreground"
+								>
+									No categories found.
+								</TableCell>
 							</TableRow>
 						)}
 

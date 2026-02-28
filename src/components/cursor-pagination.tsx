@@ -47,28 +47,31 @@ export function CursorPagination({
 				<IconChevronLeft className="size-4" />
 			</Button>
 
-			<div className="flex items-center gap-1">
-				{pageWindowStart > 1 ? (
-					<span className="px-2 text-muted-foreground text-sm">...</span>
-				) : null}
+			<div className="flex min-w-0 flex-1 items-center justify-center">
+				<div className="flex max-w-full items-center gap-1 overflow-x-auto px-1">
+					{pageWindowStart > 1 ? (
+						<span className="px-2 text-muted-foreground text-sm">...</span>
+					) : null}
 
-				{visiblePages.map((page) => (
-					<Button
-						key={page}
-						type="button"
-						variant={page === currentPage ? "default" : "outline"}
-						size="sm"
-						onClick={() => {
-							onSelectPage(page);
-						}}
-					>
-						{page}
-					</Button>
-				))}
+					{visiblePages.map((page) => (
+						<Button
+							key={page}
+							type="button"
+							variant={page === currentPage ? "default" : "outline"}
+							size="sm"
+							className="shrink-0"
+							onClick={() => {
+								onSelectPage(page);
+							}}
+						>
+							{page}
+						</Button>
+					))}
 
-				{pageWindowEnd < pageCount ? (
-					<span className="px-2 text-muted-foreground text-sm">...</span>
-				) : null}
+					{pageWindowEnd < pageCount ? (
+						<span className="px-2 text-muted-foreground text-sm">...</span>
+					) : null}
+				</div>
 			</div>
 
 			<Button
