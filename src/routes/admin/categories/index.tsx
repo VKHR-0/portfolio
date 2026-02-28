@@ -1,3 +1,4 @@
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
@@ -26,7 +27,8 @@ export const Route = createFileRoute("/admin/categories/")({
 
 function RouteComponent() {
 	const [cursors, setCursors] = useState<Array<string | null>>([null]);
-	const currentCursor = cursors[cursors.length - 1];
+	const [currentPage, setCurrentPage] = useState(1);
+	const currentCursor = cursors[currentPage - 1] ?? null;
 
 	const result = useQuery(api.functions.categories.list, {
 		paginationOpts: {
@@ -36,6 +38,17 @@ function RouteComponent() {
 	});
 
 	const categories = result?.page ?? [];
+	const pageCount = cursors.length;
+	const pageWindowStart = Math.max(1, Math.min(currentPage - 2, pageCount - 4));
+	const pageWindowEnd = Math.min(pageCount, pageWindowStart + 4);
+	const visiblePages = Array.from(
+		{ length: pageWindowEnd - pageWindowStart + 1 },
+		(_, index) => pageWindowStart + index,
+	);
+	const canGoPrevious = currentPage > 1;
+	const canGoNext =
+		result !== undefined &&
+		(currentPage < pageCount || result.isDone === false);
 
 	return (
 		<Card className="min-w-0 flex-1">
@@ -85,31 +98,65 @@ function RouteComponent() {
 				</Table>
 			</CardContent>
 
-			<CardFooter className="justify-between">
+			<CardFooter className="justify-between gap-2">
 				<Button
 					type="button"
 					variant="outline"
+					size="icon"
 					onClick={() => {
-						setCursors((prev) => prev.slice(0, -1));
+						setCurrentPage((prev) => Math.max(1, prev - 1));
 					}}
-					disabled={cursors.length === 1}
+					disabled={!canGoPrevious}
+					aria-label="Go to previous page"
 				>
-					Previous
+					<IconChevronLeft className="size-4" />
 				</Button>
+
+				<div className="flex items-center gap-1">
+					{pageWindowStart > 1 ? (
+						<span className="px-2 text-muted-foreground text-sm">...</span>
+					) : null}
+
+					{visiblePages.map((page) => (
+						<Button
+							key={page}
+							type="button"
+							variant={page === currentPage ? "default" : "outline"}
+							size="sm"
+							onClick={() => {
+								setCurrentPage(page);
+							}}
+						>
+							{page}
+						</Button>
+					))}
+
+					{pageWindowEnd < pageCount ? (
+						<span className="px-2 text-muted-foreground text-sm">...</span>
+					) : null}
+				</div>
 
 				<Button
 					type="button"
 					variant="outline"
+					size="icon"
 					onClick={() => {
+						if (currentPage < pageCount) {
+							setCurrentPage((prev) => prev + 1);
+							return;
+						}
+
 						if (!result?.continueCursor) {
 							return;
 						}
 
 						setCursors((prev) => [...prev, result.continueCursor]);
+						setCurrentPage((prev) => prev + 1);
 					}}
-					disabled={result === undefined || result.isDone}
+					disabled={!canGoNext}
+					aria-label="Go to next page"
 				>
-					Next
+					<IconChevronRight className="size-4" />
 				</Button>
 			</CardFooter>
 		</Card>
