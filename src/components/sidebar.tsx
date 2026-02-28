@@ -28,6 +28,7 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
+	SidebarSeparator,
 	SidebarTrigger,
 } from "#/components/ui/sidebar";
 
@@ -116,6 +117,8 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
+
+				<SidebarSeparator />
 
 				<SidebarGroup>
 					<SidebarGroupLabel>Taxonomy</SidebarGroupLabel>
