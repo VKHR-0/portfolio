@@ -36,95 +36,80 @@ function RouteComponent() {
 	});
 
 	const categories = result?.page ?? [];
-	const pageLabel = `Page ${cursors.length}`;
 
 	return (
-		<section className="flex min-h-full w-full p-4">
-			<Card className="flex-1">
-				<CardHeader>
-					<CardTitle>Categories</CardTitle>
-					<CardDescription>Manage post categories.</CardDescription>
-				</CardHeader>
+		<Card className="flex-1">
+			<CardHeader>
+				<CardTitle>Categories</CardTitle>
+				<CardDescription>Manage post categories.</CardDescription>
+			</CardHeader>
 
-				<CardContent className="flex-1">
-					<Table>
-						<TableHeader>
+			<CardContent className="flex-1">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Name</TableHead>
+							<TableHead>Slug</TableHead>
+							<TableHead>Description</TableHead>
+							<TableHead>Created</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{result === undefined && (
 							<TableRow>
-								<TableHead>Name</TableHead>
-								<TableHead>Slug</TableHead>
-								<TableHead>Description</TableHead>
-								<TableHead>Created</TableHead>
+								<TableCell colSpan={4}>Loading categories...</TableCell>
 							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{result === undefined && (
-								<TableRow>
-									<TableCell
-										colSpan={4}
-										className="h-24 text-center text-muted-foreground"
-									>
-										Loading categories...
-									</TableCell>
-								</TableRow>
-							)}
+						)}
 
-							{result && categories.length === 0 && (
-								<TableRow>
-									<TableCell
-										colSpan={4}
-										className="h-24 text-center text-muted-foreground"
-									>
-										No categories found.
-									</TableCell>
-								</TableRow>
-							)}
+						{result && categories.length === 0 && (
+							<TableRow>
+								<TableCell colSpan={4}>No categories found.</TableCell>
+							</TableRow>
+						)}
 
-							{categories.map((category) => (
-								<TableRow key={category._id}>
-									<TableCell className="font-medium">{category.name}</TableCell>
-									<TableCell>{category.slug}</TableCell>
-									<TableCell className="max-w-[360px] truncate text-muted-foreground">
-										{category.description || "-"}
-									</TableCell>
-									<TableCell>
-										{new Date(category._creationTime).toLocaleString()}
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</CardContent>
+						{categories.map((category) => (
+							<TableRow key={category._id}>
+								<TableCell className="font-medium">{category.name}</TableCell>
+								<TableCell>{category.slug}</TableCell>
+								<TableCell className="max-w-[360px] truncate text-muted-foreground">
+									{category.description || "-"}
+								</TableCell>
+								<TableCell>
+									{new Date(category._creationTime).toLocaleString()}
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</CardContent>
 
-				<CardFooter className="justify-between">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => {
-							setCursors((prev) => prev.slice(0, -1));
-						}}
-						disabled={cursors.length === 1 || result === undefined}
-					>
-						Previous
-					</Button>
+			<CardFooter className="justify-between">
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => {
+						setCursors((prev) => prev.slice(0, -1));
+					}}
+					disabled={cursors.length === 1}
+				>
+					Previous
+				</Button>
 
-					<span className="text-muted-foreground text-sm">{pageLabel}</span>
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => {
+						if (!result?.continueCursor) {
+							return;
+						}
 
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => {
-							if (!result?.continueCursor) {
-								return;
-							}
-
-							setCursors((prev) => [...prev, result.continueCursor]);
-						}}
-						disabled={result === undefined || result.isDone}
-					>
-						Next
-					</Button>
-				</CardFooter>
-			</Card>
-		</section>
+						setCursors((prev) => [...prev, result.continueCursor]);
+					}}
+					disabled={result === undefined || result.isDone}
+				>
+					Next
+				</Button>
+			</CardFooter>
+		</Card>
 	);
 }

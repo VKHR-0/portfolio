@@ -39,88 +39,86 @@ function RouteComponent() {
 	const pageLabel = `Page ${cursors.length}`;
 
 	return (
-		<section className="flex min-h-full w-full p-4">
-			<Card className="flex-1">
-				<CardHeader>
-					<CardTitle>Tags</CardTitle>
-					<CardDescription>Manage post tags.</CardDescription>
-				</CardHeader>
+		<Card className="flex-1">
+			<CardHeader>
+				<CardTitle>Tags</CardTitle>
+				<CardDescription>Manage post tags.</CardDescription>
+			</CardHeader>
 
-				<CardContent className="flex-1">
-					<Table>
-						<TableHeader>
+			<CardContent className="flex-1">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Name</TableHead>
+							<TableHead>Slug</TableHead>
+							<TableHead>Created</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{result === undefined && (
 							<TableRow>
-								<TableHead>Name</TableHead>
-								<TableHead>Slug</TableHead>
-								<TableHead>Created</TableHead>
+								<TableCell
+									colSpan={3}
+									className="h-24 text-center text-muted-foreground"
+								>
+									Loading tags...
+								</TableCell>
 							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{result === undefined && (
-								<TableRow>
-									<TableCell
-										colSpan={3}
-										className="h-24 text-center text-muted-foreground"
-									>
-										Loading tags...
-									</TableCell>
-								</TableRow>
-							)}
+						)}
 
-							{result && tags.length === 0 && (
-								<TableRow>
-									<TableCell
-										colSpan={3}
-										className="h-24 text-center text-muted-foreground"
-									>
-										No tags found.
-									</TableCell>
-								</TableRow>
-							)}
+						{result && tags.length === 0 && (
+							<TableRow>
+								<TableCell
+									colSpan={3}
+									className="h-24 text-center text-muted-foreground"
+								>
+									No tags found.
+								</TableCell>
+							</TableRow>
+						)}
 
-							{tags.map((tag) => (
-								<TableRow key={tag._id}>
-									<TableCell className="font-medium">{tag.name}</TableCell>
-									<TableCell>{tag.slug}</TableCell>
-									<TableCell>
-										{new Date(tag._creationTime).toLocaleString()}
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</CardContent>
+						{tags.map((tag) => (
+							<TableRow key={tag._id}>
+								<TableCell className="font-medium">{tag.name}</TableCell>
+								<TableCell>{tag.slug}</TableCell>
+								<TableCell>
+									{new Date(tag._creationTime).toLocaleString()}
+								</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</CardContent>
 
-				<CardFooter className="justify-between">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => {
-							setCursors((prev) => prev.slice(0, -1));
-						}}
-						disabled={cursors.length === 1 || result === undefined}
-					>
-						Previous
-					</Button>
+			<CardFooter className="justify-between">
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => {
+						setCursors((prev) => prev.slice(0, -1));
+					}}
+					disabled={cursors.length === 1 || result === undefined}
+				>
+					Previous
+				</Button>
 
-					<span className="text-muted-foreground text-sm">{pageLabel}</span>
+				<span className="text-muted-foreground text-sm">{pageLabel}</span>
 
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => {
-							if (!result?.continueCursor) {
-								return;
-							}
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => {
+						if (!result?.continueCursor) {
+							return;
+						}
 
-							setCursors((prev) => [...prev, result.continueCursor]);
-						}}
-						disabled={result === undefined || result.isDone}
-					>
-						Next
-					</Button>
-				</CardFooter>
-			</Card>
-		</section>
+						setCursors((prev) => [...prev, result.continueCursor]);
+					}}
+					disabled={result === undefined || result.isDone}
+				>
+					Next
+				</Button>
+			</CardFooter>
+		</Card>
 	);
 }
