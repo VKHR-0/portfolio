@@ -143,6 +143,28 @@ function RouteComponent() {
 		descriptionInputRef.current?.select();
 	}, [editingSeriesId, focusField]);
 
+	const toEditableValues = (item: {
+		name: string;
+		slug: string;
+		description?: string;
+	}) => ({
+		name: item.name,
+		slug: item.slug,
+		description: item.description ?? "",
+	});
+
+	const startEditingSeries = (
+		item: {
+			_id: Id<"series">;
+			name: string;
+			slug: string;
+			description?: string;
+		},
+		field: "name" | "slug" | "description",
+	) => {
+		startEditing(item._id, toEditableValues(item), field);
+	};
+
 	return (
 		<>
 			<Card className="min-w-0 flex-1">
@@ -196,15 +218,7 @@ function RouteComponent() {
 										className="cursor-text select-none truncate font-medium"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(
-												item._id,
-												{
-													name: item.name,
-													slug: item.slug,
-													description: item.description ?? "",
-												},
-												"name",
-											);
+											startEditingSeries(item, "name");
 										}}
 									>
 										{editingSeriesId === item._id ? (
@@ -236,15 +250,7 @@ function RouteComponent() {
 										className="cursor-text select-none truncate"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(
-												item._id,
-												{
-													name: item.name,
-													slug: item.slug,
-													description: item.description ?? "",
-												},
-												"slug",
-											);
+											startEditingSeries(item, "slug");
 										}}
 									>
 										{editingSeriesId === item._id ? (
@@ -274,15 +280,7 @@ function RouteComponent() {
 										className="cursor-text select-none truncate text-muted-foreground"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(
-												item._id,
-												{
-													name: item.name,
-													slug: item.slug,
-													description: item.description ?? "",
-												},
-												"description",
-											);
+											startEditingSeries(item, "description");
 										}}
 									>
 										{editingSeriesId === item._id ? (

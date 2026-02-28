@@ -129,6 +129,18 @@ function RouteComponent() {
 		slugInputRef.current?.select();
 	}, [editingTagId, focusField]);
 
+	const toEditableValues = (tag: { name: string; slug: string }) => ({
+		name: tag.name,
+		slug: tag.slug,
+	});
+
+	const startEditingTag = (
+		tag: { _id: Id<"tags">; name: string; slug: string },
+		field: "name" | "slug",
+	) => {
+		startEditing(tag._id, toEditableValues(tag), field);
+	};
+
 	return (
 		<>
 			<Card className="min-w-0 flex-1">
@@ -181,11 +193,7 @@ function RouteComponent() {
 										className="cursor-text select-none truncate font-medium"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(
-												tag._id,
-												{ name: tag.name, slug: tag.slug },
-												"name",
-											);
+											startEditingTag(tag, "name");
 										}}
 									>
 										{editingTagId === tag._id ? (
@@ -217,11 +225,7 @@ function RouteComponent() {
 										className="cursor-text select-none truncate"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(
-												tag._id,
-												{ name: tag.name, slug: tag.slug },
-												"slug",
-											);
+											startEditingTag(tag, "slug");
 										}}
 									>
 										{editingTagId === tag._id ? (

@@ -143,6 +143,28 @@ function RouteComponent() {
 		descriptionInputRef.current?.select();
 	}, [editingCategoryId, focusField]);
 
+	const toEditableValues = (category: {
+		name: string;
+		slug: string;
+		description?: string;
+	}) => ({
+		name: category.name,
+		slug: category.slug,
+		description: category.description ?? "",
+	});
+
+	const startEditingCategory = (
+		category: {
+			_id: Id<"categories">;
+			name: string;
+			slug: string;
+			description?: string;
+		},
+		field: "name" | "slug" | "description",
+	) => {
+		startEditing(category._id, toEditableValues(category), field);
+	};
+
 	return (
 		<>
 			<Card className="min-w-0 flex-1">
@@ -196,15 +218,7 @@ function RouteComponent() {
 										className="cursor-text select-none truncate font-medium"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(
-												category._id,
-												{
-													name: category.name,
-													slug: category.slug,
-													description: category.description ?? "",
-												},
-												"name",
-											);
+											startEditingCategory(category, "name");
 										}}
 									>
 										{editingCategoryId === category._id ? (
@@ -236,15 +250,7 @@ function RouteComponent() {
 										className="cursor-text select-none truncate"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(
-												category._id,
-												{
-													name: category.name,
-													slug: category.slug,
-													description: category.description ?? "",
-												},
-												"slug",
-											);
+											startEditingCategory(category, "slug");
 										}}
 									>
 										{editingCategoryId === category._id ? (
@@ -274,15 +280,7 @@ function RouteComponent() {
 										className="cursor-text select-none truncate text-muted-foreground"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(
-												category._id,
-												{
-													name: category.name,
-													slug: category.slug,
-													description: category.description ?? "",
-												},
-												"description",
-											);
+											startEditingCategory(category, "description");
 										}}
 									>
 										{editingCategoryId === category._id ? (
