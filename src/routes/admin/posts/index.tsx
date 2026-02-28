@@ -63,9 +63,9 @@ function RouteComponent() {
 					<TableHeader>
 						<TableRow>
 							<TableHead className="w-[30%]">Title</TableHead>
-							<TableHead className="w-[30%]">Slug</TableHead>
-							<TableHead className="w-[20%]">Status</TableHead>
-							<TableHead>Created</TableHead>
+							<TableHead className="w-[28%]">Slug</TableHead>
+							<TableHead className="w-[16%]">Status</TableHead>
+							<TableHead>Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -101,7 +101,31 @@ function RouteComponent() {
 									{post.status}
 								</TableCell>
 								<TableCell>
-									{new Date(post._creationTime).toLocaleString()}
+									<div className="flex items-center gap-2">
+										<Button
+											size="xs"
+											variant="outline"
+											render={
+												<Link
+													to="/posts/$slugId"
+													params={{ slugId: post.slug }}
+												/>
+											}
+										>
+											Preview
+										</Button>
+										<Button
+											size="xs"
+											render={
+												<Link
+													to="/admin/posts/$slugId"
+													params={{ slugId: post.slug }}
+												/>
+											}
+										>
+											Edit
+										</Button>
+									</div>
 								</TableCell>
 							</TableRow>
 						))}
