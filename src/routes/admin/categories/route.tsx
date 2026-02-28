@@ -58,7 +58,7 @@ function RouteComponent() {
 	return (
 		<>
 			<Card className="min-w-0 flex-1">
-				<CardHeader className="flex flex-row items-start justify-between gap-3">
+				<CardHeader className="flex flex-row items-center justify-between gap-3">
 					<div>
 						<CardTitle>Categories</CardTitle>
 						<CardDescription>Manage post categories.</CardDescription>

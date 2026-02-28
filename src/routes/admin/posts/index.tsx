@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { IconPlus } from "@tabler/icons-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
 import { CursorPagination } from "#/components/cursor-pagination";
+import { Button } from "#/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -45,9 +47,15 @@ function RouteComponent() {
 
 	return (
 		<Card className="min-w-0 flex-1">
-			<CardHeader>
-				<CardTitle>Posts</CardTitle>
-				<CardDescription>Manage blog posts.</CardDescription>
+			<CardHeader className="flex flex-row items-center justify-between gap-3">
+				<div>
+					<CardTitle>Posts</CardTitle>
+					<CardDescription>Manage blog posts.</CardDescription>
+				</div>
+				<Button render={<Link to="/admin/posts/new" />}>
+					<IconPlus />
+					Create new
+				</Button>
 			</CardHeader>
 
 			<CardContent className="min-w-0 flex-1">
