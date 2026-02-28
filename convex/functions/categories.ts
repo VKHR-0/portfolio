@@ -66,16 +66,9 @@ export const deleteCategory = mutation({
 			.withIndex("by_category", (q) => q.eq("categoryId", args.id))
 			.first();
 
-		const projects = await ctx.db.query("projects").collect();
-		const associatedProject = projects.find((project) => {
-			const projectRecord = project as Record<string, unknown>;
-
-			return projectRecord.categoryId === args.id;
-		});
-
-		if (associatedPost || associatedProject) {
+		if (associatedPost) {
 			throw new Error(
-				"Cannot delete category while it is associated with posts or projects.",
+				"Cannot delete category while it is associated with posts.",
 			);
 		}
 

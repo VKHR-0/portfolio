@@ -63,21 +63,8 @@ export const deleteTag = mutation({
 			post.tags.some((tagId) => tagId === args.id),
 		);
 
-		const projects = await ctx.db.query("projects").collect();
-		const associatedProject = projects.find((project) => {
-			const projectRecord = project as Record<string, unknown>;
-
-			if (!Array.isArray(projectRecord.tags)) {
-				return false;
-			}
-
-			return projectRecord.tags.some((tagId) => tagId === args.id);
-		});
-
-		if (associatedPost || associatedProject) {
-			throw new Error(
-				"Cannot delete tag while it is associated with posts or projects.",
-			);
+		if (associatedPost) {
+			throw new Error("Cannot delete tag while it is associated with posts.");
 		}
 
 		await ctx.db.delete(args.id);
