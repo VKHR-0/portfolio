@@ -3,7 +3,12 @@ import { IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
-import { useState } from "react";
+import type { Id } from "convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import type { FocusEvent, KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toSlug } from "shared/slug";
+import { toast } from "sonner";
 import { CursorPagination } from "#/components/cursor-pagination";
 import { Button } from "#/components/ui/button";
 import {
@@ -14,6 +19,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { Input } from "#/components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -45,6 +51,21 @@ function RouteComponent() {
 	const [cursors, setCursors] = useState<Array<string | null>>([null]);
 	const [currentPage, setCurrentPage] = useState(1);
 	const currentCursor = cursors[currentPage - 1] ?? null;
+	const updateTag = useMutation(api.functions.tags.updateTag);
+
+	const [editingTagId, setEditingTagId] = useState<Id<"tags"> | null>(null);
+	const [editingDraft, setEditingDraft] = useState({
+		name: "",
+		slug: "",
+	});
+	const [initialDraft, setInitialDraft] = useState({
+		name: "",
+		slug: "",
+	});
+	const [focusField, setFocusField] = useState<"name" | "slug">("name");
+	const [isSavingEdit, setIsSavingEdit] = useState(false);
+	const nameInputRef = useRef<HTMLInputElement>(null);
+	const slugInputRef = useRef<HTMLInputElement>(null);
 
 	const { data: result } = useQuery(listTagsQuery(currentCursor));
 
@@ -54,6 +75,112 @@ function RouteComponent() {
 	const canGoNext =
 		result !== undefined &&
 		(currentPage < pageCount || result.isDone === false);
+
+	useEffect(() => {
+		if (!editingTagId) {
+			return;
+		}
+
+		if (focusField === "name") {
+			nameInputRef.current?.focus();
+			nameInputRef.current?.select();
+			return;
+		}
+
+		slugInputRef.current?.focus();
+		slugInputRef.current?.select();
+	}, [editingTagId, focusField]);
+
+	const startEditing = (
+		tag: { _id: Id<"tags">; name: string; slug: string },
+		field: "name" | "slug",
+	) => {
+		setEditingTagId(tag._id);
+		setEditingDraft({
+			name: tag.name,
+			slug: tag.slug,
+		});
+		setInitialDraft({
+			name: tag.name,
+			slug: tag.slug,
+		});
+		setFocusField(field);
+	};
+
+	const cancelEditing = () => {
+		if (isSavingEdit) {
+			return;
+		}
+
+		setEditingTagId(null);
+	};
+
+	const saveEditing = async () => {
+		if (!editingTagId || isSavingEdit) {
+			return;
+		}
+
+		const name = editingDraft.name.trim();
+		const slug = toSlug(editingDraft.slug);
+
+		if (!name) {
+			toast.error("Name is required.");
+			nameInputRef.current?.focus();
+			return;
+		}
+
+		if (!slug) {
+			toast.error("Slug is required.");
+			slugInputRef.current?.focus();
+			return;
+		}
+
+		if (name === initialDraft.name && slug === initialDraft.slug) {
+			setEditingTagId(null);
+			return;
+		}
+
+		setIsSavingEdit(true);
+
+		try {
+			await updateTag({
+				id: editingTagId,
+				name,
+				slug,
+			});
+			setEditingTagId(null);
+		} catch (mutationError: unknown) {
+			toast.error(
+				mutationError instanceof Error
+					? mutationError.message
+					: "Unable to update tag.",
+			);
+		} finally {
+			setIsSavingEdit(false);
+		}
+	};
+
+	const handleInputBlur = (event: FocusEvent<HTMLInputElement>) => {
+		const nextTarget = event.relatedTarget as HTMLElement | null;
+		if (nextTarget?.dataset.editableCell === "true") {
+			return;
+		}
+
+		void saveEditing();
+	};
+
+	const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === "Enter") {
+			event.preventDefault();
+			void saveEditing();
+			return;
+		}
+
+		if (event.key === "Escape") {
+			event.preventDefault();
+			cancelEditing();
+		}
+	};
 
 	return (
 		<>
@@ -103,10 +230,58 @@ function RouteComponent() {
 
 							{tags.map((tag) => (
 								<TableRow key={tag._id}>
-									<TableCell className="truncate font-medium">
-										{tag.name}
+									<TableCell
+										className="truncate font-medium"
+										onDoubleClick={() => {
+											startEditing(tag, "name");
+										}}
+									>
+										{editingTagId === tag._id ? (
+											<Input
+												ref={nameInputRef}
+												data-editable-cell="true"
+												value={editingDraft.name}
+												disabled={isSavingEdit}
+												onChange={(event) => {
+													const nextName = event.target.value;
+													setEditingDraft((previous) => ({
+														...previous,
+														name: nextName,
+														slug: toSlug(nextName),
+													}));
+												}}
+												onBlur={handleInputBlur}
+												onKeyDown={handleInputKeyDown}
+											/>
+										) : (
+											tag.name
+										)}
 									</TableCell>
-									<TableCell className="truncate">{tag.slug}</TableCell>
+									<TableCell
+										className="truncate"
+										onDoubleClick={() => {
+											startEditing(tag, "slug");
+										}}
+									>
+										{editingTagId === tag._id ? (
+											<Input
+												ref={slugInputRef}
+												data-editable-cell="true"
+												value={editingDraft.slug}
+												disabled={isSavingEdit}
+												onChange={(event) => {
+													setEditingDraft((previous) => ({
+														...previous,
+														slug: event.target.value,
+													}));
+												}}
+												onBlur={handleInputBlur}
+												onKeyDown={handleInputKeyDown}
+											/>
+										) : (
+											tag.slug
+										)}
+									</TableCell>
 									<TableCell>
 										{new Date(tag._creationTime).toLocaleString()}
 									</TableCell>
