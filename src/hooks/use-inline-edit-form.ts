@@ -12,7 +12,7 @@ type InlineEditSubmitArgs<TId, TValues extends InlineEditValues> = {
 
 type InlineEditOptions<TId, TValues extends InlineEditValues> = {
 	emptyValues: TValues;
-	onSubmit: (args: InlineEditSubmitArgs<TId, TValues>) => Promise<void>;
+	onSubmit: (args: InlineEditSubmitArgs<TId, TValues>) => Promise<void | false>;
 	onError?: (error: unknown) => void;
 	isUnchanged?: (args: { value: TValues; initialValue: TValues }) => boolean;
 	shouldSkipBlurSave?: (nextTarget: HTMLElement | null) => boolean;
@@ -48,11 +48,16 @@ export function useInlineEditForm<TId, TValues extends InlineEditValues>(
 			setIsSaving(true);
 
 			try {
-				await options.onSubmit({
+				const result = await options.onSubmit({
 					id: editingId,
 					value: nextValue,
 					initialValue,
 				});
+
+				if (result === false) {
+					return;
+				}
+
 				setEditingId(null);
 			} catch (error) {
 				options.onError?.(error);
