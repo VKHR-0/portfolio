@@ -45,6 +45,7 @@ export function getRouter() {
 	const router = createRouter({
 		routeTree,
 		routeMasks: [createTagMask, createSeriesMask, createCategoryMask],
+		notFoundMode: "root",
 
 		scrollRestoration: true,
 		defaultPreload: "intent",

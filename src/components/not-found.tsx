@@ -8,8 +8,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { Route as RootRoute } from "#/routes/__root";
 
 function NotFoundPage() {
+	const { isAuthenticated } = RootRoute.useRouteContext();
+
 	return (
 		<main className="flex min-h-screen items-center justify-center p-4">
 			<Card className="w-full max-w-md">
@@ -25,9 +28,11 @@ function NotFoundPage() {
 					</p>
 				</CardContent>
 				<CardFooter className="justify-end gap-2">
-					<Button variant="outline" render={<Link to="/admin" />}>
-						Admin
-					</Button>
+					{isAuthenticated ? (
+						<Button variant="outline" render={<Link to="/admin" />}>
+							Admin
+						</Button>
+					) : null}
 					<Button render={<Link to="/" />}>Go home</Button>
 				</CardFooter>
 			</Card>
