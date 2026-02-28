@@ -23,12 +23,16 @@ import { Route as AdminSeriesIndexRouteImport } from './routes/admin/series/inde
 import { Route as AdminProjectsIndexRouteImport } from './routes/admin/projects/index'
 import { Route as AdminPostsIndexRouteImport } from './routes/admin/posts/index'
 import { Route as AdminCategoriesIndexRouteImport } from './routes/admin/categories/index'
+import { Route as HomeProjectsIndexRouteImport } from './routes/_home/projects/index'
+import { Route as HomePostsIndexRouteImport } from './routes/_home/posts/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as AdminTagsNewRouteImport } from './routes/admin/tags/new'
 import { Route as AdminSeriesNewRouteImport } from './routes/admin/series/new'
 import { Route as AdminProjectsNewRouteImport } from './routes/admin/projects/new'
 import { Route as AdminPostsNewRouteImport } from './routes/admin/posts/new'
 import { Route as AdminCategoriesNewRouteImport } from './routes/admin/categories/new'
+import { Route as HomeProjectsSlugIdRouteImport } from './routes/_home/projects/$slugId'
+import { Route as HomePostsSlugIdRouteImport } from './routes/_home/posts/$slugId'
 
 const HomeRoute = HomeRouteImport.update({
   id: '/_home',
@@ -99,6 +103,16 @@ const AdminCategoriesIndexRoute = AdminCategoriesIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminCategoriesRouteRoute,
 } as any)
+const HomeProjectsIndexRoute = HomeProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => HomeRoute,
+} as any)
+const HomePostsIndexRoute = HomePostsIndexRouteImport.update({
+  id: '/posts/',
+  path: '/posts/',
+  getParentRoute: () => HomeRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -129,6 +143,16 @@ const AdminCategoriesNewRoute = AdminCategoriesNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AdminCategoriesRouteRoute,
 } as any)
+const HomeProjectsSlugIdRoute = HomeProjectsSlugIdRouteImport.update({
+  id: '/projects/$slugId',
+  path: '/projects/$slugId',
+  getParentRoute: () => HomeRoute,
+} as any)
+const HomePostsSlugIdRoute = HomePostsSlugIdRouteImport.update({
+  id: '/posts/$slugId',
+  path: '/posts/$slugId',
+  getParentRoute: () => HomeRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
@@ -139,12 +163,16 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
+  '/posts/$slugId': typeof HomePostsSlugIdRoute
+  '/projects/$slugId': typeof HomeProjectsSlugIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
   '/admin/posts/new': typeof AdminPostsNewRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/posts/': typeof HomePostsIndexRoute
+  '/projects/': typeof HomeProjectsIndexRoute
   '/admin/categories/': typeof AdminCategoriesIndexRoute
   '/admin/posts/': typeof AdminPostsIndexRoute
   '/admin/projects/': typeof AdminProjectsIndexRoute
@@ -156,12 +184,16 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/': typeof HomeIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/posts/$slugId': typeof HomePostsSlugIdRoute
+  '/projects/$slugId': typeof HomeProjectsSlugIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
   '/admin/posts/new': typeof AdminPostsNewRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/posts': typeof HomePostsIndexRoute
+  '/projects': typeof HomeProjectsIndexRoute
   '/admin/categories': typeof AdminCategoriesIndexRoute
   '/admin/posts': typeof AdminPostsIndexRoute
   '/admin/projects': typeof AdminProjectsIndexRoute
@@ -179,12 +211,16 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/_home/': typeof HomeIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_home/posts/$slugId': typeof HomePostsSlugIdRoute
+  '/_home/projects/$slugId': typeof HomeProjectsSlugIdRoute
   '/admin/categories/new': typeof AdminCategoriesNewRoute
   '/admin/posts/new': typeof AdminPostsNewRoute
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_home/posts/': typeof HomePostsIndexRoute
+  '/_home/projects/': typeof HomeProjectsIndexRoute
   '/admin/categories/': typeof AdminCategoriesIndexRoute
   '/admin/posts/': typeof AdminPostsIndexRoute
   '/admin/projects/': typeof AdminProjectsIndexRoute
@@ -202,12 +238,16 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/settings'
     | '/admin/'
+    | '/posts/$slugId'
+    | '/projects/$slugId'
     | '/admin/categories/new'
     | '/admin/posts/new'
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
     | '/api/auth/$'
+    | '/posts/'
+    | '/projects/'
     | '/admin/categories/'
     | '/admin/posts/'
     | '/admin/projects/'
@@ -219,12 +259,16 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/'
     | '/admin'
+    | '/posts/$slugId'
+    | '/projects/$slugId'
     | '/admin/categories/new'
     | '/admin/posts/new'
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
     | '/api/auth/$'
+    | '/posts'
+    | '/projects'
     | '/admin/categories'
     | '/admin/posts'
     | '/admin/projects'
@@ -241,12 +285,16 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/_home/'
     | '/admin/'
+    | '/_home/posts/$slugId'
+    | '/_home/projects/$slugId'
     | '/admin/categories/new'
     | '/admin/posts/new'
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
     | '/api/auth/$'
+    | '/_home/posts/'
+    | '/_home/projects/'
     | '/admin/categories/'
     | '/admin/posts/'
     | '/admin/projects/'
@@ -360,6 +408,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesIndexRouteImport
       parentRoute: typeof AdminCategoriesRouteRoute
     }
+    '/_home/projects/': {
+      id: '/_home/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof HomeProjectsIndexRouteImport
+      parentRoute: typeof HomeRoute
+    }
+    '/_home/posts/': {
+      id: '/_home/posts/'
+      path: '/posts'
+      fullPath: '/posts/'
+      preLoaderRoute: typeof HomePostsIndexRouteImport
+      parentRoute: typeof HomeRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -401,6 +463,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/categories/new'
       preLoaderRoute: typeof AdminCategoriesNewRouteImport
       parentRoute: typeof AdminCategoriesRouteRoute
+    }
+    '/_home/projects/$slugId': {
+      id: '/_home/projects/$slugId'
+      path: '/projects/$slugId'
+      fullPath: '/projects/$slugId'
+      preLoaderRoute: typeof HomeProjectsSlugIdRouteImport
+      parentRoute: typeof HomeRoute
+    }
+    '/_home/posts/$slugId': {
+      id: '/_home/posts/$slugId'
+      path: '/posts/$slugId'
+      fullPath: '/posts/$slugId'
+      preLoaderRoute: typeof HomePostsSlugIdRouteImport
+      parentRoute: typeof HomeRoute
     }
   }
 }
@@ -477,10 +553,18 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
 
 interface HomeRouteChildren {
   HomeIndexRoute: typeof HomeIndexRoute
+  HomePostsSlugIdRoute: typeof HomePostsSlugIdRoute
+  HomeProjectsSlugIdRoute: typeof HomeProjectsSlugIdRoute
+  HomePostsIndexRoute: typeof HomePostsIndexRoute
+  HomeProjectsIndexRoute: typeof HomeProjectsIndexRoute
 }
 
 const HomeRouteChildren: HomeRouteChildren = {
   HomeIndexRoute: HomeIndexRoute,
+  HomePostsSlugIdRoute: HomePostsSlugIdRoute,
+  HomeProjectsSlugIdRoute: HomeProjectsSlugIdRoute,
+  HomePostsIndexRoute: HomePostsIndexRoute,
+  HomeProjectsIndexRoute: HomeProjectsIndexRoute,
 }
 
 const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
