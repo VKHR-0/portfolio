@@ -5,7 +5,6 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
-import type { FocusEvent, KeyboardEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
@@ -28,6 +27,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "#/components/ui/table";
+import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 
 const PAGE_SIZE = 10;
 
@@ -52,26 +52,66 @@ function RouteComponent() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const currentCursor = cursors[currentPage - 1] ?? null;
 	const updateCategory = useMutation(api.functions.categories.updateCategory);
-
-	const [editingCategoryId, setEditingCategoryId] =
-		useState<Id<"categories"> | null>(null);
-	const [editingDraft, setEditingDraft] = useState({
-		name: "",
-		slug: "",
-		description: "",
-	});
-	const [initialDraft, setInitialDraft] = useState({
-		name: "",
-		slug: "",
-		description: "",
-	});
-	const [focusField, setFocusField] = useState<"name" | "slug" | "description">(
-		"name",
-	);
-	const [isSavingEdit, setIsSavingEdit] = useState(false);
 	const nameInputRef = useRef<HTMLInputElement>(null);
 	const slugInputRef = useRef<HTMLInputElement>(null);
 	const descriptionInputRef = useRef<HTMLInputElement>(null);
+
+	const {
+		form,
+		editingId: editingCategoryId,
+		isSaving: isSavingEdit,
+		focusField,
+		setFocusField,
+		startEditing,
+		handleInputBlur,
+		handleInputKeyDown,
+	} = useInlineEditForm<
+		Id<"categories">,
+		{ name: string; slug: string; description: string }
+	>({
+		emptyValues: {
+			name: "",
+			slug: "",
+			description: "",
+		},
+		isUnchanged: ({ value, initialValue }) =>
+			value.name.trim() === initialValue.name &&
+			toSlug(value.slug) === initialValue.slug &&
+			value.description.trim() === initialValue.description,
+		onSubmit: async ({ id, value }) => {
+			const name = value.name.trim();
+			const slug = toSlug(value.slug);
+			const description = value.description.trim();
+
+			if (!name) {
+				toast.error("Name is required.");
+				setFocusField("name");
+				nameInputRef.current?.focus();
+				return false;
+			}
+
+			if (!slug) {
+				toast.error("Slug is required.");
+				setFocusField("slug");
+				slugInputRef.current?.focus();
+				return false;
+			}
+
+			await updateCategory({
+				id,
+				name,
+				slug,
+				description: description || undefined,
+			});
+		},
+		onError: (mutationError) => {
+			toast.error(
+				mutationError instanceof Error
+					? mutationError.message
+					: "Unable to update category.",
+			);
+		},
+	});
 
 	const { data: result } = useQuery(listCategoriesQuery(currentCursor));
 
@@ -102,119 +142,6 @@ function RouteComponent() {
 		descriptionInputRef.current?.focus();
 		descriptionInputRef.current?.select();
 	}, [editingCategoryId, focusField]);
-
-	const startEditing = (
-		category: {
-			_id: Id<"categories">;
-			name: string;
-			slug: string;
-			description?: string;
-		},
-		field: "name" | "slug" | "description",
-	) => {
-		if (isSavingEdit) {
-			return;
-		}
-
-		if (editingCategoryId === category._id) {
-			setFocusField(field);
-			return;
-		}
-
-		setEditingCategoryId(category._id);
-		setEditingDraft({
-			name: category.name,
-			slug: category.slug,
-			description: category.description ?? "",
-		});
-		setInitialDraft({
-			name: category.name,
-			slug: category.slug,
-			description: category.description ?? "",
-		});
-		setFocusField(field);
-	};
-
-	const cancelEditing = () => {
-		if (isSavingEdit) {
-			return;
-		}
-
-		setEditingCategoryId(null);
-	};
-
-	const saveEditing = async () => {
-		if (!editingCategoryId || isSavingEdit) {
-			return;
-		}
-
-		const name = editingDraft.name.trim();
-		const slug = toSlug(editingDraft.slug);
-		const description = editingDraft.description.trim();
-
-		if (!name) {
-			toast.error("Name is required.");
-			nameInputRef.current?.focus();
-			return;
-		}
-
-		if (!slug) {
-			toast.error("Slug is required.");
-			slugInputRef.current?.focus();
-			return;
-		}
-
-		if (
-			name === initialDraft.name &&
-			slug === initialDraft.slug &&
-			description === initialDraft.description
-		) {
-			setEditingCategoryId(null);
-			return;
-		}
-
-		setIsSavingEdit(true);
-
-		try {
-			await updateCategory({
-				id: editingCategoryId,
-				name,
-				slug,
-				description: description || undefined,
-			});
-			setEditingCategoryId(null);
-		} catch (mutationError: unknown) {
-			toast.error(
-				mutationError instanceof Error
-					? mutationError.message
-					: "Unable to update category.",
-			);
-		} finally {
-			setIsSavingEdit(false);
-		}
-	};
-
-	const handleInputBlur = (event: FocusEvent<HTMLInputElement>) => {
-		const nextTarget = event.relatedTarget as HTMLElement | null;
-		if (nextTarget?.dataset.editableCell === "true") {
-			return;
-		}
-
-		void saveEditing();
-	};
-
-	const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-		if (event.key === "Enter") {
-			event.preventDefault();
-			void saveEditing();
-			return;
-		}
-
-		if (event.key === "Escape") {
-			event.preventDefault();
-			cancelEditing();
-		}
-	};
 
 	return (
 		<>
@@ -269,26 +196,38 @@ function RouteComponent() {
 										className="cursor-text select-none truncate font-medium"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(category, "name");
+											startEditing(
+												category._id,
+												{
+													name: category.name,
+													slug: category.slug,
+													description: category.description ?? "",
+												},
+												"name",
+											);
 										}}
 									>
 										{editingCategoryId === category._id ? (
-											<Input
-												ref={nameInputRef}
-												data-editable-cell="true"
-												value={editingDraft.name}
-												disabled={isSavingEdit}
-												onChange={(event) => {
-													const nextName = event.target.value;
-													setEditingDraft((previous) => ({
-														...previous,
-														name: nextName,
-														slug: toSlug(nextName),
-													}));
-												}}
-												onBlur={handleInputBlur}
-												onKeyDown={handleInputKeyDown}
-											/>
+											<form.Field name="name">
+												{(field) => (
+													<Input
+														ref={nameInputRef}
+														data-editable-cell="true"
+														value={field.state.value}
+														disabled={isSavingEdit}
+														onChange={(event) => {
+															const nextName = event.target.value;
+															field.handleChange(nextName);
+															form.setFieldValue("slug", toSlug(nextName));
+														}}
+														onBlur={(event) => {
+															field.handleBlur();
+															handleInputBlur(event);
+														}}
+														onKeyDown={handleInputKeyDown}
+													/>
+												)}
+											</form.Field>
 										) : (
 											category.name
 										)}
@@ -297,24 +236,36 @@ function RouteComponent() {
 										className="cursor-text select-none truncate"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(category, "slug");
+											startEditing(
+												category._id,
+												{
+													name: category.name,
+													slug: category.slug,
+													description: category.description ?? "",
+												},
+												"slug",
+											);
 										}}
 									>
 										{editingCategoryId === category._id ? (
-											<Input
-												ref={slugInputRef}
-												data-editable-cell="true"
-												value={editingDraft.slug}
-												disabled={isSavingEdit}
-												onChange={(event) => {
-													setEditingDraft((previous) => ({
-														...previous,
-														slug: event.target.value,
-													}));
-												}}
-												onBlur={handleInputBlur}
-												onKeyDown={handleInputKeyDown}
-											/>
+											<form.Field name="slug">
+												{(field) => (
+													<Input
+														ref={slugInputRef}
+														data-editable-cell="true"
+														value={field.state.value}
+														disabled={isSavingEdit}
+														onChange={(event) => {
+															field.handleChange(event.target.value);
+														}}
+														onBlur={(event) => {
+															field.handleBlur();
+															handleInputBlur(event);
+														}}
+														onKeyDown={handleInputKeyDown}
+													/>
+												)}
+											</form.Field>
 										) : (
 											category.slug
 										)}
@@ -323,24 +274,36 @@ function RouteComponent() {
 										className="cursor-text select-none truncate text-muted-foreground"
 										title="Double-click to edit"
 										onDoubleClick={() => {
-											startEditing(category, "description");
+											startEditing(
+												category._id,
+												{
+													name: category.name,
+													slug: category.slug,
+													description: category.description ?? "",
+												},
+												"description",
+											);
 										}}
 									>
 										{editingCategoryId === category._id ? (
-											<Input
-												ref={descriptionInputRef}
-												data-editable-cell="true"
-												value={editingDraft.description}
-												disabled={isSavingEdit}
-												onChange={(event) => {
-													setEditingDraft((previous) => ({
-														...previous,
-														description: event.target.value,
-													}));
-												}}
-												onBlur={handleInputBlur}
-												onKeyDown={handleInputKeyDown}
-											/>
+											<form.Field name="description">
+												{(field) => (
+													<Input
+														ref={descriptionInputRef}
+														data-editable-cell="true"
+														value={field.state.value}
+														disabled={isSavingEdit}
+														onChange={(event) => {
+															field.handleChange(event.target.value);
+														}}
+														onBlur={(event) => {
+															field.handleBlur();
+															handleInputBlur(event);
+														}}
+														onKeyDown={handleInputKeyDown}
+													/>
+												)}
+											</form.Field>
 										) : (
 											category.description || "-"
 										)}
