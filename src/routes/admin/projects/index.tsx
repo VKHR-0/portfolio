@@ -62,18 +62,16 @@ function RouteComponent() {
 				<Table className="table-fixed">
 					<TableHeader>
 						<TableRow>
-							<TableHead className="w-[26%]">Title</TableHead>
-							<TableHead className="w-[24%]">Slug</TableHead>
-							<TableHead className="w-[30%]">Description</TableHead>
-							<TableHead className="w-[10%]">Status</TableHead>
-							<TableHead>Created</TableHead>
+							<TableHead className="w-[40%]">Title</TableHead>
+							<TableHead className="w-[35%]">Slug</TableHead>
+							<TableHead>Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{result === undefined && (
 							<TableRow>
 								<TableCell
-									colSpan={5}
+									colSpan={3}
 									className="h-24 text-center text-muted-foreground"
 								>
 									Loading projects...
@@ -84,7 +82,7 @@ function RouteComponent() {
 						{result && projects.length === 0 && (
 							<TableRow>
 								<TableCell
-									colSpan={5}
+									colSpan={3}
 									className="h-24 text-center text-muted-foreground"
 								>
 									No projects found.
@@ -98,14 +96,32 @@ function RouteComponent() {
 									{project.title}
 								</TableCell>
 								<TableCell className="truncate">{project.slug}</TableCell>
-								<TableCell className="truncate text-muted-foreground">
-									{project.description}
-								</TableCell>
-								<TableCell className="text-muted-foreground capitalize">
-									{project.status}
-								</TableCell>
 								<TableCell>
-									{new Date(project._creationTime).toLocaleString()}
+									<div className="flex items-center gap-2">
+										<Button
+											size="xs"
+											variant="outline"
+											render={
+												<Link
+													to="/projects/$slugId"
+													params={{ slugId: project.slug }}
+												/>
+											}
+										>
+											Preview
+										</Button>
+										<Button
+											size="xs"
+											render={
+												<Link
+													to="/admin/projects/$slugId"
+													params={{ slugId: project.slug }}
+												/>
+											}
+										>
+											Edit
+										</Button>
+									</div>
 								</TableCell>
 							</TableRow>
 						))}
