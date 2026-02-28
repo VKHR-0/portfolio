@@ -1,9 +1,9 @@
 import { convexQuery } from "@convex-dev/react-query";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
-import { useQuery } from "convex/react";
 import { useState } from "react";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import z from "zod";
@@ -103,30 +103,10 @@ function RouteComponent() {
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 	const [isTagsPickerOpen, setIsTagsPickerOpen] = useState(false);
 	const [tagsQuery, setTagsQuery] = useState("");
-	const seriesResult = useQuery(api.functions.series.list, {
-		paginationOpts: {
-			numItems: 100,
-			cursor: null,
-		},
-	});
-	const categoriesResult = useQuery(api.functions.categories.list, {
-		paginationOpts: {
-			numItems: 100,
-			cursor: null,
-		},
-	});
-	const projectsResult = useQuery(api.functions.projects.list, {
-		paginationOpts: {
-			numItems: 100,
-			cursor: null,
-		},
-	});
-	const tagsResult = useQuery(api.functions.tags.list, {
-		paginationOpts: {
-			numItems: 200,
-			cursor: null,
-		},
-	});
+	const { data: seriesResult } = useQuery(listSeriesQuery());
+	const { data: categoriesResult } = useQuery(listCategoriesQuery());
+	const { data: projectsResult } = useQuery(listProjectsQuery());
+	const { data: tagsResult } = useQuery(listTagsQuery());
 
 	const seriesOptions = (seriesResult?.page ?? []).map((series) => ({
 		value: series._id,
