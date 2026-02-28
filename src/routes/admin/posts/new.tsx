@@ -1,3 +1,4 @@
+import { convexQuery } from "@convex-dev/react-query";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
@@ -27,7 +28,54 @@ import {
 	SelectValue,
 } from "#/components/ui/select";
 
+const TAXONOMY_PAGE_SIZE = 100;
+const TAGS_PAGE_SIZE = 200;
+
+function listSeriesQuery() {
+	return convexQuery(api.functions.series.list, {
+		paginationOpts: {
+			numItems: TAXONOMY_PAGE_SIZE,
+			cursor: null,
+		},
+	});
+}
+
+function listCategoriesQuery() {
+	return convexQuery(api.functions.categories.list, {
+		paginationOpts: {
+			numItems: TAXONOMY_PAGE_SIZE,
+			cursor: null,
+		},
+	});
+}
+
+function listProjectsQuery() {
+	return convexQuery(api.functions.projects.list, {
+		paginationOpts: {
+			numItems: TAXONOMY_PAGE_SIZE,
+			cursor: null,
+		},
+	});
+}
+
+function listTagsQuery() {
+	return convexQuery(api.functions.tags.list, {
+		paginationOpts: {
+			numItems: TAGS_PAGE_SIZE,
+			cursor: null,
+		},
+	});
+}
+
 export const Route = createFileRoute("/admin/posts/new")({
+	loader: async ({ context }) => {
+		await Promise.all([
+			context.queryClient.ensureQueryData(listSeriesQuery()),
+			context.queryClient.ensureQueryData(listCategoriesQuery()),
+			context.queryClient.ensureQueryData(listProjectsQuery()),
+			context.queryClient.ensureQueryData(listTagsQuery()),
+		]);
+	},
 	component: RouteComponent,
 });
 
