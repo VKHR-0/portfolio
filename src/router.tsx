@@ -3,6 +3,9 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouteMask, createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
+import { ErrorPage } from "#/components/error";
+import { LoadingPage } from "#/components/loading";
+import { NotFoundPage } from "#/components/not-found";
 import { env } from "#/env";
 import { routeTree } from "./routeTree.gen";
 
@@ -47,8 +50,9 @@ export function getRouter() {
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
 
-		defaultPendingComponent: () => <div>Loading...</div>,
-		defaultNotFoundComponent: () => <div>Not Found</div>,
+		defaultPendingComponent: LoadingPage,
+		defaultErrorComponent: ErrorPage,
+		defaultNotFoundComponent: NotFoundPage,
 
 		context: {
 			queryClient,
