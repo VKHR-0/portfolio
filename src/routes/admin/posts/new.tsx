@@ -2,7 +2,7 @@ import { IconPlus, IconX } from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import z from "zod";
 import { Badge } from "#/components/ui/badge";
@@ -76,22 +76,38 @@ function RouteComponent() {
 	const { data: projectsResult } = useSuspenseQuery(listProjectsQuery());
 	const { data: tagsResult } = useSuspenseQuery(listTagsQuery());
 
-	const seriesOptions = seriesResult.page.map((series) => ({
-		value: series._id,
-		label: series.name,
-	}));
-	const categoryOptions = categoriesResult.page.map((category) => ({
-		value: category._id,
-		label: category.name,
-	}));
-	const projectOptions = projectsResult.page.map((project) => ({
-		value: project._id,
-		label: project.title,
-	}));
-	const tagOptions = tagsResult.page.map((tag) => ({
-		value: tag._id,
-		label: tag.name,
-	}));
+	const seriesOptions = useMemo(
+		() =>
+			seriesResult.page.map((series) => ({
+				value: series._id,
+				label: series.name,
+			})),
+		[seriesResult.page],
+	);
+	const categoryOptions = useMemo(
+		() =>
+			categoriesResult.page.map((category) => ({
+				value: category._id,
+				label: category.name,
+			})),
+		[categoriesResult.page],
+	);
+	const projectOptions = useMemo(
+		() =>
+			projectsResult.page.map((project) => ({
+				value: project._id,
+				label: project.title,
+			})),
+		[projectsResult.page],
+	);
+	const tagOptions = useMemo(
+		() =>
+			tagsResult.page.map((tag) => ({
+				value: tag._id,
+				label: tag.name,
+			})),
+		[tagsResult.page],
+	);
 
 	const form = useForm({
 		defaultValues: {
@@ -139,7 +155,7 @@ function RouteComponent() {
 											}
 										}}
 										aria-invalid={isInvalid}
-										className="h-12 rounded-none border-0 border-input border-b-2 px-0 font-semibold text-3xl shadow-none focus-visible:border-ring focus-visible:ring-0 md:text-4xl"
+										className="h-12 rounded-none border-0 border-input border-b-2 bg-transparent! px-0 font-semibold text-3xl shadow-none focus-visible:border-ring focus-visible:ring-0 md:text-4xl"
 									/>
 									{isInvalid && <FieldError errors={field.state.meta.errors} />}
 								</Field>
@@ -172,7 +188,7 @@ function RouteComponent() {
 											field.handleChange(nextSlug);
 										}}
 										aria-invalid={isInvalid}
-										className="h-8 rounded-none border-0 border-input border-b px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
+										className="h-8 rounded-none border-0 border-input border-b bg-transparent! px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
 									/>
 									{isInvalid && <FieldError errors={field.state.meta.errors} />}
 								</Field>
@@ -412,15 +428,6 @@ function RouteComponent() {
 											id={field.name}
 											placeholder="Search tags"
 											aria-label="Tags"
-											showTrigger={false}
-											showClear={tagsQuery.length > 0}
-											onKeyDown={(event) => {
-												if (event.key === "Escape") {
-													event.preventDefault();
-													setIsTagsPickerOpen(false);
-													setTagsQuery("");
-												}
-											}}
 										/>
 										<ComboboxEmpty>No tags found.</ComboboxEmpty>
 										<ComboboxList>
@@ -432,19 +439,6 @@ function RouteComponent() {
 												)}
 											</ComboboxCollection>
 										</ComboboxList>
-										<div className="flex items-center justify-end p-1 pt-0">
-											<Button
-												type="button"
-												size="xs"
-												variant="outline"
-												onClick={() => {
-													setIsTagsPickerOpen(false);
-													setTagsQuery("");
-												}}
-											>
-												Done
-											</Button>
-										</div>
 									</ComboboxContent>
 								</Combobox>
 
