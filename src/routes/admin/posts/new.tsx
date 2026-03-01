@@ -1,9 +1,7 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { api } from "convex/_generated/api";
 import { useState } from "react";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import z from "zod";
@@ -28,45 +26,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
-
-const TAXONOMY_PAGE_SIZE = 100;
-const TAGS_PAGE_SIZE = 200;
-
-function listSeriesQuery() {
-	return convexQuery(api.functions.series.list, {
-		paginationOpts: {
-			numItems: TAXONOMY_PAGE_SIZE,
-			cursor: null,
-		},
-	});
-}
-
-function listCategoriesQuery() {
-	return convexQuery(api.functions.categories.list, {
-		paginationOpts: {
-			numItems: TAXONOMY_PAGE_SIZE,
-			cursor: null,
-		},
-	});
-}
-
-function listProjectsQuery() {
-	return convexQuery(api.functions.projects.list, {
-		paginationOpts: {
-			numItems: TAXONOMY_PAGE_SIZE,
-			cursor: null,
-		},
-	});
-}
-
-function listTagsQuery() {
-	return convexQuery(api.functions.tags.list, {
-		paginationOpts: {
-			numItems: TAGS_PAGE_SIZE,
-			cursor: null,
-		},
-	});
-}
+import { listSeriesQuery, listCategoriesQuery, listProjectsQuery, listTagsQuery } from "#/queries";
 
 export const Route = createFileRoute("/admin/posts/new")({
 	loader: async ({ context }) => {
@@ -247,7 +207,7 @@ function RouteComponent() {
 											<SelectTrigger
 												id={field.name}
 												size="sm"
-												className="w-[8.5rem]"
+												className="w-34"
 											>
 												<SelectValue placeholder="Select status" />
 											</SelectTrigger>
@@ -287,7 +247,7 @@ function RouteComponent() {
 											id={field.name}
 											aria-label="Series"
 											placeholder="Series"
-											className="h-7 w-[10rem]"
+											className="h-7 w-40"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
@@ -327,7 +287,7 @@ function RouteComponent() {
 											id={field.name}
 											aria-label="Category"
 											placeholder="Category"
-											className="h-7 w-[10rem]"
+											className="h-7 w-40"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
@@ -367,7 +327,7 @@ function RouteComponent() {
 											id={field.name}
 											aria-label="Project"
 											placeholder="Project"
-											className="h-7 w-[10rem]"
+											className="h-7 w-40"
 											showClear={Boolean(field.state.value)}
 										/>
 										<ComboboxContent>
@@ -458,7 +418,7 @@ function RouteComponent() {
 										anchor={tagsAnchorRef}
 										side="top"
 										align="start"
-										className="w-[22rem] min-w-[22rem]"
+										className="w-88 min-w-88"
 									>
 										<ComboboxInput
 											id={field.name}
