@@ -85,20 +85,18 @@ function RouteComponent() {
 	const tagOptions = tagsResult.page.map((tag) => ({
 		value: tag._id,
 		label: tag.name,
-	}));
-
-	const defaultValues: PostMetadataFormValues = {
-		title: "",
-		slug: "",
-		status: "draft",
-		seriesId: "",
-		categoryId: "",
-		projectId: "",
-		tagIds: [],
-	};
+  }));
 
 	const form = useForm({
-		defaultValues,
+    defaultValues: {
+      title: "",
+      slug: "",
+      status: "draft",
+      seriesId: "",
+      categoryId: "",
+      projectId: "",
+      tagIds: [],
+    } as PostMetadataFormValues,
 		validators: {
 			onSubmit: postMetadataSchema,
 		},
