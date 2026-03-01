@@ -5,6 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import z from "zod";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader } from "#/components/ui/card";
 import {
@@ -26,7 +27,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
-import { listSeriesQuery, listCategoriesQuery, listProjectsQuery, listTagsQuery } from "#/queries";
+import {
+	listCategoriesQuery,
+	listProjectsQuery,
+	listSeriesQuery,
+	listTagsQuery,
+} from "#/queries";
 
 export const Route = createFileRoute("/admin/posts/new")({
 	loader: async ({ context }) => {
@@ -85,18 +91,18 @@ function RouteComponent() {
 	const tagOptions = tagsResult.page.map((tag) => ({
 		value: tag._id,
 		label: tag.name,
-  }));
+	}));
 
 	const form = useForm({
-    defaultValues: {
-      title: "",
-      slug: "",
-      status: "draft",
-      seriesId: "",
-      categoryId: "",
-      projectId: "",
-      tagIds: [],
-    } as PostMetadataFormValues,
+		defaultValues: {
+			title: "",
+			slug: "",
+			status: "draft",
+			seriesId: "",
+			categoryId: "",
+			projectId: "",
+			tagIds: [],
+		} as PostMetadataFormValues,
 		validators: {
 			onSubmit: postMetadataSchema,
 		},
@@ -105,124 +111,108 @@ function RouteComponent() {
 
 	return (
 		<Card className="min-w-0 flex-1">
-			<CardHeader className="space-y-5 px-6 py-7 md:px-10 md:py-10">
+			<CardHeader className="space-y-2">
 				<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_auto] md:gap-5">
-					<div>
-						<form.Field name="title">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
+					<form.Field name="title">
+						{(field) => {
+							const isInvalid =
+								field.state.meta.isTouched && !field.state.meta.isValid;
 
-								return (
-									<Field data-invalid={isInvalid} className="gap-1.5">
-										<FieldLabel htmlFor={field.name} className="sr-only">
-											Title
-										</FieldLabel>
-										<Input
-											autoFocus
-											id={field.name}
-											name={field.name}
-											placeholder="Untitled post"
-											value={field.state.value}
-											onBlur={field.handleBlur}
-											onChange={(event) => {
-												const nextTitle = event.target.value;
-												field.handleChange(nextTitle);
+							return (
+								<Field data-invalid={isInvalid} className="gap-1.5">
+									<FieldLabel htmlFor={field.name} className="sr-only">
+										Title
+									</FieldLabel>
+									<Input
+										autoFocus
+										id={field.name}
+										name={field.name}
+										placeholder="Untitled post"
+										value={field.state.value}
+										onBlur={field.handleBlur}
+										onChange={(event) => {
+											const nextTitle = event.target.value;
+											field.handleChange(nextTitle);
 
-												if (!isSlugManuallyEdited) {
-													form.setFieldValue("slug", toSlug(nextTitle));
-												}
-											}}
-											aria-invalid={isInvalid}
-											className="h-12 rounded-none border-0 border-input border-b-2 px-0 font-semibold text-3xl shadow-none focus-visible:border-ring focus-visible:ring-0 md:text-4xl"
-										/>
-										{isInvalid && (
-											<FieldError errors={field.state.meta.errors} />
-										)}
-									</Field>
-								);
-							}}
-						</form.Field>
-					</div>
+											if (!isSlugManuallyEdited) {
+												form.setFieldValue("slug", toSlug(nextTitle));
+											}
+										}}
+										aria-invalid={isInvalid}
+										className="h-12 rounded-none border-0 border-input border-b-2 px-0 font-semibold text-3xl shadow-none focus-visible:border-ring focus-visible:ring-0 md:text-4xl"
+									/>
+									{isInvalid && <FieldError errors={field.state.meta.errors} />}
+								</Field>
+							);
+						}}
+					</form.Field>
 
-					<div>
-						<form.Field name="slug">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
+					<form.Field name="slug">
+						{(field) => {
+							const isInvalid =
+								field.state.meta.isTouched && !field.state.meta.isValid;
 
-								return (
-									<Field data-invalid={isInvalid} className="gap-1.5">
-										<FieldLabel htmlFor={field.name} className="sr-only">
-											Slug
-										</FieldLabel>
-										<Input
-											id={field.name}
-											name={field.name}
-											placeholder="post-slug"
-											value={field.state.value}
-											onBlur={() => {
-												field.handleBlur();
-												field.handleChange(toSlug(field.state.value));
-											}}
-											onChange={(event) => {
-												const nextSlug = event.target.value;
-												setIsSlugManuallyEdited(nextSlug.length > 0);
-												field.handleChange(nextSlug);
-											}}
-											aria-invalid={isInvalid}
-											className="h-8 rounded-none border-0 border-input border-b px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
-										/>
-										{isInvalid && (
-											<FieldError errors={field.state.meta.errors} />
-										)}
-									</Field>
-								);
-							}}
-						</form.Field>
-					</div>
+							return (
+								<Field data-invalid={isInvalid} className="gap-1.5">
+									<FieldLabel htmlFor={field.name} className="sr-only">
+										Slug
+									</FieldLabel>
+									<Input
+										id={field.name}
+										name={field.name}
+										placeholder="post-slug"
+										value={field.state.value}
+										onBlur={() => {
+											field.handleBlur();
+											field.handleChange(toSlug(field.state.value));
+										}}
+										onChange={(event) => {
+											const nextSlug = event.target.value;
+											setIsSlugManuallyEdited(nextSlug.length > 0);
+											field.handleChange(nextSlug);
+										}}
+										aria-invalid={isInvalid}
+										className="h-8 rounded-none border-0 border-input border-b px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
+									/>
+									{isInvalid && <FieldError errors={field.state.meta.errors} />}
+								</Field>
+							);
+						}}
+					</form.Field>
 
-					<div>
-						<form.Field name="status">
-							{(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
+					<form.Field name="status">
+						{(field) => {
+							const isInvalid =
+								field.state.meta.isTouched && !field.state.meta.isValid;
 
-								return (
-									<Field data-invalid={isInvalid} className="gap-1.5">
-										<FieldLabel htmlFor={field.name} className="sr-only">
-											Status
-										</FieldLabel>
-										<Select
-											name={field.name}
-											value={field.state.value}
-											onValueChange={(value) => {
-												if (value) {
-													field.handleChange(value);
-												}
-											}}
-										>
-											<SelectTrigger
-												id={field.name}
-												size="sm"
-												className="w-34"
-											>
-												<SelectValue placeholder="Select status" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="draft">Draft</SelectItem>
-												<SelectItem value="private">Private</SelectItem>
-												<SelectItem value="public">Public</SelectItem>
-											</SelectContent>
-										</Select>
-										{isInvalid && (
-											<FieldError errors={field.state.meta.errors} />
-										)}
-									</Field>
-								);
-							}}
-						</form.Field>
-					</div>
+							return (
+								<Field data-invalid={isInvalid} className="gap-1.5">
+									<FieldLabel htmlFor={field.name} className="sr-only">
+										Status
+									</FieldLabel>
+									<Select
+										name={field.name}
+										value={field.state.value}
+										onValueChange={(value) => {
+											if (value) {
+												field.handleChange(value);
+											}
+										}}
+									>
+										<SelectTrigger id={field.name} size="sm" className="w-34">
+											<SelectValue placeholder="Select status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="draft">Draft</SelectItem>
+											<SelectItem value="private">Private</SelectItem>
+											<SelectItem value="public">Public</SelectItem>
+										</SelectContent>
+									</Select>
+									{isInvalid && <FieldError errors={field.state.meta.errors} />}
+								</Field>
+							);
+						}}
+					</form.Field>
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
@@ -459,11 +449,12 @@ function RouteComponent() {
 								</Combobox>
 
 								{selectedTags.length > 0 && (
-									<div className="flex flex-wrap gap-2 pt-1">
+									<div className="flex flex-wrap gap-2">
 										{selectedTags.map((tag) => (
-											<div
+											<Badge
 												key={tag.value}
-												className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"
+												variant="secondary"
+												className="gap-0"
 											>
 												<span>{tag.label}</span>
 												<Button
@@ -480,7 +471,7 @@ function RouteComponent() {
 												>
 													<IconX className="size-3" />
 												</Button>
-											</div>
+											</Badge>
 										))}
 									</div>
 								)}
