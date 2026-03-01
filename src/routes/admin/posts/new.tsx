@@ -23,7 +23,9 @@ import { Input } from "#/components/ui/input";
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
+	SelectLabel,
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
@@ -128,7 +130,7 @@ function RouteComponent() {
 	return (
 		<Card className="min-w-0 flex-1">
 			<CardHeader className="space-y-2">
-				<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_auto] md:gap-5">
+				<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_5.5rem] md:gap-5">
 					<form.Field name="title">
 						{(field) => {
 							const isInvalid =
@@ -215,13 +217,16 @@ function RouteComponent() {
 											}
 										}}
 									>
-										<SelectTrigger id={field.name} size="sm" className="w-34">
+										<SelectTrigger id={field.name} size="sm">
 											<SelectValue placeholder="Select status" />
 										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="draft">Draft</SelectItem>
-											<SelectItem value="private">Private</SelectItem>
-											<SelectItem value="public">Public</SelectItem>
+										<SelectContent alignItemWithTrigger={false} align="end">
+											<SelectGroup>
+												<SelectLabel>Status</SelectLabel>
+												<SelectItem value="draft">Draft</SelectItem>
+												<SelectItem value="private">Private</SelectItem>
+												<SelectItem value="public">Public</SelectItem>
+											</SelectGroup>
 										</SelectContent>
 									</Select>
 									{isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -258,7 +263,7 @@ function RouteComponent() {
 											<ComboboxEmpty>No series found.</ComboboxEmpty>
 											<ComboboxList>
 												<ComboboxCollection>
-													{(item: { value: string; label: string }) => (
+													{(item) => (
 														<ComboboxItem key={item.value} value={item}>
 															{item.label}
 														</ComboboxItem>
@@ -298,7 +303,7 @@ function RouteComponent() {
 											<ComboboxEmpty>No categories found.</ComboboxEmpty>
 											<ComboboxList>
 												<ComboboxCollection>
-													{(item: { value: string; label: string }) => (
+													{(item) => (
 														<ComboboxItem key={item.value} value={item}>
 															{item.label}
 														</ComboboxItem>
@@ -338,7 +343,7 @@ function RouteComponent() {
 											<ComboboxEmpty>No projects found.</ComboboxEmpty>
 											<ComboboxList>
 												<ComboboxCollection>
-													{(item: { value: string; label: string }) => (
+													{(item) => (
 														<ComboboxItem key={item.value} value={item}>
 															{item.label}
 														</ComboboxItem>
@@ -432,7 +437,7 @@ function RouteComponent() {
 										<ComboboxEmpty>No tags found.</ComboboxEmpty>
 										<ComboboxList>
 											<ComboboxCollection>
-												{(item: { value: string; label: string }) => (
+												{(item) => (
 													<ComboboxItem key={item.value} value={item}>
 														{item.label}
 													</ComboboxItem>
