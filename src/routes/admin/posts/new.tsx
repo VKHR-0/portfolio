@@ -5,6 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import z from "zod";
+import { Editor } from "#/components/editor";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader } from "#/components/ui/card";
@@ -29,6 +30,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Separator } from "#/components/ui/separator";
 import {
 	listCategoriesQuery,
 	listProjectsQuery,
@@ -479,8 +481,11 @@ function RouteComponent() {
 					}}
 				</form.Field>
 			</CardHeader>
+
+			<Separator />
+
 			<CardContent className="px-6 pb-6 md:px-10 md:pb-10">
-				<div className="min-h-10" />
+				<Editor />
 			</CardContent>
 		</Card>
 	);
