@@ -130,3 +130,13 @@
 		@apply font-sans;
 	}
 }
+
+@layer components {
+	.wysiwyg-editor .tiptap p.is-editor-empty:first-child::before {
+		content: attr(data-placeholder);
+		color: var(--muted-foreground);
+		pointer-events: none;
+		height: 0;
+		float: left;
+	}
+}
