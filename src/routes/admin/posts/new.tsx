@@ -484,8 +484,8 @@ function RouteComponent() {
 
 			<Separator />
 
-			<CardContent className="px-6 pb-6 md:px-10 md:pb-10">
-				<Editor />
+			<CardContent className="flex-1">
+				<Editor className="h-full" />
 			</CardContent>
 		</Card>
 	);
