@@ -27,8 +27,8 @@ import katex from "katex";
 import {
 	type ComponentProps,
 	type ComponentType,
-	type FormEvent,
 	type MouseEvent,
+	type SubmitEvent,
 	useCallback,
 	useEffect,
 	useMemo,
@@ -228,7 +228,7 @@ export function Editor({
 		editorProps: {
 			attributes: {
 				class:
-					"tiptap prose prose-neutral dark:prose-invert h-full min-h-[240px] max-w-none cursor-text px-6 py-5 text-base leading-7 outline-none",
+					"tiptap prose prose-neutral dark:prose-invert h-full min-h-[240px] max-w-none cursor-text py-4 text-base leading-7 outline-none",
 			},
 		},
 		content: "",
@@ -285,7 +285,7 @@ export function Editor({
 		[openActionDialog],
 	);
 
-	const handleActionDialogSubmit = (event: FormEvent<HTMLFormElement>) => {
+	const handleActionDialogSubmit = (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
 		if (!editor || !actionDialog) {
@@ -617,17 +617,10 @@ export function Editor({
 	}, [mathPreviewLatex, mathPreviewMode]);
 
 	return (
-		<div
-			{...props}
-			className={cn(
-				"wysiwyg-editor rounded-xl border bg-card text-card-foreground",
-				"transition-colors focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20",
-				className,
-			)}
-		>
+		<div {...props} className={cn("wysiwyg-editor", className)}>
 			{editor && (
 				<div
-					className="flex flex-wrap items-center gap-1 border-b px-3 py-2"
+					className="sticky top-4 z-20 flex flex-wrap items-center gap-1 rounded-xl border bg-muted/50 px-3 py-2 shadow-xs backdrop-blur"
 					role="toolbar"
 					aria-label="Block formatting"
 					onMouseDown={preventMenuFocusLoss}
@@ -856,7 +849,7 @@ export function Editor({
 				</BubbleMenu>
 			)}
 
-			<EditorContent editor={editor} className="h-full" />
+			<EditorContent editor={editor} />
 
 			{slashMenu && (
 				<div

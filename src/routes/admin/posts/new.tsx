@@ -130,7 +130,7 @@ function RouteComponent() {
 	});
 
 	return (
-		<Card className="min-w-0 flex-1">
+		<Card className="min-w-0 flex-1 overflow-visible">
 			<CardHeader className="space-y-2">
 				<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_5.5rem] md:gap-5">
 					<form.Field name="title">
