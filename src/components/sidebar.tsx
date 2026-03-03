@@ -118,7 +118,7 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 					</SidebarGroupContent>
 				</SidebarGroup>
 
-				<SidebarSeparator />
+				<SidebarSeparator className="w-auto!" />
 
 				<SidebarGroup>
 					<SidebarGroupLabel>Taxonomy</SidebarGroupLabel>
