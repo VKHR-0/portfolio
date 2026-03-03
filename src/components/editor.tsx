@@ -4,6 +4,7 @@ import {
 	IconCode,
 	IconH1,
 	IconH2,
+	IconH3,
 	IconItalic,
 	IconLink,
 	IconList,
@@ -16,6 +17,7 @@ import {
 	IconTable,
 } from "@tabler/icons-react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Link from "@tiptap/extension-link";
 import Mathematics from "@tiptap/extension-mathematics";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -24,6 +26,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import katex from "katex";
+import { common, createLowlight } from "lowlight";
 import {
 	type ComponentProps,
 	type ComponentType,
@@ -49,6 +52,8 @@ import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Toggle } from "#/components/ui/toggle";
 import { cn } from "#/lib/utils";
+
+const lowlight = createLowlight(common);
 
 type EditorProps = {
 	className?: string;
@@ -178,13 +183,16 @@ export function Editor({
 		extensions: [
 			StarterKit.configure({
 				link: false,
+				codeBlock: false,
 				heading: {
 					levels: [1, 2, 3, 4],
 				},
-				codeBlock: {
-					HTMLAttributes: {
-						class: "rounded-lg bg-muted px-3 py-2 font-mono text-sm",
-					},
+			}),
+			CodeBlockLowlight.configure({
+				lowlight,
+				defaultLanguage: "ts",
+				HTMLAttributes: {
+					class: "rounded-lg bg-muted px-3 py-2 font-mono text-sm",
 				},
 			}),
 			Link.configure({
@@ -371,6 +379,21 @@ export function Editor({
 						.focus()
 						.deleteRange(range)
 						.toggleHeading({ level: 2 })
+						.run();
+				},
+			},
+			{
+				id: "heading-3",
+				label: "Heading 3",
+				description: "Small section title",
+				keywords: ["h3", "subheading", "heading"],
+				icon: IconH3,
+				run: (range) => {
+					editor
+						.chain()
+						.focus()
+						.deleteRange(range)
+						.toggleHeading({ level: 3 })
 						.run();
 				},
 			},
@@ -661,6 +684,19 @@ export function Editor({
 						}}
 					>
 						<IconH2 />
+					</Toggle>
+					<Toggle
+						size="sm"
+						aria-label="Heading 3"
+						pressed={editor.isActive("heading", { level: 3 })}
+						disabled={
+							!editor.can().chain().focus().toggleHeading({ level: 3 }).run()
+						}
+						onPressedChange={() => {
+							editor.chain().focus().toggleHeading({ level: 3 }).run();
+						}}
+					>
+						<IconH3 />
 					</Toggle>
 					<Toggle
 						size="sm"
