@@ -177,6 +177,7 @@ export function Editor({
 		immediatelyRender: false,
 		extensions: [
 			StarterKit.configure({
+				link: false,
 				heading: {
 					levels: [1, 2, 3, 4],
 				},
