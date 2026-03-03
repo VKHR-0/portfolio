@@ -1,4 +1,9 @@
+import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import Table from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import type { ComponentProps } from "react";
@@ -18,7 +23,42 @@ export function Editor({
 	const editor = useEditor({
 		immediatelyRender: false,
 		extensions: [
-			StarterKit,
+			StarterKit.configure({
+				heading: {
+					levels: [1, 2, 3, 4],
+				},
+				codeBlock: {
+					HTMLAttributes: {
+						class: "rounded-lg bg-muted px-3 py-2 font-mono text-sm",
+					},
+				},
+			}),
+			Link.configure({
+				autolink: true,
+				defaultProtocol: "https",
+				linkOnPaste: true,
+				openOnClick: false,
+				HTMLAttributes: {
+					class: "text-primary underline underline-offset-4",
+				},
+			}),
+			Table.configure({
+				HTMLAttributes: {
+					class: "my-4 w-full table-auto border-collapse text-sm",
+				},
+				resizable: true,
+			}),
+			TableRow,
+			TableHeader.configure({
+				HTMLAttributes: {
+					class: "border bg-muted/50 px-3 py-2 text-left font-medium",
+				},
+			}),
+			TableCell.configure({
+				HTMLAttributes: {
+					class: "border px-3 py-2 align-top",
+				},
+			}),
 			Placeholder.configure({
 				placeholder,
 				emptyNodeClass: "is-editor-empty",
@@ -27,7 +67,7 @@ export function Editor({
 		editorProps: {
 			attributes: {
 				class:
-					"tiptap h-full min-h-[240px] cursor-text px-6 py-5 text-base leading-7 outline-none",
+					"tiptap prose prose-neutral dark:prose-invert h-full min-h-[240px] max-w-none cursor-text px-6 py-5 text-base leading-7 outline-none",
 			},
 		},
 		content: "",
