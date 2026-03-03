@@ -41,6 +41,12 @@ import {
 
 import { Button } from "#/components/ui/button";
 import {
+	Command,
+	CommandEmpty,
+	CommandItem,
+	CommandList,
+} from "#/components/ui/command";
+import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -171,11 +177,13 @@ export function Editor({
 	...props
 }: EditorProps) {
 	const [slashMenu, setSlashMenu] = useState<SlashMenuState | null>(null);
-	const [slashCommandIndex, setSlashCommandIndex] = useState(0);
 	const [actionDialog, setActionDialog] = useState<ActionDialogState | null>(
 		null,
 	);
 	const [actionDialogValue, setActionDialogValue] = useState("");
+	const [actionDialogError, setActionDialogError] = useState<string | null>(
+		null,
+	);
 	const mathPreviewRef = useRef<HTMLDivElement | null>(null);
 
 	const editor = useEditor({
@@ -249,12 +257,14 @@ export function Editor({
 	const openActionDialog = useCallback((nextDialog: ActionDialogState) => {
 		setActionDialog(nextDialog);
 		setActionDialogValue(nextDialog.value);
+		setActionDialogError(null);
 		setSlashMenu(null);
 	}, []);
 
 	const closeActionDialog = useCallback(() => {
 		setActionDialog(null);
 		setActionDialogValue("");
+		setActionDialogError(null);
 	}, []);
 
 	const openLinkDialog = useCallback(() => {
@@ -301,6 +311,7 @@ export function Editor({
 		}
 
 		const value = actionDialogValue.trim();
+		setActionDialogError(null);
 		const chain = editor.chain().focus();
 
 		if (actionDialog.mode === "link") {
@@ -320,6 +331,7 @@ export function Editor({
 		}
 
 		if (!value) {
+			setActionDialogError("Enter a LaTeX expression.");
 			return;
 		}
 
@@ -509,7 +521,6 @@ export function Editor({
 
 			command.run({ from: slashMenu.from, to: slashMenu.to });
 			setSlashMenu(null);
-			setSlashCommandIndex(0);
 		},
 		[slashMenu],
 	);
@@ -520,14 +531,7 @@ export function Editor({
 		}
 
 		const syncSlashMenu = () => {
-			setSlashMenu((currentSlashMenu) => {
-				const nextSlashMenu = getSlashMenuState(editor);
-				if (currentSlashMenu?.query !== nextSlashMenu?.query) {
-					setSlashCommandIndex(0);
-				}
-
-				return nextSlashMenu;
-			});
+			setSlashMenu(getSlashMenuState(editor));
 		};
 
 		const closeSlashMenu = () => {
@@ -547,72 +551,6 @@ export function Editor({
 			editor.off("blur", closeSlashMenu);
 		};
 	}, [editor]);
-
-	useEffect(() => {
-		if (slashCommandIndex < filteredSlashCommands.length) {
-			return;
-		}
-
-		setSlashCommandIndex(Math.max(0, filteredSlashCommands.length - 1));
-	}, [filteredSlashCommands.length, slashCommandIndex]);
-
-	useEffect(() => {
-		if (!editor) {
-			return;
-		}
-
-		const handleSlashHotkeys = (event: KeyboardEvent) => {
-			if (!slashMenu) {
-				return;
-			}
-
-			if (event.key === "Escape") {
-				event.preventDefault();
-				setSlashMenu(null);
-				return;
-			}
-
-			if (filteredSlashCommands.length === 0) {
-				return;
-			}
-
-			if (event.key === "ArrowDown") {
-				event.preventDefault();
-				setSlashCommandIndex(
-					(current) => (current + 1) % filteredSlashCommands.length,
-				);
-				return;
-			}
-
-			if (event.key === "ArrowUp") {
-				event.preventDefault();
-				setSlashCommandIndex(
-					(current) =>
-						(current - 1 + filteredSlashCommands.length) %
-						filteredSlashCommands.length,
-				);
-				return;
-			}
-
-			if (event.key === "Enter" || event.key === "Tab") {
-				event.preventDefault();
-				runSlashCommand(filteredSlashCommands[slashCommandIndex]);
-			}
-		};
-
-		const editorElement = editor.view.dom;
-		editorElement.addEventListener("keydown", handleSlashHotkeys);
-
-		return () => {
-			editorElement.removeEventListener("keydown", handleSlashHotkeys);
-		};
-	}, [
-		editor,
-		filteredSlashCommands,
-		runSlashCommand,
-		slashCommandIndex,
-		slashMenu,
-	]);
 
 	const actionDialogMeta = actionDialog
 		? ACTION_DIALOG_META[actionDialog.mode]
@@ -889,37 +827,31 @@ export function Editor({
 
 			{slashMenu && (
 				<div
-					className="fixed z-50 w-[min(20rem,calc(100vw-24px))]"
-					style={{ left: slashMenu.left, top: slashMenu.top }}
+					className="fixed z-50 w-[min(20rem,calc(100vw-env(safe-area-inset-left)-env(safe-area-inset-right)-24px))]"
+					style={{
+						left: `max(${slashMenu.left}px, calc(env(safe-area-inset-left) + 12px))`,
+						top: `max(${slashMenu.top}px, calc(env(safe-area-inset-top) + 12px))`,
+					}}
 				>
-					<div
-						className="overflow-hidden rounded-xl border bg-popover p-1 text-popover-foreground shadow-md"
-						role="listbox"
+					<Command
+						shouldFilter={false}
 						aria-label="Slash commands"
+						className="overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-md"
 						onMouseDown={preventMenuFocusLoss}
 					>
-						{filteredSlashCommands.length > 0 ? (
-							filteredSlashCommands.map((command, index) => {
+						<CommandList>
+							<CommandEmpty className="text-pretty py-1.5 text-muted-foreground text-sm">
+								No matching commands
+							</CommandEmpty>
+							{filteredSlashCommands.map((command) => {
 								const Icon = command.icon;
-								const isSelected = index === slashCommandIndex;
 
 								return (
-									<button
-										type="button"
+									<CommandItem
 										key={command.id}
-										role="option"
-										aria-selected={isSelected}
-										className={cn(
-											"flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left",
-											"transition-colors",
-											isSelected
-												? "bg-muted text-foreground"
-												: "hover:bg-muted/70",
-										)}
-										onMouseEnter={() => {
-											setSlashCommandIndex(index);
-										}}
-										onClick={() => {
+										value={`${command.label} ${command.description} ${command.keywords.join(" ")}`}
+										className="items-start gap-2 rounded-lg px-2 py-1.5"
+										onSelect={() => {
 											runSlashCommand(command);
 										}}
 									>
@@ -932,15 +864,11 @@ export function Editor({
 												{command.description}
 											</span>
 										</span>
-									</button>
+									</CommandItem>
 								);
-							})
-						) : (
-							<p className="px-2 py-1.5 text-muted-foreground text-sm">
-								No matching commands
-							</p>
-						)}
-					</div>
+							})}
+						</CommandList>
+					</Command>
 				</div>
 			)}
 
@@ -955,8 +883,10 @@ export function Editor({
 				<DialogContent showCloseButton className="sm:max-w-md">
 					<form className="grid gap-4" onSubmit={handleActionDialogSubmit}>
 						<DialogHeader>
-							<DialogTitle>{actionDialogMeta?.title}</DialogTitle>
-							<DialogDescription>
+							<DialogTitle className="text-balance">
+								{actionDialogMeta?.title}
+							</DialogTitle>
+							<DialogDescription className="text-pretty">
 								{actionDialogMeta?.description}
 							</DialogDescription>
 						</DialogHeader>
@@ -970,13 +900,27 @@ export function Editor({
 								autoFocus
 								value={actionDialogValue}
 								placeholder={actionDialogMeta?.placeholder}
+								aria-invalid={Boolean(actionDialogError)}
+								aria-describedby={
+									actionDialogError ? "editor-action-error" : undefined
+								}
 								required={
 									actionDialogMeta ? !actionDialogMeta.allowEmpty : false
 								}
 								onChange={(event) => {
+									setActionDialogError(null);
 									setActionDialogValue(event.currentTarget.value);
 								}}
 							/>
+							{actionDialogError && (
+								<p
+									id="editor-action-error"
+									role="alert"
+									className="text-pretty text-destructive text-sm"
+								>
+									{actionDialogError}
+								</p>
+							)}
 						</div>
 
 						{actionDialog && actionDialog.mode !== "link" && (
