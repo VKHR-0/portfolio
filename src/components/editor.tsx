@@ -8,6 +8,8 @@ import {
 	IconLink,
 	IconList,
 	IconListNumbers,
+	IconMath,
+	IconMathFunction,
 	IconMinus,
 	IconPilcrow,
 	IconStrikethrough,
@@ -15,6 +17,7 @@ import {
 } from "@tabler/icons-react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import Link from "@tiptap/extension-link";
+import Mathematics from "@tiptap/extension-mathematics";
 import Placeholder from "@tiptap/extension-placeholder";
 import { TableKit } from "@tiptap/extension-table";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -98,6 +101,21 @@ function getSlashMenuState(editor: TiptapEditor): SlashMenuState | null {
 	};
 }
 
+function promptMath(title: string, initialLatex: string) {
+	const nextLatex = window.prompt(title, initialLatex);
+
+	if (nextLatex === null) {
+		return null;
+	}
+
+	const latex = nextLatex.trim();
+	if (!latex) {
+		return null;
+	}
+
+	return latex;
+}
+
 export function Editor({
 	className,
 	placeholder = "Please Type Here...",
@@ -147,6 +165,11 @@ export function Editor({
 				},
 				tableRow: {},
 			}),
+			Mathematics.configure({
+				katexOptions: {
+					throwOnError: false,
+				},
+			}),
 			Placeholder.configure({
 				placeholder,
 				emptyNodeClass: "is-editor-empty",
@@ -189,6 +212,32 @@ export function Editor({
 		}
 
 		editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
+	};
+
+	const insertInlineMath = () => {
+		if (!editor) {
+			return;
+		}
+
+		const latex = promptMath("Inline LaTeX", "E = mc^2");
+		if (!latex) {
+			return;
+		}
+
+		editor.chain().focus().insertInlineMath({ latex }).run();
+	};
+
+	const insertBlockMath = () => {
+		if (!editor) {
+			return;
+		}
+
+		const latex = promptMath("Block LaTeX", "\\\\int_0^1 x^2 \\\\, dx");
+		if (!latex) {
+			return;
+		}
+
+		editor.chain().focus().insertBlockMath({ latex }).run();
 	};
 
 	const slashCommands = useMemo<SlashCommandItem[]>(() => {
@@ -275,6 +324,46 @@ export function Editor({
 				icon: IconCode,
 				run: (range) => {
 					editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
+				},
+			},
+			{
+				id: "inline-math",
+				label: "Inline Math",
+				description: "Insert inline LaTeX expression",
+				keywords: ["latex", "math", "equation", "inline"],
+				icon: IconMath,
+				run: (range) => {
+					const latex = promptMath("Inline LaTeX", "E = mc^2");
+					if (!latex) {
+						return;
+					}
+
+					editor
+						.chain()
+						.focus()
+						.deleteRange(range)
+						.insertInlineMath({ latex })
+						.run();
+				},
+			},
+			{
+				id: "block-math",
+				label: "Block Math",
+				description: "Insert block LaTeX equation",
+				keywords: ["latex", "math", "equation", "block"],
+				icon: IconMathFunction,
+				run: (range) => {
+					const latex = promptMath("Block LaTeX", "\\\\int_0^1 x^2 \\\\, dx");
+					if (!latex) {
+						return;
+					}
+
+					editor
+						.chain()
+						.focus()
+						.deleteRange(range)
+						.insertBlockMath({ latex })
+						.run();
 				},
 			},
 			{
@@ -531,6 +620,24 @@ export function Editor({
 					>
 						<IconCode />
 					</Toggle>
+					<Button
+						type="button"
+						size="sm"
+						variant="outline"
+						onClick={insertInlineMath}
+					>
+						<IconMath />
+						Inline Math
+					</Button>
+					<Button
+						type="button"
+						size="sm"
+						variant="outline"
+						onClick={insertBlockMath}
+					>
+						<IconMathFunction />
+						Block Math
+					</Button>
 					<Button
 						type="button"
 						size="sm"
