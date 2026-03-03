@@ -141,10 +141,6 @@
 		float: left;
 	}
 
-	.wysiwyg-editor .tiptap :is(th, td) > p {
-		margin-block: 0;
-	}
-
 	.wysiwyg-editor .tiptap-mathematics-render {
 		border: 1px dashed color-mix(in oklab, var(--border) 85%, transparent);
 		background: color-mix(in oklab, var(--muted) 55%, transparent);
@@ -169,5 +165,15 @@
 		font-family: var(--font-mono);
 		font-size: 0.8125rem;
 		color: var(--destructive);
+	}
+}
+
+@layer utilities {
+	.wysiwyg-editor .tiptap.prose :is(th, td) > :first-child {
+		margin-top: 0;
+	}
+
+	.wysiwyg-editor .tiptap.prose :is(th, td) > :last-child {
+		margin-bottom: 0;
 	}
 }
