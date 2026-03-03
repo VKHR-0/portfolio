@@ -1,10 +1,19 @@
+import {
+	IconBold,
+	IconCode,
+	IconItalic,
+	IconLink,
+	IconStrikethrough,
+} from "@tabler/icons-react";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { TableKit } from "@tiptap/extension-table";
 import { EditorContent, useEditor } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
-import type { ComponentProps } from "react";
+import type { ComponentProps, MouseEvent } from "react";
 
+import { Toggle } from "#/components/ui/toggle";
 import { cn } from "#/lib/utils";
 
 type EditorProps = {
@@ -72,6 +81,36 @@ export function Editor({
 		content: "",
 	});
 
+	const preventMenuFocusLoss = (event: MouseEvent) => {
+		event.preventDefault();
+	};
+
+	const toggleLink = () => {
+		if (!editor) {
+			return;
+		}
+
+		if (editor.isActive("link")) {
+			editor.chain().focus().unsetLink().run();
+			return;
+		}
+
+		const activeLink = editor.getAttributes("link").href as string | undefined;
+		const nextLink = window.prompt("Enter URL", activeLink ?? "https://");
+
+		if (nextLink === null) {
+			return;
+		}
+
+		const href = nextLink.trim();
+		if (!href) {
+			editor.chain().focus().unsetLink().run();
+			return;
+		}
+
+		editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
+	};
+
 	return (
 		<div
 			{...props}
@@ -81,6 +120,85 @@ export function Editor({
 				className,
 			)}
 		>
+			{editor && (
+				<BubbleMenu
+					editor={editor}
+					shouldShow={({ editor: currentEditor, state }) => {
+						if (!currentEditor.isEditable) {
+							return false;
+						}
+
+						if (state.selection.empty) {
+							return false;
+						}
+
+						return currentEditor.view.hasFocus();
+					}}
+					className="z-50"
+				>
+					<div
+						className={cn(
+							"flex items-center gap-1 rounded-xl border bg-popover p-1 text-popover-foreground shadow-md",
+						)}
+						role="toolbar"
+						aria-label="Text formatting"
+						onMouseDown={preventMenuFocusLoss}
+					>
+						<Toggle
+							size="sm"
+							aria-label="Bold"
+							pressed={editor.isActive("bold")}
+							disabled={!editor.can().chain().focus().toggleBold().run()}
+							onPressedChange={() => {
+								editor.chain().focus().toggleBold().run();
+							}}
+						>
+							<IconBold />
+						</Toggle>
+						<Toggle
+							size="sm"
+							aria-label="Italic"
+							pressed={editor.isActive("italic")}
+							disabled={!editor.can().chain().focus().toggleItalic().run()}
+							onPressedChange={() => {
+								editor.chain().focus().toggleItalic().run();
+							}}
+						>
+							<IconItalic />
+						</Toggle>
+						<Toggle
+							size="sm"
+							aria-label="Strike"
+							pressed={editor.isActive("strike")}
+							disabled={!editor.can().chain().focus().toggleStrike().run()}
+							onPressedChange={() => {
+								editor.chain().focus().toggleStrike().run();
+							}}
+						>
+							<IconStrikethrough />
+						</Toggle>
+						<Toggle
+							size="sm"
+							aria-label="Code"
+							pressed={editor.isActive("code")}
+							disabled={!editor.can().chain().focus().toggleCode().run()}
+							onPressedChange={() => {
+								editor.chain().focus().toggleCode().run();
+							}}
+						>
+							<IconCode />
+						</Toggle>
+						<Toggle
+							size="sm"
+							aria-label="Link"
+							pressed={editor.isActive("link")}
+							onPressedChange={toggleLink}
+						>
+							<IconLink />
+						</Toggle>
+					</div>
+				</BubbleMenu>
+			)}
 			<EditorContent editor={editor} className="h-full" />
 		</div>
 	);
