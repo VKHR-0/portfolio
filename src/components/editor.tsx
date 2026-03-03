@@ -26,6 +26,7 @@ import StarterKit from "@tiptap/starter-kit";
 import {
 	type ComponentProps,
 	type ComponentType,
+	type FormEvent,
 	type MouseEvent,
 	useCallback,
 	useEffect,
@@ -34,6 +35,16 @@ import {
 } from "react";
 
 import { Button } from "#/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "#/components/ui/dialog";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
 import { Toggle } from "#/components/ui/toggle";
 import { cn } from "#/lib/utils";
 
@@ -60,6 +71,52 @@ type SlashCommandItem = {
 	keywords: string[];
 	icon: ComponentType<{ className?: string }>;
 	run: (range: SlashRange) => void;
+};
+
+type ActionDialogMode = "link" | "inlineMath" | "blockMath";
+
+type ActionDialogState = {
+	mode: ActionDialogMode;
+	value: string;
+	selectionRange?: SlashRange;
+	replaceRange?: SlashRange;
+};
+
+const ACTION_DIALOG_META: Record<
+	ActionDialogMode,
+	{
+		title: string;
+		description: string;
+		label: string;
+		placeholder: string;
+		submitLabel: string;
+		allowEmpty: boolean;
+	}
+> = {
+	link: {
+		title: "Edit Link",
+		description: "Enter a URL. Leave it empty to remove the link.",
+		label: "URL",
+		placeholder: "https://example.com",
+		submitLabel: "Apply Link",
+		allowEmpty: true,
+	},
+	inlineMath: {
+		title: "Insert Inline Math",
+		description: "Enter a LaTeX expression for inline rendering.",
+		label: "LaTeX",
+		placeholder: "E = mc^2",
+		submitLabel: "Insert Math",
+		allowEmpty: false,
+	},
+	blockMath: {
+		title: "Insert Block Math",
+		description: "Enter a LaTeX expression for block rendering.",
+		label: "LaTeX",
+		placeholder: "\\int_0^1 x^2 \\, dx",
+		submitLabel: "Insert Block",
+		allowEmpty: false,
+	},
 };
 
 function getSlashMenuState(editor: TiptapEditor): SlashMenuState | null {
@@ -101,21 +158,6 @@ function getSlashMenuState(editor: TiptapEditor): SlashMenuState | null {
 	};
 }
 
-function promptMath(title: string, initialLatex: string) {
-	const nextLatex = window.prompt(title, initialLatex);
-
-	if (nextLatex === null) {
-		return null;
-	}
-
-	const latex = nextLatex.trim();
-	if (!latex) {
-		return null;
-	}
-
-	return latex;
-}
-
 export function Editor({
 	className,
 	placeholder = "Please Type Here...",
@@ -123,6 +165,10 @@ export function Editor({
 }: EditorProps) {
 	const [slashMenu, setSlashMenu] = useState<SlashMenuState | null>(null);
 	const [slashCommandIndex, setSlashCommandIndex] = useState(0);
+	const [actionDialog, setActionDialog] = useState<ActionDialogState | null>(
+		null,
+	);
+	const [actionDialogValue, setActionDialogValue] = useState("");
 
 	const editor = useEditor({
 		immediatelyRender: false,
@@ -188,56 +234,94 @@ export function Editor({
 		event.preventDefault();
 	};
 
-	const toggleLink = () => {
-		if (!editor) {
-			return;
-		}
+	const openActionDialog = useCallback((nextDialog: ActionDialogState) => {
+		setActionDialog(nextDialog);
+		setActionDialogValue(nextDialog.value);
+		setSlashMenu(null);
+	}, []);
 
-		if (editor.isActive("link")) {
-			editor.chain().focus().unsetLink().run();
+	const closeActionDialog = useCallback(() => {
+		setActionDialog(null);
+		setActionDialogValue("");
+	}, []);
+
+	const openLinkDialog = useCallback(() => {
+		if (!editor) {
 			return;
 		}
 
 		const activeLink = editor.getAttributes("link").href as string | undefined;
-		const nextLink = window.prompt("Enter URL", activeLink ?? "https://");
+		const { from, to } = editor.state.selection;
+		openActionDialog({
+			mode: "link",
+			value: activeLink ?? "https://",
+			selectionRange: { from, to },
+		});
+	}, [editor, openActionDialog]);
 
-		if (nextLink === null) {
+	const openInlineMathDialog = useCallback(
+		(replaceRange?: SlashRange) => {
+			openActionDialog({
+				mode: "inlineMath",
+				value: "E = mc^2",
+				replaceRange,
+			});
+		},
+		[openActionDialog],
+	);
+
+	const openBlockMathDialog = useCallback(
+		(replaceRange?: SlashRange) => {
+			openActionDialog({
+				mode: "blockMath",
+				value: "\\\\int_0^1 x^2 \\\\, dx",
+				replaceRange,
+			});
+		},
+		[openActionDialog],
+	);
+
+	const handleActionDialogSubmit = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+
+		if (!editor || !actionDialog) {
 			return;
 		}
 
-		const href = nextLink.trim();
-		if (!href) {
-			editor.chain().focus().unsetLink().run();
+		const value = actionDialogValue.trim();
+		const chain = editor.chain().focus();
+
+		if (actionDialog.mode === "link") {
+			if (actionDialog.selectionRange) {
+				chain.setTextSelection(actionDialog.selectionRange);
+			}
+
+			if (!value) {
+				chain.extendMarkRange("link").unsetLink().run();
+				closeActionDialog();
+				return;
+			}
+
+			chain.extendMarkRange("link").setLink({ href: value }).run();
+			closeActionDialog();
 			return;
 		}
 
-		editor.chain().focus().extendMarkRange("link").setLink({ href }).run();
-	};
-
-	const insertInlineMath = () => {
-		if (!editor) {
+		if (!value) {
 			return;
 		}
 
-		const latex = promptMath("Inline LaTeX", "E = mc^2");
-		if (!latex) {
-			return;
+		if (actionDialog.replaceRange) {
+			chain.deleteRange(actionDialog.replaceRange);
 		}
 
-		editor.chain().focus().insertInlineMath({ latex }).run();
-	};
-
-	const insertBlockMath = () => {
-		if (!editor) {
-			return;
+		if (actionDialog.mode === "inlineMath") {
+			chain.insertInlineMath({ latex: value }).run();
+		} else {
+			chain.insertBlockMath({ latex: value }).run();
 		}
 
-		const latex = promptMath("Block LaTeX", "\\\\int_0^1 x^2 \\\\, dx");
-		if (!latex) {
-			return;
-		}
-
-		editor.chain().focus().insertBlockMath({ latex }).run();
+		closeActionDialog();
 	};
 
 	const slashCommands = useMemo<SlashCommandItem[]>(() => {
@@ -333,17 +417,7 @@ export function Editor({
 				keywords: ["latex", "math", "equation", "inline"],
 				icon: IconMath,
 				run: (range) => {
-					const latex = promptMath("Inline LaTeX", "E = mc^2");
-					if (!latex) {
-						return;
-					}
-
-					editor
-						.chain()
-						.focus()
-						.deleteRange(range)
-						.insertInlineMath({ latex })
-						.run();
+					openInlineMathDialog(range);
 				},
 			},
 			{
@@ -353,17 +427,7 @@ export function Editor({
 				keywords: ["latex", "math", "equation", "block"],
 				icon: IconMathFunction,
 				run: (range) => {
-					const latex = promptMath("Block LaTeX", "\\\\int_0^1 x^2 \\\\, dx");
-					if (!latex) {
-						return;
-					}
-
-					editor
-						.chain()
-						.focus()
-						.deleteRange(range)
-						.insertBlockMath({ latex })
-						.run();
+					openBlockMathDialog(range);
 				},
 			},
 			{
@@ -392,7 +456,7 @@ export function Editor({
 				},
 			},
 		];
-	}, [editor]);
+	}, [editor, openBlockMathDialog, openInlineMathDialog]);
 
 	const filteredSlashCommands = useMemo(() => {
 		if (!slashMenu) {
@@ -523,6 +587,10 @@ export function Editor({
 		slashMenu,
 	]);
 
+	const actionDialogMeta = actionDialog
+		? ACTION_DIALOG_META[actionDialog.mode]
+		: null;
+
 	return (
 		<div
 			{...props}
@@ -624,7 +692,9 @@ export function Editor({
 						type="button"
 						size="sm"
 						variant="outline"
-						onClick={insertInlineMath}
+						onClick={() => {
+							openInlineMathDialog();
+						}}
 					>
 						<IconMath />
 						Inline Math
@@ -633,7 +703,9 @@ export function Editor({
 						type="button"
 						size="sm"
 						variant="outline"
-						onClick={insertBlockMath}
+						onClick={() => {
+							openBlockMathDialog();
+						}}
 					>
 						<IconMathFunction />
 						Block Math
@@ -751,7 +823,7 @@ export function Editor({
 							size="sm"
 							aria-label="Link"
 							pressed={editor.isActive("link")}
-							onPressedChange={toggleLink}
+							onPressedChange={openLinkDialog}
 						>
 							<IconLink />
 						</Toggle>
@@ -817,6 +889,57 @@ export function Editor({
 					</div>
 				</div>
 			)}
+
+			<Dialog
+				open={Boolean(actionDialog)}
+				onOpenChange={(open) => {
+					if (!open) {
+						closeActionDialog();
+					}
+				}}
+			>
+				<DialogContent showCloseButton className="sm:max-w-md">
+					<form className="grid gap-4" onSubmit={handleActionDialogSubmit}>
+						<DialogHeader>
+							<DialogTitle>{actionDialogMeta?.title}</DialogTitle>
+							<DialogDescription>
+								{actionDialogMeta?.description}
+							</DialogDescription>
+						</DialogHeader>
+
+						<div className="grid gap-2">
+							<Label htmlFor="editor-action-input">
+								{actionDialogMeta?.label}
+							</Label>
+							<Input
+								id="editor-action-input"
+								autoFocus
+								value={actionDialogValue}
+								placeholder={actionDialogMeta?.placeholder}
+								required={
+									actionDialogMeta ? !actionDialogMeta.allowEmpty : false
+								}
+								onChange={(event) => {
+									setActionDialogValue(event.currentTarget.value);
+								}}
+							/>
+						</div>
+
+						<DialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={closeActionDialog}
+							>
+								Cancel
+							</Button>
+							<Button type="submit">
+								{actionDialogMeta?.submitLabel ?? "Apply"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }
