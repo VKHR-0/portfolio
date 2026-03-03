@@ -23,6 +23,7 @@ import { TableKit } from "@tiptap/extension-table";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
+import katex from "katex";
 import {
 	type ComponentProps,
 	type ComponentType,
@@ -31,6 +32,7 @@ import {
 	useCallback,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 
@@ -169,6 +171,7 @@ export function Editor({
 		null,
 	);
 	const [actionDialogValue, setActionDialogValue] = useState("");
+	const mathPreviewRef = useRef<HTMLDivElement | null>(null);
 
 	const editor = useEditor({
 		immediatelyRender: false,
@@ -590,6 +593,27 @@ export function Editor({
 	const actionDialogMeta = actionDialog
 		? ACTION_DIALOG_META[actionDialog.mode]
 		: null;
+	const mathPreviewMode =
+		actionDialog?.mode === "inlineMath" || actionDialog?.mode === "blockMath"
+			? actionDialog.mode
+			: null;
+	const mathPreviewLatex = mathPreviewMode ? actionDialogValue.trim() : "";
+
+	useEffect(() => {
+		if (!mathPreviewRef.current || !mathPreviewMode || !mathPreviewLatex) {
+			return;
+		}
+
+		const displayMode = mathPreviewMode === "blockMath";
+		try {
+			katex.render(mathPreviewLatex, mathPreviewRef.current, {
+				displayMode,
+				throwOnError: false,
+			});
+		} catch {
+			mathPreviewRef.current.textContent = mathPreviewLatex;
+		}
+	}, [mathPreviewLatex, mathPreviewMode]);
 
 	return (
 		<div
@@ -924,6 +948,26 @@ export function Editor({
 								}}
 							/>
 						</div>
+
+						{actionDialog && actionDialog.mode !== "link" && (
+							<div className="grid gap-2">
+								<Label>Preview</Label>
+								<div
+									className={cn(
+										"rounded-lg border bg-muted/30 px-3 py-2 text-sm",
+										actionDialog.mode === "blockMath" && "overflow-x-auto",
+									)}
+								>
+									{!mathPreviewLatex ? (
+										<span className="text-muted-foreground">
+											Type LaTeX to preview equation
+										</span>
+									) : (
+										<div ref={mathPreviewRef} />
+									)}
+								</div>
+							</div>
+						)}
 
 						<DialogFooter>
 							<Button
