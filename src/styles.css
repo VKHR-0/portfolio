@@ -141,6 +141,10 @@
 		float: left;
 	}
 
+	.wysiwyg-editor .tiptap :is(th, td) > p {
+		margin-block: 0;
+	}
+
 	.wysiwyg-editor .tiptap-mathematics-render {
 		border: 1px dashed color-mix(in oklab, var(--border) 85%, transparent);
 		background: color-mix(in oklab, var(--muted) 55%, transparent);
