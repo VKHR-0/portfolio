@@ -4,6 +4,7 @@ import { api } from "convex/_generated/api";
 import { Sidebar } from "#/components/sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
 import { getCurrentUserId } from "#/functions/auth";
+import { getSidebarOpenState } from "#/functions/sidebar";
 
 export const Route = createFileRoute("/admin")({
 	beforeLoad: async ({ context, location }) => {
@@ -20,7 +21,10 @@ export const Route = createFileRoute("/admin")({
 		}
 	},
 	loader: async ({ context }) => {
-		const id = await getCurrentUserId();
+		const [id, isSidebarOpen] = await Promise.all([
+			getCurrentUserId(),
+			getSidebarOpenState(),
+		]);
 
 		await Promise.all([
 			context.queryClient.ensureQueryData(
@@ -39,16 +43,17 @@ export const Route = createFileRoute("/admin")({
 
 		return {
 			authorId: id,
+			isSidebarOpen,
 		};
 	},
 	component: AdminLayout,
 });
 
 function AdminLayout() {
-	const { authorId } = Route.useLoaderData();
+	const { authorId, isSidebarOpen } = Route.useLoaderData();
 
 	return (
-		<SidebarProvider>
+		<SidebarProvider open={isSidebarOpen}>
 			<Sidebar authorId={authorId} />
 
 			<main className="mx-auto flex min-h-screen w-full py-2 pr-2 pl-2 md:pl-0">
