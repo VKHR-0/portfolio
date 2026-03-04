@@ -102,9 +102,7 @@ function RouteComponent() {
 		}
 
 		if (!isPostMetadataValid(draft)) {
-			setSaveState(
-				draft.title || draft.slug || draft.content ? "unsaved" : undefined,
-			);
+			setSaveState(undefined);
 			return;
 		}
 

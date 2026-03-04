@@ -147,8 +147,12 @@ export function PostEditorForm({
 }: PostEditorFormProps) {
 	const [isTagsPickerOpen, setIsTagsPickerOpen] = useState(false);
 	const [tagsQuery, setTagsQuery] = useState("");
+	const [hasTitleInteracted, setHasTitleInteracted] = useState(false);
+	const [hasSlugInteracted, setHasSlugInteracted] = useState(false);
 	const tagsAnchorRef = useComboboxAnchor();
 	const errors = getPostMetadataErrors(value);
+	const showTitleError = hasTitleInteracted && Boolean(errors.title);
+	const showSlugError = hasSlugInteracted && Boolean(errors.slug);
 	const selectedSeries = seriesOptions.find(
 		(option) => option.value === value.seriesId,
 	);
@@ -178,7 +182,10 @@ export function PostEditorForm({
 				</div>
 
 				<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_5.5rem] md:gap-5">
-					<Field data-invalid={Boolean(errors.title)} className="gap-1.5">
+					<Field
+						data-invalid={showTitleError || undefined}
+						className="gap-1.5"
+					>
 						<FieldLabel htmlFor="post-title" className="sr-only">
 							Title
 						</FieldLabel>
@@ -190,6 +197,7 @@ export function PostEditorForm({
 							value={value.title}
 							onChange={(event) => {
 								const nextTitle = event.target.value;
+								setHasTitleInteracted(true);
 
 								onChange({
 									...value,
@@ -197,15 +205,18 @@ export function PostEditorForm({
 									slug: isSlugManuallyEdited ? value.slug : toSlug(nextTitle),
 								});
 							}}
-							aria-invalid={Boolean(errors.title)}
+							aria-invalid={showTitleError || undefined}
 							className="h-12 rounded-none border-0 border-input border-b-2 bg-transparent! px-0 font-semibold text-3xl shadow-none focus-visible:border-ring focus-visible:ring-0 md:text-4xl"
 						/>
-						{errors.title ? (
+						{showTitleError && errors.title ? (
 							<FieldError errors={[{ message: errors.title }]} />
 						) : null}
 					</Field>
 
-					<Field data-invalid={Boolean(errors.slug)} className="gap-1.5">
+					<Field
+						data-invalid={showSlugError || undefined}
+						className="gap-1.5"
+					>
 						<FieldLabel htmlFor="post-slug" className="sr-only">
 							Slug
 						</FieldLabel>
@@ -222,16 +233,17 @@ export function PostEditorForm({
 							}}
 							onChange={(event) => {
 								const nextSlug = event.target.value;
+								setHasSlugInteracted(true);
 								onSlugManualEditChange(nextSlug.length > 0);
 								onChange({
 									...value,
 									slug: nextSlug,
 								});
 							}}
-							aria-invalid={Boolean(errors.slug)}
+							aria-invalid={showSlugError || undefined}
 							className="h-8 rounded-none border-0 border-input border-b bg-transparent! px-0 font-mono text-xs tracking-wide shadow-none focus-visible:ring-0"
 						/>
-						{errors.slug ? (
+						{showSlugError && errors.slug ? (
 							<FieldError errors={[{ message: errors.slug }]} />
 						) : null}
 					</Field>

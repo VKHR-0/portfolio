@@ -146,23 +146,14 @@
 		position: relative;
 	}
 
-	.wysiwyg-editor .editor-drag-handle-anchor {
-		position: relative;
-		display: inline-block;
-		width: 0;
-		pointer-events: none;
-	}
-
 	.wysiwyg-editor .editor-drag-handle {
-		pointer-events: auto;
-		position: absolute;
-		top: -1rem;
-		left: -1.5rem;
+		z-index: 10;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		height: 1.25rem;
-		width: 1.25rem;
+		min-height: 1.25rem;
+		min-width: 1.25rem;
+		padding: 0;
 		border-radius: var(--radius-sm);
 		border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
 		background: color-mix(in oklab, var(--muted) 70%, transparent);
@@ -171,27 +162,30 @@
 		line-height: 1;
 		letter-spacing: -0.15em;
 		cursor: grab;
-		opacity: 0;
+		opacity: 0.9;
 		transition:
-			opacity 120ms ease,
 			color 120ms ease,
-			background 120ms ease;
+			background 120ms ease,
+			opacity 120ms ease;
 	}
 
-	.wysiwyg-editor .editor-drag-handle:active {
+	.wysiwyg-editor .editor-drag-handle-icon {
+		pointer-events: none;
+		height: 0.875rem;
+		width: 0.875rem;
+	}
+
+	.wysiwyg-editor .editor-drag-handle[data-dragging="true"] {
 		cursor: grabbing;
 	}
 
-	.wysiwyg-editor .tiptap > *:hover .editor-drag-handle,
-	.wysiwyg-editor .tiptap > *:focus-within .editor-drag-handle,
-	.wysiwyg-editor .tiptap > *.ProseMirror-selectednode .editor-drag-handle,
-	.wysiwyg-editor .editor-drag-handle-anchor:hover .editor-drag-handle,
 	.wysiwyg-editor .editor-drag-handle:hover,
 	.wysiwyg-editor .editor-drag-handle:focus-visible {
 		opacity: 1;
 	}
 
-	.wysiwyg-editor .editor-drag-handle:hover {
+	.wysiwyg-editor .editor-drag-handle:hover,
+	.wysiwyg-editor .editor-drag-handle:focus-visible {
 		background: color-mix(in oklab, var(--muted) 100%, transparent);
 		color: var(--foreground);
 	}

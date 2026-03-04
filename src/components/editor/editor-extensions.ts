@@ -6,8 +6,6 @@ import { TableKit } from "@tiptap/extension-table";
 import StarterKit from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
 
-import { DragHandleExtension } from "./drag-handle-extension";
-
 const lowlight = createLowlight(common);
 
 export function createEditorExtensions(placeholder: string) {
@@ -59,7 +57,6 @@ export function createEditorExtensions(placeholder: string) {
 				throwOnError: false,
 			},
 		}),
-		DragHandleExtension,
 		Placeholder.configure({
 			placeholder,
 			emptyNodeClass: "is-editor-empty",

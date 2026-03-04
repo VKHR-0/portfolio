@@ -2,6 +2,7 @@ import {
 	IconBlockquote,
 	IconBold,
 	IconCode,
+	IconGripVertical,
 	IconH1,
 	IconH2,
 	IconH3,
@@ -17,6 +18,7 @@ import {
 	IconTable,
 } from "@tabler/icons-react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
+import { DragHandle } from "@tiptap/extension-drag-handle-react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import {
@@ -441,6 +443,19 @@ export function Editor({
 
 	return (
 		<div {...props} className={cn("wysiwyg-editor", className)}>
+			{editor && (
+				<DragHandle
+					editor={editor}
+					className="editor-drag-handle mt-1 -ml-1"
+					nested
+				>
+					<IconGripVertical
+						className="editor-drag-handle-icon"
+						aria-label="Drag block"
+					/>
+				</DragHandle>
+			)}
+
 			{editor && (
 				<div
 					className="sticky top-4 z-20 flex flex-wrap items-center gap-1 rounded-xl border bg-muted/50 px-3 py-2 shadow-xs backdrop-blur"
