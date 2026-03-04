@@ -142,6 +142,60 @@
 		float: left;
 	}
 
+	.wysiwyg-editor .tiptap > * {
+		position: relative;
+	}
+
+	.wysiwyg-editor .editor-drag-handle-anchor {
+		position: relative;
+		display: inline-block;
+		width: 0;
+		pointer-events: none;
+	}
+
+	.wysiwyg-editor .editor-drag-handle {
+		pointer-events: auto;
+		position: absolute;
+		top: -1rem;
+		left: -1.5rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		height: 1.25rem;
+		width: 1.25rem;
+		border-radius: var(--radius-sm);
+		border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+		background: color-mix(in oklab, var(--muted) 70%, transparent);
+		color: var(--muted-foreground);
+		font-size: 0.625rem;
+		line-height: 1;
+		letter-spacing: -0.15em;
+		cursor: grab;
+		opacity: 0;
+		transition:
+			opacity 120ms ease,
+			color 120ms ease,
+			background 120ms ease;
+	}
+
+	.wysiwyg-editor .editor-drag-handle:active {
+		cursor: grabbing;
+	}
+
+	.wysiwyg-editor .tiptap > *:hover .editor-drag-handle,
+	.wysiwyg-editor .tiptap > *:focus-within .editor-drag-handle,
+	.wysiwyg-editor .tiptap > *.ProseMirror-selectednode .editor-drag-handle,
+	.wysiwyg-editor .editor-drag-handle-anchor:hover .editor-drag-handle,
+	.wysiwyg-editor .editor-drag-handle:hover,
+	.wysiwyg-editor .editor-drag-handle:focus-visible {
+		opacity: 1;
+	}
+
+	.wysiwyg-editor .editor-drag-handle:hover {
+		background: color-mix(in oklab, var(--muted) 100%, transparent);
+		color: var(--foreground);
+	}
+
 	.wysiwyg-editor .tiptap-mathematics-render {
 		border: 1px dashed color-mix(in oklab, var(--border) 85%, transparent);
 		background: color-mix(in oklab, var(--muted) 55%, transparent);
