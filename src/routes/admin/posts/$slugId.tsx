@@ -16,7 +16,7 @@ import {
 	isPostMetadataValid,
 	PostEditorForm,
 	type PostEditorValue,
-} from "./post-editor-form";
+} from "./-post-editor-form";
 
 type EditablePost = FunctionReturnType<typeof api.functions.posts.getEditableBySlug>;
 type SavedDraft = FunctionReturnType<typeof api.functions.posts.updateDraft>;
