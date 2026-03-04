@@ -24,7 +24,9 @@ import {
 	type ComponentType,
 	type MouseEvent,
 	useCallback,
+	useEffect,
 	useMemo,
+	useRef,
 } from "react";
 
 import { Button } from "#/components/ui/button";
@@ -41,11 +43,17 @@ import {
 	useEditorActionDialog,
 } from "./editor/editor-action-dialog";
 import { createEditorExtensions } from "./editor/editor-extensions";
+import {
+	markdownToTiptapDocument,
+	tiptapDocumentToMarkdown,
+} from "./editor/editor-markdown";
 import { type SlashRange, useSlashMenu } from "./editor/use-slash-menu";
 
 type EditorProps = {
 	className?: string;
 	placeholder?: string;
+	value: string;
+	onChange: (value: string) => void;
 } & Omit<ComponentProps<"div">, "children">;
 
 type ToolbarCommandKind = "toggle" | "button";
@@ -102,6 +110,8 @@ const HEADING_COMMANDS: Array<{
 
 export function Editor({
 	className,
+	value,
+	onChange,
 	placeholder = "Please Type Here...",
 	...props
 }: EditorProps) {
@@ -109,6 +119,12 @@ export function Editor({
 		() => createEditorExtensions(placeholder),
 		[placeholder],
 	);
+	const onChangeRef = useRef(onChange);
+	const lastSyncedMarkdownRef = useRef(value);
+
+	useEffect(() => {
+		onChangeRef.current = onChange;
+	}, [onChange]);
 
 	const editor = useEditor({
 		immediatelyRender: false,
@@ -119,8 +135,24 @@ export function Editor({
 					"tiptap prose prose-neutral dark:prose-invert h-full min-h-[240px] max-w-none cursor-text p-4 text-base leading-7 outline-none",
 			},
 		},
-		content: "",
+		content: markdownToTiptapDocument(value),
+		onUpdate: ({ editor: currentEditor }) => {
+			const nextMarkdown = tiptapDocumentToMarkdown(currentEditor.getJSON());
+			lastSyncedMarkdownRef.current = nextMarkdown;
+			onChangeRef.current(nextMarkdown);
+		},
 	});
+
+	useEffect(() => {
+		if (!editor || value === lastSyncedMarkdownRef.current) {
+			return;
+		}
+
+		editor.commands.setContent(markdownToTiptapDocument(value), {
+			emitUpdate: false,
+		});
+		lastSyncedMarkdownRef.current = value;
+	}, [editor, value]);
 
 	const { slashMenu, closeSlashMenu } = useSlashMenu(editor);
 	const {

@@ -74,6 +74,7 @@ function RouteComponent() {
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 	const [isTagsPickerOpen, setIsTagsPickerOpen] = useState(false);
 	const [tagsQuery, setTagsQuery] = useState("");
+	const [content, setContent] = useState("");
 	const tagsAnchorRef = useComboboxAnchor();
 	const { data: seriesResult } = useSuspenseQuery(listSeriesQuery());
 	const { data: categoriesResult } = useSuspenseQuery(listCategoriesQuery());
@@ -485,7 +486,7 @@ function RouteComponent() {
 			<Separator />
 
 			<CardContent className="flex-1">
-				<Editor className="h-full" />
+				<Editor className="h-full" value={content} onChange={setContent} />
 			</CardContent>
 		</Card>
 	);
