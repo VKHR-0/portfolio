@@ -54,7 +54,7 @@ type EditorProps = {
 	placeholder?: string;
 	value: string;
 	onChange: (value: string) => void;
-} & Omit<ComponentProps<"div">, "children">;
+} & Omit<ComponentProps<"div">, "children" | "onChange">;
 
 type ToolbarCommandKind = "toggle" | "button";
 

@@ -1,12 +1,10 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toSlug } from "../../shared/slug";
-import { mutation, query } from "../_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
 import { authComponent } from "../auth";
 
-async function requireCurrentUserId(
-	ctx: Parameters<typeof authComponent.getAuthUser>[0],
-) {
+async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
 	const user = await authComponent.getAuthUser(ctx);
 
 	if (!user?._id) {
@@ -34,16 +32,6 @@ function normalizeSlug(value: string) {
 	}
 
 	return slug;
-}
-
-async function findPostBySlug(
-	ctx: Parameters<typeof authComponent.getAuthUser>[0],
-	slug: string,
-) {
-	return await ctx.db
-		.query("posts")
-		.withIndex("by_slug", (q) => q.eq("slug", slug))
-		.unique();
 }
 
 export const list = query({
@@ -87,7 +75,10 @@ export const getEditableBySlug = query({
 	},
 	handler: async (ctx, args) => {
 		const authorId = await requireCurrentUserId(ctx);
-		const post = await findPostBySlug(ctx, normalizeSlug(args.slug));
+		const post = await ctx.db
+			.query("posts")
+			.withIndex("by_slug", (q) => q.eq("slug", normalizeSlug(args.slug)))
+			.unique();
 
 		if (!post || post.authorId !== authorId) {
 			throw new Error("Post not found.");
@@ -127,7 +118,10 @@ export const createDraft = mutation({
 		const content = args.content?.trim() ?? "";
 		const status = args.status ?? "draft";
 		const tagIds = args.tagIds ?? [];
-		const existingPost = await findPostBySlug(ctx, slug);
+		const existingPost = await ctx.db
+			.query("posts")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
 
 		if (existingPost) {
 			throw new Error("Post with this slug already exists.");
@@ -182,7 +176,10 @@ export const updateDraft = mutation({
 		const title = normalizeTitle(args.title);
 		const slug = normalizeSlug(args.slug);
 		const content = args.content.trim();
-		const conflictingPost = await findPostBySlug(ctx, slug);
+		const conflictingPost = await ctx.db
+			.query("posts")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
 
 		if (conflictingPost && conflictingPost._id !== args.id) {
 			throw new Error("Post with this slug already exists.");

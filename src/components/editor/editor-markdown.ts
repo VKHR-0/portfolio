@@ -72,7 +72,7 @@ function mdastPhrasingToTiptap(
 	nodes: Array<MarkdownNode>,
 	activeMarks: MarkdownMark[] = [],
 ): Array<JSONContent> {
-	return nodes.flatMap((node) => {
+	return nodes.flatMap<JSONContent>((node) => {
 		switch (node.type) {
 			case "text":
 				return createTextNode(asString(node.value), activeMarks);
@@ -127,7 +127,7 @@ function mdastTableToTiptap(table: MarkdownNode): JSONContent {
 }
 
 function mdastFlowToTiptap(nodes: Array<MarkdownNode>): Array<JSONContent> {
-	return nodes.flatMap((node) => {
+	return nodes.flatMap<JSONContent>((node) => {
 		switch (node.type) {
 			case "paragraph":
 				return [
@@ -257,7 +257,7 @@ function applyMarksToText(text: string, marks: Array<MarkdownMark>) {
 }
 
 function tiptapInlineToMdast(nodes: Array<JSONContent>): Array<MarkdownNode> {
-	return nodes.flatMap((node) => {
+	return nodes.flatMap<MarkdownNode>((node) => {
 		switch (node.type) {
 			case "text":
 				return node.text
@@ -284,7 +284,7 @@ function tiptapInlineToMdast(nodes: Array<JSONContent>): Array<MarkdownNode> {
 }
 
 function flattenTableCell(nodes: Array<JSONContent>): Array<MarkdownNode> {
-	return nodes.flatMap((node, index) => {
+	return nodes.flatMap<MarkdownNode>((node, index) => {
 		if (node.type === "paragraph" || node.type === "heading") {
 			const prefix = index > 0 ? [{ type: "break" } satisfies MarkdownNode] : [];
 			return [...prefix, ...tiptapInlineToMdast(node.content ?? [])];
@@ -311,7 +311,7 @@ function extractText(nodes: Array<JSONContent>) {
 }
 
 function tiptapFlowToMdast(nodes: Array<JSONContent>): Array<MarkdownNode> {
-	return nodes.flatMap((node) => {
+	return nodes.flatMap<MarkdownNode>((node) => {
 		switch (node.type) {
 			case "paragraph":
 				return [
@@ -431,7 +431,7 @@ export function markdownToTiptapDocument(markdown: string): JSONContent {
 	const tree = fromMarkdown(normalizedMarkdown, {
 		extensions: [gfm(), math()],
 		mdastExtensions: [gfmFromMarkdown(), mathFromMarkdown()],
-	}) as MarkdownNode;
+	}) as unknown as MarkdownNode;
 	const content = mdastFlowToTiptap(asArray(tree.children));
 
 	return {
@@ -444,7 +444,7 @@ export function tiptapDocumentToMarkdown(document: JSONContent): string {
 	const tree = {
 		type: "root",
 		children: tiptapFlowToMdast(document.content ?? []),
-	};
+	} as unknown as Parameters<typeof toMarkdown>[0];
 
 	return normalizeMarkdown(
 		toMarkdown(tree, {
