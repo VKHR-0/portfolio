@@ -183,13 +183,20 @@ type SlashMenuState = SlashRange & {
 	left: number;
 };
 
-type SlashCommandItem = {
+type ToolbarCommandKind = "toggle" | "button";
+
+type BlockCommandItem = {
 	id: string;
 	label: string;
 	description: string;
 	keywords: string[];
 	icon: ComponentType<{ className?: string }>;
-	run: (range: SlashRange) => void;
+	ariaLabel: string;
+	kind: ToolbarCommandKind;
+	isActive: (editor: TiptapEditor) => boolean;
+	canRun: (editor: TiptapEditor) => boolean;
+	run: (editor: TiptapEditor) => void;
+	runFromSlash: (editor: TiptapEditor, range: SlashRange) => void;
 };
 
 type ActionDialogMode = "link" | "inlineMath" | "blockMath";
@@ -237,6 +244,44 @@ const ACTION_DIALOG_META: Record<
 		allowEmpty: false,
 	},
 };
+
+const DEFAULT_INLINE_MATH_LATEX = "E = mc^2";
+const DEFAULT_BLOCK_MATH_LATEX = "\\\\int_0^1 x^2 \\\\, dx";
+const DEFAULT_TABLE_OPTIONS = { rows: 3, cols: 3, withHeaderRow: true };
+
+const HEADING_COMMANDS: Array<{
+	id: string;
+	label: string;
+	description: string;
+	keywords: string[];
+	icon: ComponentType<{ className?: string }>;
+	level: 1 | 2 | 3;
+}> = [
+	{
+		id: "heading-1",
+		label: "Heading 1",
+		description: "Large section title",
+		keywords: ["h1", "title", "heading"],
+		icon: IconH1,
+		level: 1,
+	},
+	{
+		id: "heading-2",
+		label: "Heading 2",
+		description: "Medium section title",
+		keywords: ["h2", "subtitle", "heading"],
+		icon: IconH2,
+		level: 2,
+	},
+	{
+		id: "heading-3",
+		label: "Heading 3",
+		description: "Small section title",
+		keywords: ["h3", "subheading", "heading"],
+		icon: IconH3,
+		level: 3,
+	},
+];
 
 function getSlashMenuState(editor: TiptapEditor): SlashMenuState | null {
 	const { selection } = editor.state;
@@ -299,7 +344,7 @@ export function Editor({
 				link: false,
 				codeBlock: false,
 				heading: {
-					levels: [1, 2, 3, 4],
+					levels: [1, 2, 3],
 				},
 			}),
 			CodeBlockLowlight.configure({
@@ -392,7 +437,7 @@ export function Editor({
 		(replaceRange?: SlashRange) => {
 			openActionDialog({
 				mode: "inlineMath",
-				value: "E = mc^2",
+				value: DEFAULT_INLINE_MATH_LATEX,
 				replaceRange,
 			});
 		},
@@ -403,7 +448,7 @@ export function Editor({
 		(replaceRange?: SlashRange) => {
 			openActionDialog({
 				mode: "blockMath",
-				value: "\\\\int_0^1 x^2 \\\\, dx",
+				value: DEFAULT_BLOCK_MATH_LATEX,
 				replaceRange,
 			});
 		},
@@ -455,11 +500,7 @@ export function Editor({
 		closeActionDialog();
 	};
 
-	const slashCommands = useMemo<SlashCommandItem[]>(() => {
-		if (!editor) {
-			return [];
-		}
-
+	const blockCommands = useMemo<BlockCommandItem[]>(() => {
 		return [
 			{
 				id: "paragraph",
@@ -467,63 +508,72 @@ export function Editor({
 				description: "Normal body text",
 				keywords: ["text", "p", "paragraph"],
 				icon: IconPilcrow,
-				run: (range) => {
-					editor.chain().focus().deleteRange(range).setParagraph().run();
+				ariaLabel: "Paragraph",
+				kind: "toggle",
+				isActive: (currentEditor) => currentEditor.isActive("paragraph"),
+				canRun: (currentEditor) =>
+					currentEditor.can().chain().focus().setParagraph().run(),
+				run: (currentEditor) => {
+					currentEditor.chain().focus().setParagraph().run();
+				},
+				runFromSlash: (currentEditor, range) => {
+					currentEditor.chain().focus().deleteRange(range).setParagraph().run();
 				},
 			},
-			{
-				id: "heading-1",
-				label: "Heading 1",
-				description: "Large section title",
-				keywords: ["h1", "title", "heading"],
-				icon: IconH1,
-				run: (range) => {
-					editor
+			...HEADING_COMMANDS.map((headingCommand) => ({
+				id: headingCommand.id,
+				label: headingCommand.label,
+				description: headingCommand.description,
+				keywords: headingCommand.keywords,
+				icon: headingCommand.icon,
+				ariaLabel: headingCommand.label,
+				kind: "toggle" as const,
+				isActive: (currentEditor: TiptapEditor) =>
+					currentEditor.isActive("heading", { level: headingCommand.level }),
+				canRun: (currentEditor: TiptapEditor) =>
+					currentEditor
+						.can()
+						.chain()
+						.focus()
+						.toggleHeading({ level: headingCommand.level })
+						.run(),
+				run: (currentEditor: TiptapEditor) => {
+					currentEditor
+						.chain()
+						.focus()
+						.toggleHeading({ level: headingCommand.level })
+						.run();
+				},
+				runFromSlash: (currentEditor: TiptapEditor, range: SlashRange) => {
+					currentEditor
 						.chain()
 						.focus()
 						.deleteRange(range)
-						.toggleHeading({ level: 1 })
+						.toggleHeading({ level: headingCommand.level })
 						.run();
 				},
-			},
-			{
-				id: "heading-2",
-				label: "Heading 2",
-				description: "Medium section title",
-				keywords: ["h2", "subtitle", "heading"],
-				icon: IconH2,
-				run: (range) => {
-					editor
-						.chain()
-						.focus()
-						.deleteRange(range)
-						.toggleHeading({ level: 2 })
-						.run();
-				},
-			},
-			{
-				id: "heading-3",
-				label: "Heading 3",
-				description: "Small section title",
-				keywords: ["h3", "subheading", "heading"],
-				icon: IconH3,
-				run: (range) => {
-					editor
-						.chain()
-						.focus()
-						.deleteRange(range)
-						.toggleHeading({ level: 3 })
-						.run();
-				},
-			},
+			})),
 			{
 				id: "bullet-list",
 				label: "Bullet List",
 				description: "Unordered list",
 				keywords: ["list", "ul", "bullet"],
 				icon: IconList,
-				run: (range) => {
-					editor.chain().focus().deleteRange(range).toggleBulletList().run();
+				ariaLabel: "Bullet list",
+				kind: "toggle",
+				isActive: (currentEditor) => currentEditor.isActive("bulletList"),
+				canRun: (currentEditor) =>
+					currentEditor.can().chain().focus().toggleBulletList().run(),
+				run: (currentEditor) => {
+					currentEditor.chain().focus().toggleBulletList().run();
+				},
+				runFromSlash: (currentEditor, range) => {
+					currentEditor
+						.chain()
+						.focus()
+						.deleteRange(range)
+						.toggleBulletList()
+						.run();
 				},
 			},
 			{
@@ -532,8 +582,21 @@ export function Editor({
 				description: "Numbered list",
 				keywords: ["list", "ol", "number"],
 				icon: IconListNumbers,
-				run: (range) => {
-					editor.chain().focus().deleteRange(range).toggleOrderedList().run();
+				ariaLabel: "Ordered list",
+				kind: "toggle",
+				isActive: (currentEditor) => currentEditor.isActive("orderedList"),
+				canRun: (currentEditor) =>
+					currentEditor.can().chain().focus().toggleOrderedList().run(),
+				run: (currentEditor) => {
+					currentEditor.chain().focus().toggleOrderedList().run();
+				},
+				runFromSlash: (currentEditor, range) => {
+					currentEditor
+						.chain()
+						.focus()
+						.deleteRange(range)
+						.toggleOrderedList()
+						.run();
 				},
 			},
 			{
@@ -542,8 +605,21 @@ export function Editor({
 				description: "Quoted text",
 				keywords: ["quote", "blockquote"],
 				icon: IconBlockquote,
-				run: (range) => {
-					editor.chain().focus().deleteRange(range).toggleBlockquote().run();
+				ariaLabel: "Blockquote",
+				kind: "toggle",
+				isActive: (currentEditor) => currentEditor.isActive("blockquote"),
+				canRun: (currentEditor) =>
+					currentEditor.can().chain().focus().toggleBlockquote().run(),
+				run: (currentEditor) => {
+					currentEditor.chain().focus().toggleBlockquote().run();
+				},
+				runFromSlash: (currentEditor, range) => {
+					currentEditor
+						.chain()
+						.focus()
+						.deleteRange(range)
+						.toggleBlockquote()
+						.run();
 				},
 			},
 			{
@@ -552,8 +628,21 @@ export function Editor({
 				description: "Monospace code section",
 				keywords: ["code", "snippet", "pre"],
 				icon: IconCode,
-				run: (range) => {
-					editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
+				ariaLabel: "Code block",
+				kind: "toggle",
+				isActive: (currentEditor) => currentEditor.isActive("codeBlock"),
+				canRun: (currentEditor) =>
+					currentEditor.can().chain().focus().toggleCodeBlock().run(),
+				run: (currentEditor) => {
+					currentEditor.chain().focus().toggleCodeBlock().run();
+				},
+				runFromSlash: (currentEditor, range) => {
+					currentEditor
+						.chain()
+						.focus()
+						.deleteRange(range)
+						.toggleCodeBlock()
+						.run();
 				},
 			},
 			{
@@ -562,7 +651,14 @@ export function Editor({
 				description: "Insert inline LaTeX expression",
 				keywords: ["latex", "math", "equation", "inline"],
 				icon: IconMath,
-				run: (range) => {
+				ariaLabel: "Inline math",
+				kind: "button",
+				isActive: () => false,
+				canRun: () => true,
+				run: () => {
+					openInlineMathDialog();
+				},
+				runFromSlash: (_, range) => {
 					openInlineMathDialog(range);
 				},
 			},
@@ -572,7 +668,14 @@ export function Editor({
 				description: "Insert block LaTeX equation",
 				keywords: ["latex", "math", "equation", "block"],
 				icon: IconMathFunction,
-				run: (range) => {
+				ariaLabel: "Block math",
+				kind: "button",
+				isActive: () => false,
+				canRun: () => true,
+				run: () => {
+					openBlockMathDialog();
+				},
+				runFromSlash: (_, range) => {
 					openBlockMathDialog(range);
 				},
 			},
@@ -582,12 +685,29 @@ export function Editor({
 				description: "Insert 3 x 3 table",
 				keywords: ["table", "grid"],
 				icon: IconTable,
-				run: (range) => {
-					editor
+				ariaLabel: "Table",
+				kind: "button",
+				isActive: () => false,
+				canRun: (currentEditor) =>
+					currentEditor
+						.can()
+						.chain()
+						.focus()
+						.insertTable(DEFAULT_TABLE_OPTIONS)
+						.run(),
+				run: (currentEditor) => {
+					currentEditor
+						.chain()
+						.focus()
+						.insertTable(DEFAULT_TABLE_OPTIONS)
+						.run();
+				},
+				runFromSlash: (currentEditor, range) => {
+					currentEditor
 						.chain()
 						.focus()
 						.deleteRange(range)
-						.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+						.insertTable(DEFAULT_TABLE_OPTIONS)
 						.run();
 				},
 			},
@@ -597,12 +717,25 @@ export function Editor({
 				description: "Horizontal separator",
 				keywords: ["divider", "hr", "line"],
 				icon: IconMinus,
-				run: (range) => {
-					editor.chain().focus().deleteRange(range).setHorizontalRule().run();
+				ariaLabel: "Divider",
+				kind: "button",
+				isActive: () => false,
+				canRun: (currentEditor) =>
+					currentEditor.can().chain().focus().setHorizontalRule().run(),
+				run: (currentEditor) => {
+					currentEditor.chain().focus().setHorizontalRule().run();
+				},
+				runFromSlash: (currentEditor, range) => {
+					currentEditor
+						.chain()
+						.focus()
+						.deleteRange(range)
+						.setHorizontalRule()
+						.run();
 				},
 			},
 		];
-	}, [editor, openBlockMathDialog, openInlineMathDialog]);
+	}, [openBlockMathDialog, openInlineMathDialog]);
 
 	const filteredSlashCommands = useMemo(() => {
 		if (!slashMenu) {
@@ -610,26 +743,26 @@ export function Editor({
 		}
 
 		if (!slashMenu.query) {
-			return slashCommands;
+			return blockCommands;
 		}
 
-		return slashCommands.filter((command) => {
+		return blockCommands.filter((command) => {
 			const searchableText =
 				`${command.label} ${command.description} ${command.keywords.join(" ")}`.toLowerCase();
 			return searchableText.includes(slashMenu.query);
 		});
-	}, [slashCommands, slashMenu]);
+	}, [blockCommands, slashMenu]);
 
 	const runSlashCommand = useCallback(
-		(command: SlashCommandItem) => {
-			if (!slashMenu) {
+		(command: BlockCommandItem) => {
+			if (!editor || !slashMenu) {
 				return;
 			}
 
-			command.run({ from: slashMenu.from, to: slashMenu.to });
+			command.runFromSlash(editor, { from: slashMenu.from, to: slashMenu.to });
 			setSlashMenu(null);
 		},
-		[slashMenu],
+		[editor, slashMenu],
 	);
 
 	useEffect(() => {
@@ -693,157 +826,42 @@ export function Editor({
 					aria-label="Block formatting"
 					onMouseDown={preventMenuFocusLoss}
 				>
-					<Toggle
-						size="sm"
-						aria-label="Paragraph"
-						pressed={editor.isActive("paragraph")}
-						disabled={!editor.can().chain().focus().setParagraph().run()}
-						onPressedChange={() => {
-							editor.chain().focus().setParagraph().run();
-						}}
-					>
-						<IconPilcrow />
-					</Toggle>
-					<Toggle
-						size="sm"
-						aria-label="Heading 1"
-						pressed={editor.isActive("heading", { level: 1 })}
-						disabled={
-							!editor.can().chain().focus().toggleHeading({ level: 1 }).run()
+					{blockCommands.map((command) => {
+						const Icon = command.icon;
+
+						if (command.kind === "toggle") {
+							return (
+								<Toggle
+									key={command.id}
+									size="sm"
+									aria-label={command.ariaLabel}
+									pressed={command.isActive(editor)}
+									disabled={!command.canRun(editor)}
+									onPressedChange={() => {
+										command.run(editor);
+									}}
+								>
+									<Icon />
+								</Toggle>
+							);
 						}
-						onPressedChange={() => {
-							editor.chain().focus().toggleHeading({ level: 1 }).run();
-						}}
-					>
-						<IconH1 />
-					</Toggle>
-					<Toggle
-						size="sm"
-						aria-label="Heading 2"
-						pressed={editor.isActive("heading", { level: 2 })}
-						disabled={
-							!editor.can().chain().focus().toggleHeading({ level: 2 }).run()
-						}
-						onPressedChange={() => {
-							editor.chain().focus().toggleHeading({ level: 2 }).run();
-						}}
-					>
-						<IconH2 />
-					</Toggle>
-					<Toggle
-						size="sm"
-						aria-label="Heading 3"
-						pressed={editor.isActive("heading", { level: 3 })}
-						disabled={
-							!editor.can().chain().focus().toggleHeading({ level: 3 }).run()
-						}
-						onPressedChange={() => {
-							editor.chain().focus().toggleHeading({ level: 3 }).run();
-						}}
-					>
-						<IconH3 />
-					</Toggle>
-					<Toggle
-						size="sm"
-						aria-label="Bullet list"
-						pressed={editor.isActive("bulletList")}
-						disabled={!editor.can().chain().focus().toggleBulletList().run()}
-						onPressedChange={() => {
-							editor.chain().focus().toggleBulletList().run();
-						}}
-					>
-						<IconList />
-					</Toggle>
-					<Toggle
-						size="sm"
-						aria-label="Ordered list"
-						pressed={editor.isActive("orderedList")}
-						disabled={!editor.can().chain().focus().toggleOrderedList().run()}
-						onPressedChange={() => {
-							editor.chain().focus().toggleOrderedList().run();
-						}}
-					>
-						<IconListNumbers />
-					</Toggle>
-					<Toggle
-						size="sm"
-						aria-label="Blockquote"
-						pressed={editor.isActive("blockquote")}
-						disabled={!editor.can().chain().focus().toggleBlockquote().run()}
-						onPressedChange={() => {
-							editor.chain().focus().toggleBlockquote().run();
-						}}
-					>
-						<IconBlockquote />
-					</Toggle>
-					<Toggle
-						size="sm"
-						aria-label="Code block"
-						pressed={editor.isActive("codeBlock")}
-						disabled={!editor.can().chain().focus().toggleCodeBlock().run()}
-						onPressedChange={() => {
-							editor.chain().focus().toggleCodeBlock().run();
-						}}
-					>
-						<IconCode />
-					</Toggle>
-					<Button
-						type="button"
-						size="sm"
-						variant="outline"
-						onClick={() => {
-							openInlineMathDialog();
-						}}
-					>
-						<IconMath />
-						Inline Math
-					</Button>
-					<Button
-						type="button"
-						size="sm"
-						variant="outline"
-						onClick={() => {
-							openBlockMathDialog();
-						}}
-					>
-						<IconMathFunction />
-						Block Math
-					</Button>
-					<Button
-						type="button"
-						size="sm"
-						variant="outline"
-						disabled={
-							!editor
-								.can()
-								.chain()
-								.focus()
-								.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-								.run()
-						}
-						onClick={() => {
-							editor
-								.chain()
-								.focus()
-								.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-								.run();
-						}}
-					>
-						<IconTable />
-						Table
-					</Button>
-					<Button
-						type="button"
-						size="sm"
-						variant="outline"
-						disabled={!editor.can().chain().focus().setHorizontalRule().run()}
-						onClick={() => {
-							editor.chain().focus().setHorizontalRule().run();
-						}}
-					>
-						<IconMinus />
-						Divider
-					</Button>
+
+						return (
+							<Button
+								key={command.id}
+								type="button"
+								size="sm"
+								variant="outline"
+								disabled={!command.canRun(editor)}
+								onClick={() => {
+									command.run(editor);
+								}}
+							>
+								<Icon />
+								{command.label}
+							</Button>
+						);
+					})}
 					<span className="ml-auto hidden text-muted-foreground text-xs md:inline">
 						Type `/` for block commands
 					</span>
