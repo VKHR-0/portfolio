@@ -16,18 +16,9 @@ import {
 	IconStrikethrough,
 	IconTable,
 } from "@tabler/icons-react";
-import { Extension, type Editor as TiptapEditor } from "@tiptap/core";
-import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
-import Link from "@tiptap/extension-link";
-import Mathematics from "@tiptap/extension-mathematics";
-import Placeholder from "@tiptap/extension-placeholder";
-import { TableKit } from "@tiptap/extension-table";
-import { NodeSelection, Plugin, PluginKey } from "@tiptap/pm/state";
-import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import type { Editor as TiptapEditor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
-import StarterKit from "@tiptap/starter-kit";
-import { common, createLowlight } from "lowlight";
 import {
 	type ComponentProps,
 	type ComponentType,
@@ -49,113 +40,8 @@ import {
 	EditorActionDialog,
 	useEditorActionDialog,
 } from "./editor/editor-action-dialog";
+import { createEditorExtensions } from "./editor/editor-extensions";
 import { type SlashRange, useSlashMenu } from "./editor/use-slash-menu";
-
-const lowlight = createLowlight(common);
-const DRAG_HANDLE_PLUGIN_KEY = new PluginKey("editor-drag-handle");
-const DRAGGABLE_BLOCK_NAMES = new Set([
-	"paragraph",
-	"heading",
-	"bulletList",
-	"orderedList",
-	"taskList",
-	"codeBlock",
-	"blockquote",
-	"table",
-	"blockMath",
-	"horizontalRule",
-]);
-
-function createDragHandleDecorations(
-	editor: TiptapEditor,
-	doc: TiptapEditor["state"]["doc"],
-) {
-	const decorations: Decoration[] = [];
-
-	doc.forEach((node, offset) => {
-		if (!DRAGGABLE_BLOCK_NAMES.has(node.type.name)) {
-			return;
-		}
-
-		const pos = offset + 1;
-		if (!NodeSelection.isSelectable(node)) {
-			return;
-		}
-
-		const anchor = document.createElement("span");
-		anchor.className = "editor-drag-handle-anchor";
-		anchor.setAttribute("contenteditable", "false");
-
-		const button = document.createElement("button");
-		button.type = "button";
-		button.className = "editor-drag-handle";
-		button.draggable = true;
-		button.setAttribute("data-drag-handle", "");
-		button.setAttribute("aria-label", "Drag block");
-		button.textContent = "⋮⋮";
-
-		const selectNode = () => {
-			const currentNode = editor.state.doc.nodeAt(pos);
-			if (!currentNode || !NodeSelection.isSelectable(currentNode)) {
-				return;
-			}
-
-			const selection = NodeSelection.create(editor.state.doc, pos);
-			editor.view.dispatch(editor.state.tr.setSelection(selection));
-			editor.view.focus();
-		};
-
-		button.addEventListener("mousedown", (event) => {
-			event.stopPropagation();
-			selectNode();
-		});
-		button.addEventListener("dragstart", (event) => {
-			selectNode();
-			if (!event.dataTransfer) {
-				return;
-			}
-
-			event.dataTransfer.setData("text/plain", " ");
-			event.dataTransfer.effectAllowed = "copyMove";
-		});
-
-		anchor.appendChild(button);
-		decorations.push(
-			Decoration.widget(pos, anchor, {
-				key: `drag-handle-${pos}`,
-				side: -1,
-			}),
-		);
-	});
-
-	return DecorationSet.create(doc, decorations);
-}
-
-const DragHandleExtension = Extension.create({
-	name: "dragHandle",
-	addProseMirrorPlugins() {
-		return [
-			new Plugin({
-				key: DRAG_HANDLE_PLUGIN_KEY,
-				state: {
-					init: (_, state) =>
-						createDragHandleDecorations(this.editor, state.doc),
-					apply: (tr, old, _, newState) => {
-						if (!tr.docChanged) {
-							return old;
-						}
-
-						return createDragHandleDecorations(this.editor, newState.doc);
-					},
-				},
-				props: {
-					decorations: (state) =>
-						DRAG_HANDLE_PLUGIN_KEY.getState(state) as DecorationSet,
-				},
-			}),
-		];
-	},
-});
 
 type EditorProps = {
 	className?: string;
@@ -219,62 +105,14 @@ export function Editor({
 	placeholder = "Please Type Here...",
 	...props
 }: EditorProps) {
+	const editorExtensions = useMemo(
+		() => createEditorExtensions(placeholder),
+		[placeholder],
+	);
+
 	const editor = useEditor({
 		immediatelyRender: false,
-		extensions: [
-			StarterKit.configure({
-				link: false,
-				codeBlock: false,
-				heading: {
-					levels: [1, 2, 3],
-				},
-			}),
-			CodeBlockLowlight.configure({
-				lowlight,
-				defaultLanguage: "ts",
-				HTMLAttributes: {
-					class: "rounded-lg bg-muted px-3 py-2 font-mono text-sm",
-				},
-			}),
-			Link.configure({
-				autolink: true,
-				defaultProtocol: "https",
-				linkOnPaste: true,
-				openOnClick: false,
-				HTMLAttributes: {
-					class: "text-primary underline underline-offset-4",
-				},
-			}),
-			TableKit.configure({
-				table: {
-					HTMLAttributes: {
-						class: "my-4 w-full table-auto border-collapse text-sm",
-					},
-					resizable: true,
-				},
-				tableHeader: {
-					HTMLAttributes: {
-						class: "border bg-muted/50 px-3 py-2 text-left font-medium",
-					},
-				},
-				tableCell: {
-					HTMLAttributes: {
-						class: "border px-3 py-2 align-top",
-					},
-				},
-				tableRow: {},
-			}),
-			Mathematics.configure({
-				katexOptions: {
-					throwOnError: false,
-				},
-			}),
-			DragHandleExtension,
-			Placeholder.configure({
-				placeholder,
-				emptyNodeClass: "is-editor-empty",
-			}),
-		],
+		extensions: editorExtensions,
 		editorProps: {
 			attributes: {
 				class:
