@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Editor } from "#/components/ui/editor";
+import { PostEditor } from "./-post-editor";
 
 export const Route = createFileRoute("/admin/posts/new")({
 	component: RouteComponent,
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/admin/posts/new")({
 function RouteComponent() {
 	return (
 		<div>
-			<Editor />
+			<PostEditor />
 		</div>
 	);
 }

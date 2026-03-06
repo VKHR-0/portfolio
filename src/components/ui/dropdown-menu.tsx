@@ -1,8 +1,7 @@
-import type * as React from "react";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
-
+import { IconCheck, IconChevronRight } from "@tabler/icons-react";
+import type * as React from "react";
 import { cn } from "#/lib/utils";
-import { IconChevronRight, IconCheck } from "@tabler/icons-react";
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
 	return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />;

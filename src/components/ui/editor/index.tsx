@@ -799,7 +799,7 @@ export function Editor({
 			return;
 		}
 		const linkAttrs = editor.getAttributes("link");
-		const href = typeof linkAttrs["href"] === "string" ? linkAttrs["href"] : "";
+		const href = typeof linkAttrs.href === "string" ? linkAttrs.href : "";
 		setLinkUrl(editor.isActive("link") ? href : "");
 		setShowLinkInput(true);
 		setShowTableActions(false);
@@ -820,7 +820,7 @@ export function Editor({
 			return;
 		}
 		const imageAttrs = editor.getAttributes("image");
-		const alt = imageAttrs["alt"];
+		const { alt } = imageAttrs;
 		setImageAltText(typeof alt === "string" ? alt : "");
 		setShowAltInput(true);
 		setShowLinkInput(false);

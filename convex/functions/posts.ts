@@ -2,10 +2,10 @@ import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toSlug } from "../../shared/slug";
 import {
-	mutation,
-	query,
 	type MutationCtx,
+	mutation,
 	type QueryCtx,
+	query,
 } from "../_generated/server";
 import { authComponent } from "../auth";
 
