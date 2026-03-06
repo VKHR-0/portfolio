@@ -80,14 +80,14 @@ function SidebarProvider({
 			}
 
 			// This sets the cookie to keep the sidebar state.
-			// biome-ignore lint/suspicious/noDocumentCookie: safe
+			// biome-ignore lint/suspicious/noDocumentCookie: Safe to use in a client-only context
 			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 		},
 		[setOpenProp, open],
 	);
 
 	// Helper to toggle the sidebar.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: Default dependencies are fine here.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: toggleSidebar is already memoized
 	const toggleSidebar = React.useCallback(() => {
 		return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
 	}, [isMobile, setOpen, setOpenMobile]);
@@ -112,7 +112,7 @@ function SidebarProvider({
 	// This makes it easier to style the sidebar with Tailwind classes.
 	const state = open ? "expanded" : "collapsed";
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: Default dependencies are fine here.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: contextValue dependencies are already memoized
 	const contextValue = React.useMemo<SidebarContextProps>(
 		() => ({
 			state,

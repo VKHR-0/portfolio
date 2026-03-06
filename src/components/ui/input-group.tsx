@@ -1,5 +1,3 @@
-"use client";
-
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { Button } from "#/components/ui/button";
@@ -51,6 +49,8 @@ function InputGroupAddon({
 	VariantProps<typeof inputGroupAddonVariants>) {
 	return (
 		<fieldset
+			onKeyDown={onKeyDown}
+			onKeyUp={onKeyUp}
 			data-slot="input-group-addon"
 			data-align={align}
 			className={cn(inputGroupAddonVariants({ align }), className)}
@@ -60,8 +60,6 @@ function InputGroupAddon({
 				}
 				e.currentTarget.parentElement?.querySelector("input")?.focus();
 			}}
-			onKeyDown={onKeyDown}
-			onKeyUp={onKeyUp}
 			{...props}
 		/>
 	);
