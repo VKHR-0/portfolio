@@ -4,6 +4,7 @@ import {
 	IconCheck,
 	IconClearFormatting,
 	IconCode,
+	IconGripVertical,
 	IconItalic,
 	IconLink,
 	IconMinus,
@@ -14,6 +15,7 @@ import {
 	IconX,
 } from "@tabler/icons-react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
+import { DragHandle } from "@tiptap/extension-drag-handle-react";
 import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -38,7 +40,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Skeleton } from "#/components/ui/skeleton";
 import { cn } from "#/lib/utils";
+import { Button } from "../ui/button";
 import SlashCommands from "./slash-command/commands";
 import type {
 	ImagePickerContext,
@@ -205,6 +209,18 @@ const blockOptions: Array<{ value: BlockType; label: string }> = [
 	{ value: "codeBlock", label: "Code block" },
 ];
 
+const getActiveBlockType = (editor: TiptapEditor): BlockType => {
+	if (editor.isActive("heading", { level: 1 })) return "heading1";
+	if (editor.isActive("heading", { level: 2 })) return "heading2";
+	if (editor.isActive("heading", { level: 3 })) return "heading3";
+	if (editor.isActive("bulletList")) return "bulletList";
+	if (editor.isActive("orderedList")) return "orderedList";
+	if (editor.isActive("blockquote")) return "blockquote";
+	if (editor.isActive("codeBlock")) return "codeBlock";
+
+	return "paragraph";
+};
+
 export function Editor({
 	value = "",
 	onChange = () => undefined,
@@ -228,6 +244,7 @@ export function Editor({
 	const [isOnImage, setIsOnImage] = useState(false);
 	const [linkUrl, setLinkUrl] = useState("");
 	const [imageAltText, setImageAltText] = useState("");
+	const [menuBoundary, setMenuBoundary] = useState<HTMLDivElement | null>(null);
 	const bubbleMenuRef = useRef<HTMLDivElement>(null);
 	const linkInputRef = useRef<HTMLInputElement>(null);
 	const lastEmittedValueRef = useRef<string>(value);
@@ -235,7 +252,11 @@ export function Editor({
 	const objectUrlByUploadIdRef = useRef(new Map<string, string>());
 	const expectedBlobByUploadIdRef = useRef(new Map<string, string>());
 	const tiptapSurfaceClass = cn(
-		"min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30 [&_img[data-upload-error]]:ring-2 [&_img[data-upload-error]]:ring-destructive [&_img[data-upload-error]]:ring-offset-2 [&_img[data-upload-error]]:ring-offset-background [&_img[data-uploading=true]]:animate-pulse [&_img[data-uploading=true]]:opacity-70 [&_p.is-empty::before]:pointer-events-none [&_p.is-empty::before]:float-left [&_p.is-empty::before]:h-0 [&_p.is-empty::before]:text-muted-foreground [&_p.is-empty::before]:content-[attr(data-placeholder)]",
+		"min-h-16 w-full rounded-md border border-input bg-transparent px-8 py-2 text-base shadow-xs outline-none transition-[color,box-shadow]",
+		"selection:bg-primary placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30",
+		"[&_.ProseMirror-selectednode]:bg-primary/15 [&_.ProseMirror-selectednode]:outline-none [&_li.ProseMirror-selectednode::after]:border-0 [&_li.ProseMirror-selectednode::after]:bg-primary/15",
+		"[&_img[data-upload-error]]:ring-2 [&_img[data-upload-error]]:ring-destructive [&_img[data-upload-error]]:ring-offset-2 [&_img[data-upload-error]]:ring-offset-background [&_img[data-uploading=true]]:animate-pulse [&_img[data-uploading=true]]:opacity-70",
+		"[&_p.is-empty::before]:pointer-events-none [&_p.is-empty::before]:float-left [&_p.is-empty::before]:h-0 [&_p.is-empty::before]:text-muted-foreground [&_p.is-empty::before]:content-[attr(data-placeholder)]",
 		editorClassName,
 	);
 
@@ -372,23 +393,7 @@ export function Editor({
 					return defaultActiveState;
 				}
 
-				const blockType: BlockType = currentEditor.isActive("heading", {
-					level: 1,
-				})
-					? "heading1"
-					: currentEditor.isActive("heading", { level: 2 })
-						? "heading2"
-						: currentEditor.isActive("heading", { level: 3 })
-							? "heading3"
-							: currentEditor.isActive("bulletList")
-								? "bulletList"
-								: currentEditor.isActive("orderedList")
-									? "orderedList"
-									: currentEditor.isActive("blockquote")
-										? "blockquote"
-										: currentEditor.isActive("codeBlock")
-											? "codeBlock"
-											: "paragraph";
+				const blockType = getActiveBlockType(currentEditor);
 
 				return {
 					blockType,
@@ -513,7 +518,24 @@ export function Editor({
 		};
 	}, [onPendingUploadsChange]);
 
-	if (!editor) return null;
+	if (!editor) {
+		return (
+			<div
+				{...props}
+				ref={setMenuBoundary}
+				className={cn("min-w-0", className)}
+			>
+				<div className="flex h-full flex-col gap-1">
+					<div className="rounded-md border border-border bg-popover p-1 shadow-sm">
+						<Skeleton className="h-7 w-full rounded-sm" />
+					</div>
+					<div className={tiptapSurfaceClass}>
+						<Skeleton className="h-full min-h-[70vh] w-full rounded-sm" />
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	const updatePendingUploads = (delta: number): void => {
 		pendingUploadsRef.current = Math.max(0, pendingUploadsRef.current + delta);
@@ -915,27 +937,41 @@ export function Editor({
 		</button>
 	);
 	return (
-		<div {...props} className={cn("", className)}>
+		<div {...props} ref={setMenuBoundary} className={cn("min-w-0", className)}>
 			<BubbleMenu
 				pluginKey="editor-bubble"
 				ref={bubbleMenuRef}
 				editor={editor}
+				appendTo={menuBoundary ? () => menuBoundary : undefined}
 				className="z-50 w-fit max-w-[95vw] text-popover-foreground outline-hidden"
 				options={{
-					placement: "top",
+					placement: "top-end",
 					offset: 10,
-					flip: { padding: 8 },
-					shift: { padding: 8 },
+					flip: {
+						padding: 8,
+						boundary: menuBoundary ?? undefined,
+					},
+					shift: {
+						padding: 8,
+						crossAxis: true,
+						boundary: menuBoundary ?? undefined,
+					},
+					inline: true,
 				}}
-				shouldShow={({ editor: bubbleEditor, from, to, view, element }) => {
+				shouldShow={({ editor: bubbleEditor, view, element }) => {
 					const hasEditorFocus =
 						view.hasFocus() || element.contains(document.activeElement);
 					if (!hasEditorFocus) return false;
+
+					const selection = bubbleEditor.state.selection;
+					const hasTextSelection =
+						selection instanceof TextSelection && !selection.empty;
+
 					return (
 						showLinkInput ||
 						showTableActions ||
 						showAltInput ||
-						(!bubbleEditor.state.selection.empty && from !== to)
+						hasTextSelection
 					);
 				}}
 			>
@@ -1116,6 +1152,17 @@ export function Editor({
 					) : null}
 				</div>
 			</BubbleMenu>
+			{disabled ? null : (
+				<DragHandle
+					editor={editor}
+					className="z-40 grid -translate-x-1 place-items-center"
+					nested
+				>
+					<Button variant="outline" size="icon-xs">
+						<IconGripVertical size={16} />
+					</Button>
+				</DragHandle>
+			)}
 			<EditorContent editor={editor} className="h-full" />
 		</div>
 	);
