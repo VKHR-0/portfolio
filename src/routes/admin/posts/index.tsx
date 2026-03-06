@@ -1,13 +1,25 @@
+import { convexQuery } from "@convex-dev/react-query";
 import { IconPlus } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
-import { useQuery } from "convex/react";
 import { useState } from "react";
 import { PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
 import { TableCell, TableHead, TableRow } from "#/components/ui/table";
 
+const PAGE_SIZE = 10;
+
+function listPostsQuery(cursor: string | null) {
+	return convexQuery(api.functions.posts.list, {
+		paginationOpts: { numItems: PAGE_SIZE, cursor },
+	});
+}
+
 export const Route = createFileRoute("/admin/posts/")({
+	loader: async ({ context }) => {
+		await context.queryClient.ensureQueryData(listPostsQuery(null));
+	},
 	component: RouteComponent,
 });
 
@@ -16,12 +28,7 @@ function RouteComponent() {
 	const [currentPage, setCurrentPage] = useState(1);
 	const currentCursor = cursors[currentPage - 1] ?? null;
 
-	const result = useQuery(api.functions.posts.list, {
-		paginationOpts: {
-			numItems: 10,
-			cursor: currentCursor,
-		},
-	});
+	const { data: result } = useQuery(listPostsQuery(currentCursor));
 
 	const posts = result?.page ?? [];
 	const pageCount = cursors.length;
