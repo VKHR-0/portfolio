@@ -6,9 +6,5 @@ export const Route = createFileRoute("/admin/posts/$slugId")({
 });
 
 function RouteComponent() {
-	return (
-		<div>
-			<PostEditor />
-		</div>
-	);
+	return <PostEditor />;
 }

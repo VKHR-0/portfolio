@@ -6,9 +6,5 @@ export const Route = createFileRoute("/admin/posts/new")({
 });
 
 function RouteComponent() {
-	return (
-		<div>
-			<PostEditor />
-		</div>
-	);
+	return <PostEditor />;
 }

@@ -2,12 +2,9 @@ import {
 	type Icon,
 	IconBold,
 	IconCheck,
-	IconChevronDown,
 	IconClearFormatting,
 	IconCode,
-	// IconColumns3,
 	IconItalic,
-	// IconLayoutRows,
 	IconLink,
 	IconMinus,
 	IconPlus,
@@ -32,6 +29,15 @@ import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import { type HTMLAttributes, useEffect, useRef, useState } from "react";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectLabel,
+	SelectTrigger,
+	SelectValue,
+} from "#/components/ui/select";
 import { cn } from "#/lib/utils";
 import SlashCommands from "./slash-command/commands";
 import type {
@@ -935,27 +941,37 @@ export function Editor({
 			>
 				<div className="flex flex-col gap-1">
 					<div className="flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm">
-						<div className="group/native-select relative w-fit">
-							<select
-								id="block-style"
+						<div className="w-fit">
+							<Select
 								value={activeState.blockType}
-								onChange={(event) =>
-									setBlockType(event.target.value as BlockType)
-								}
+								onValueChange={(nextValue) => {
+									if (!nextValue) return;
+									setBlockType(nextValue);
+								}}
 								disabled={disabled}
-								aria-label="Block style"
-								className="h-7 w-full appearance-none rounded-md border border-transparent bg-transparent px-2 pr-5.5 text-sm shadow-none outline-none hover:bg-accent focus-visible:outline-none focus-visible:ring-0 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
 							>
-								{blockOptions.map((option) => (
-									<option key={option.value} value={option.value}>
-										{option.label}
-									</option>
-								))}
-							</select>
-							<IconChevronDown
-								className="pointer-events-none absolute top-1/2 right-1.5 size-3.5 -translate-y-1/2 text-muted-foreground opacity-50"
-								aria-hidden="true"
-							/>
+								<SelectTrigger
+									size="sm"
+									aria-label="Block style"
+									className="min-w-29 border-transparent bg-transparent py-0 pr-1.5 pl-2 shadow-none hover:bg-accent focus-visible:border-transparent focus-visible:ring-0"
+								>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent
+									alignItemWithTrigger
+									align="start"
+									className="w-44"
+								>
+									<SelectGroup>
+										<SelectLabel>Block type</SelectLabel>
+										{blockOptions.map((option) => (
+											<SelectItem key={option.value} value={option.value}>
+												{option.label}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
 						</div>
 						{inlineActions.map((action) =>
 							renderIconButton({
@@ -1100,7 +1116,7 @@ export function Editor({
 					) : null}
 				</div>
 			</BubbleMenu>
-			<EditorContent editor={editor} />
+			<EditorContent editor={editor} className="h-full" />
 		</div>
 	);
 }
