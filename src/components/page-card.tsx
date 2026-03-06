@@ -16,12 +16,7 @@ import {
 	TableRow,
 } from "#/components/ui/table";
 
-// ─── TaxonomyPageCard ────────────────────────────────────────────────────────
-// Card shell shared by the categories, tags, and series management pages.
-// Handles the header (title + create button), loading/empty state rows,
-// the table wrapper, and the cursor-paginated footer.
-
-type TaxonomyPageCardProps = {
+type PageCardProps = {
 	title: string;
 	description: string;
 	createButton: ReactNode;
@@ -41,7 +36,7 @@ type TaxonomyPageCardProps = {
 	children: ReactNode;
 };
 
-export function TaxonomyPageCard({
+export function PageCard({
 	title,
 	description,
 	createButton,
@@ -59,7 +54,7 @@ export function TaxonomyPageCard({
 	onNext,
 	onSelectPage,
 	children,
-}: TaxonomyPageCardProps) {
+}: PageCardProps) {
 	return (
 		<Card className="min-w-0 flex-1">
 			<CardHeader className="flex flex-row items-center justify-between gap-3">
@@ -117,12 +112,6 @@ export function TaxonomyPageCard({
 		</Card>
 	);
 }
-
-// ─── EditableCell ─────────────────────────────────────────────────────────────
-// A table cell that shows a plain value normally and swaps in the provided
-// children (an Input wrapped in form.Field) when isEditing is true.
-// Using children instead of an Input-props spread keeps TanStack Form's
-// typed form.Field in the parent where it can stay fully type-safe.
 
 type EditableCellProps = {
 	isEditing: boolean;

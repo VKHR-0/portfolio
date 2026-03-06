@@ -3,24 +3,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
-import { CursorPagination } from "#/components/cursor-pagination";
+import { PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "#/components/ui/card";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "#/components/ui/table";
+import { TableCell, TableHead, TableRow } from "#/components/ui/table";
 
 export const Route = createFileRoute("/admin/posts/")({
 	component: RouteComponent,
@@ -46,120 +31,85 @@ function RouteComponent() {
 		(currentPage < pageCount || result.isDone === false);
 
 	return (
-		<Card className="min-w-0 flex-1">
-			<CardHeader className="flex flex-row items-center justify-between gap-3">
-				<div>
-					<CardTitle>Posts</CardTitle>
-					<CardDescription>Manage blog posts.</CardDescription>
-				</div>
+		<PageCard
+			title="Posts"
+			description="Manage blog posts."
+			createButton={
 				<Button nativeButton={false} render={<Link to="/admin/posts/new" />}>
 					<IconPlus />
 					Create new
 				</Button>
-			</CardHeader>
+			}
+			loadingLabel="Loading posts..."
+			emptyLabel="No posts found."
+			columnHeaders={
+				<>
+					<TableHead className="w-[30%]">Title</TableHead>
+					<TableHead className="w-[28%]">Slug</TableHead>
+					<TableHead className="w-[16%]">Status</TableHead>
+					<TableHead>Actions</TableHead>
+				</>
+			}
+			columnCount={4}
+			isLoading={result === undefined}
+			isEmpty={posts.length === 0}
+			currentPage={currentPage}
+			pageCount={pageCount}
+			canGoPrevious={canGoPrevious}
+			canGoNext={canGoNext}
+			onPrevious={() => {
+				setCurrentPage((prev) => Math.max(1, prev - 1));
+			}}
+			onSelectPage={(page) => {
+				setCurrentPage(page);
+			}}
+			onNext={() => {
+				if (currentPage < pageCount) {
+					setCurrentPage((prev) => prev + 1);
+					return;
+				}
 
-			<CardContent className="min-w-0 flex-1">
-				<Table className="table-fixed">
-					<TableHeader>
-						<TableRow>
-							<TableHead className="w-[30%]">Title</TableHead>
-							<TableHead className="w-[28%]">Slug</TableHead>
-							<TableHead className="w-[16%]">Status</TableHead>
-							<TableHead>Actions</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{result === undefined && (
-							<TableRow>
-								<TableCell
-									colSpan={4}
-									className="h-24 text-center text-muted-foreground"
-								>
-									Loading posts...
-								</TableCell>
-							</TableRow>
-						)}
+				if (!result?.continueCursor) {
+					return;
+				}
 
-						{result && posts.length === 0 && (
-							<TableRow>
-								<TableCell
-									colSpan={4}
-									className="h-24 text-center text-muted-foreground"
-								>
-									No posts found.
-								</TableCell>
-							</TableRow>
-						)}
-
-						{posts.map((post) => (
-							<TableRow key={post._id}>
-								<TableCell className="truncate font-medium">
-									{post.title}
-								</TableCell>
-								<TableCell className="truncate">{post.slug}</TableCell>
-								<TableCell className="text-muted-foreground capitalize">
-									{post.status}
-								</TableCell>
-								<TableCell>
-									<div className="flex items-center gap-2">
-										<Button
-											size="xs"
-											variant="outline"
-											render={
-												<Link
-													to="/posts/$slugId"
-													params={{ slugId: post.slug }}
-												/>
-											}
-										>
-											Preview
-										</Button>
-										<Button
-											size="xs"
-											render={
-												<Link
-													to="/admin/posts/$slugId"
-													params={{ slugId: post.slug }}
-												/>
-											}
-										>
-											Edit
-										</Button>
-									</div>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
-			</CardContent>
-
-			<CardFooter>
-				<CursorPagination
-					currentPage={currentPage}
-					pageCount={pageCount}
-					canGoPrevious={canGoPrevious}
-					canGoNext={canGoNext}
-					onPrevious={() => {
-						setCurrentPage((prev) => Math.max(1, prev - 1));
-					}}
-					onSelectPage={(page) => {
-						setCurrentPage(page);
-					}}
-					onNext={() => {
-						if (currentPage < pageCount) {
-							setCurrentPage((prev) => prev + 1);
-							return;
-						}
-
-						if (!result?.continueCursor) {
-							return;
-						}
-
-						setCursors((prev) => [...prev, result.continueCursor]);
-						setCurrentPage((prev) => prev + 1);
-					}}
-				/>
-			</CardFooter>
-		</Card>
+				setCursors((prev) => [...prev, result.continueCursor]);
+				setCurrentPage((prev) => prev + 1);
+			}}
+		>
+			{posts.map((post) => (
+				<TableRow key={post._id}>
+					<TableCell className="truncate font-medium">{post.title}</TableCell>
+					<TableCell className="truncate">{post.slug}</TableCell>
+					<TableCell className="text-muted-foreground capitalize">
+						{post.status}
+					</TableCell>
+					<TableCell>
+						<div className="flex items-center gap-2">
+							<Button
+								size="xs"
+								variant="outline"
+								render={
+									<Link to="/posts/$slugId" params={{ slugId: post.slug }} />
+								}
+							>
+								Preview
+							</Button>
+							<Button
+								size="xs"
+								render={
+									<Link
+										to="/admin/posts/$slugId"
+										params={{ slugId: post.slug }}
+									/>
+								}
+							>
+								Edit
+							</Button>
+						</div>
+					</TableCell>
+				</TableRow>
+			))}
+		</PageCard>
 	);
 }

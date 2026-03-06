@@ -8,10 +8,7 @@ import { useMutation } from "convex/react";
 import { useEffect, useRef, useState } from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import {
-	EditableCell,
-	TaxonomyPageCard,
-} from "#/components/taxonomy-page-card";
+import { EditableCell, PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { TableCell, TableHead, TableRow } from "#/components/ui/table";
@@ -143,11 +140,14 @@ function RouteComponent() {
 
 	return (
 		<>
-			<TaxonomyPageCard
+			<PageCard
 				title="Categories"
 				description="Manage post categories."
 				createButton={
-					<Button nativeButton={false} render={<Link to="/admin/categories/new" />}>
+					<Button
+						nativeButton={false}
+						render={<Link to="/admin/categories/new" />}
+					>
 						<IconPlus />
 						Create new
 					</Button>
@@ -267,7 +267,7 @@ function RouteComponent() {
 						</TableCell>
 					</TableRow>
 				))}
-			</TaxonomyPageCard>
+			</PageCard>
 			<Outlet />
 		</>
 	);
