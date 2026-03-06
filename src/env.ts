@@ -2,9 +2,7 @@ import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
 export const env = createEnv({
-	server: {
-		BETTER_AUTH_SECRET: z.string().min(32),
-	},
+	server: {},
 
 	/**
 	 * The prefix that client-side variables must have. This is enforced both at
@@ -20,13 +18,9 @@ export const env = createEnv({
 
 	/**
 	 * What object holds the environment variables at runtime. This is usually
-	 * `process.env` or `import.meta.env`. Server-only variables are read from
-	 * `process.env`; client variables come from Vite's `import.meta.env`.
+	 * `process.env` or `import.meta.env`.
 	 */
-	runtimeEnv: {
-		...import.meta.env,
-		BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
-	},
+	runtimeEnv: import.meta.env,
 
 	/**
 	 * By default, this library will feed the environment variables directly to

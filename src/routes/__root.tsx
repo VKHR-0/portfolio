@@ -1,8 +1,5 @@
-/// <reference types="vite/client" />
-
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
@@ -11,7 +8,7 @@ import {
 	Scripts,
 	useRouteContext,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { lazy, type ReactNode, Suspense } from "react";
 import { ThemeProvider } from "#/components/theme-provider";
 import { Toaster } from "#/components/ui/sonner";
 import { TooltipProvider } from "#/components/ui/tooltip";
@@ -19,6 +16,14 @@ import { authClient } from "#/lib/auth-client";
 import { getAuth } from "#/server/auth";
 import { getTheme } from "#/server/theme";
 import appCss from "../styles.css?url";
+
+const Devtools = import.meta.env.DEV
+	? lazy(() =>
+			import("#/components/devtools").then((module) => ({
+				default: module.Devtools,
+			})),
+		)
+	: null;
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
@@ -78,7 +83,7 @@ function RootComponent() {
 	);
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({ children }: { children: ReactNode }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
@@ -87,19 +92,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				{children}
 				<Toaster position="top-center" />
-				{import.meta.env.DEV && (
-					<TanStackDevtools
-						config={{
-							position: "bottom-right",
-						}}
-						plugins={[
-							{
-								name: "Tanstack Router",
-								render: <TanStackRouterDevtoolsPanel />,
-							},
-						]}
-					/>
-				)}
+				{Devtools ? (
+					<Suspense fallback={null}>
+						<Devtools />
+					</Suspense>
+				) : null}
 				<Scripts />
 			</body>
 		</html>
