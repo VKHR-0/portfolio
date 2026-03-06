@@ -17,13 +17,13 @@ import { getAuth } from "#/server/auth";
 import { getTheme } from "#/server/theme";
 import appCss from "../styles.css?url";
 
-const Devtools = import.meta.env.DEV
-	? lazy(() =>
-			import("#/components/devtools").then((module) => ({
-				default: module.Devtools,
-			})),
-		)
-	: null;
+const Devtools =
+	import.meta.env.DEV &&
+	lazy(() =>
+		import("#/components/devtools").then((module) => ({
+			default: module.Devtools,
+		})),
+	);
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
