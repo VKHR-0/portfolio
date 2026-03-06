@@ -1,7 +1,12 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toSlug } from "../../shared/slug";
-import { mutation, query, type MutationCtx, type QueryCtx } from "../_generated/server";
+import {
+	mutation,
+	query,
+	type MutationCtx,
+	type QueryCtx,
+} from "../_generated/server";
 import { authComponent } from "../auth";
 
 async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
@@ -159,7 +164,11 @@ export const updateDraft = mutation({
 		title: v.string(),
 		slug: v.string(),
 		content: v.string(),
-		status: v.union(v.literal("draft"), v.literal("private"), v.literal("public")),
+		status: v.union(
+			v.literal("draft"),
+			v.literal("private"),
+			v.literal("public"),
+		),
 		seriesId: v.optional(v.id("series")),
 		categoryId: v.optional(v.id("categories")),
 		projectId: v.optional(v.id("projects")),

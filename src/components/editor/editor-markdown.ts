@@ -170,7 +170,9 @@ function mdastFlowToTiptap(nodes: Array<MarkdownNode>): Array<JSONContent> {
 					{
 						type: "listItem",
 						content:
-							listItemContent.length > 0 ? listItemContent : [{ type: "paragraph" }],
+							listItemContent.length > 0
+								? listItemContent
+								: [{ type: "paragraph" }],
 					} satisfies JSONContent,
 				];
 			}
@@ -286,7 +288,8 @@ function tiptapInlineToMdast(nodes: Array<JSONContent>): Array<MarkdownNode> {
 function flattenTableCell(nodes: Array<JSONContent>): Array<MarkdownNode> {
 	return nodes.flatMap<MarkdownNode>((node, index) => {
 		if (node.type === "paragraph" || node.type === "heading") {
-			const prefix = index > 0 ? [{ type: "break" } satisfies MarkdownNode] : [];
+			const prefix =
+				index > 0 ? [{ type: "break" } satisfies MarkdownNode] : [];
 			return [...prefix, ...tiptapInlineToMdast(node.content ?? [])];
 		}
 
