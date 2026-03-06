@@ -8,7 +8,7 @@ import {
 	CardTitle,
 } from "#/components/ui/card";
 import { authClient } from "#/lib/auth-client";
-import { isAuthError } from "#/lib/auth-server";
+import { isAuthError } from "#/lib/auth-errors";
 import { getCurrentUser } from "#/server/auth";
 
 export const Route = createFileRoute("/admin/")({
