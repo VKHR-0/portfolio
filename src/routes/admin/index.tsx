@@ -7,9 +7,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
-import { getCurrentUser } from "#/functions/auth";
 import { authClient } from "#/lib/auth-client";
 import { isAuthError } from "#/lib/auth-server";
+import { getCurrentUser } from "#/server/auth";
 
 export const Route = createFileRoute("/admin/")({
 	component: RouteComponent,

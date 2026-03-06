@@ -8,35 +8,20 @@ import { useMutation } from "convex/react";
 import { useEffect, useRef, useState } from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { CursorPagination } from "#/components/cursor-pagination";
+import {
+	EditableCell,
+	TaxonomyPageCard,
+} from "#/components/taxonomy-page-card";
 import { Button } from "#/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "#/components/ui/table";
+import { TableCell, TableHead, TableRow } from "#/components/ui/table";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 
 const PAGE_SIZE = 10;
 
 function listTagsQuery(cursor: string | null) {
 	return convexQuery(api.functions.tags.list, {
-		paginationOpts: {
-			numItems: PAGE_SIZE,
-			cursor,
-		},
+		paginationOpts: { numItems: PAGE_SIZE, cursor },
 	});
 }
 
@@ -65,10 +50,7 @@ function RouteComponent() {
 		handleInputBlur,
 		handleInputKeyDown,
 	} = useInlineEditForm<Id<"tags">, { name: string; slug: string }>({
-		emptyValues: {
-			name: "",
-			slug: "",
-		},
+		emptyValues: { name: "", slug: "" },
 		isUnchanged: ({ value, initialValue }) =>
 			value.name.trim() === initialValue.name &&
 			toSlug(value.slug) === initialValue.slug,
@@ -90,11 +72,7 @@ function RouteComponent() {
 				return false;
 			}
 
-			await updateTag({
-				id,
-				name,
-				slug,
-			});
+			await updateTag({ id, name, slug });
 		},
 		onError: (mutationError) => {
 			toast.error(
@@ -106,7 +84,6 @@ function RouteComponent() {
 	});
 
 	const { data: result } = useQuery(listTagsQuery(currentCursor));
-
 	const tags = result?.page ?? [];
 	const pageCount = cursors.length;
 	const canGoPrevious = currentPage > 1;
@@ -115,9 +92,7 @@ function RouteComponent() {
 		(currentPage < pageCount || result.isDone === false);
 
 	useEffect(() => {
-		if (!editingTagId) {
-			return;
-		}
+		if (!editingTagId) return;
 
 		if (focusField === "name") {
 			nameInputRef.current?.focus();
@@ -129,165 +104,118 @@ function RouteComponent() {
 		slugInputRef.current?.select();
 	}, [editingTagId, focusField]);
 
-	const toEditableValues = (tag: { name: string; slug: string }) => ({
-		name: tag.name,
-		slug: tag.slug,
-	});
-
-	const startEditingTag = (
-		tag: { _id: Id<"tags">; name: string; slug: string },
-		field: "name" | "slug",
-	) => {
-		startEditing(tag._id, toEditableValues(tag), field);
-	};
-
 	return (
 		<>
-			<Card className="min-w-0 flex-1">
-				<CardHeader className="flex flex-row items-center justify-between gap-3">
-					<div>
-						<CardTitle>Tags</CardTitle>
-						<CardDescription>Manage post tags.</CardDescription>
-					</div>
-					<Button render={<Link to="/admin/tags/new" />}>
+			<TaxonomyPageCard
+				title="Tags"
+				description="Manage post tags."
+				createButton={
+					<Button nativeButton={false} render={<Link to="/admin/tags/new" />}>
 						<IconPlus />
 						Create new
 					</Button>
-				</CardHeader>
+				}
+				loadingLabel="Loading tags..."
+				emptyLabel="No tags found."
+				columnCount={3}
+				isLoading={result === undefined}
+				isEmpty={tags.length === 0}
+				columnHeaders={
+					<>
+						<TableHead className="w-[35%]">Name</TableHead>
+						<TableHead className="w-[35%]">Slug</TableHead>
+						<TableHead>Created</TableHead>
+					</>
+				}
+				currentPage={currentPage}
+				pageCount={pageCount}
+				canGoPrevious={canGoPrevious}
+				canGoNext={canGoNext}
+				onPrevious={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+				onSelectPage={(page) => setCurrentPage(page)}
+				onNext={() => {
+					if (currentPage < pageCount) {
+						setCurrentPage((prev) => prev + 1);
+						return;
+					}
 
-				<CardContent className="min-w-0 flex-1">
-					<Table className="table-fixed">
-						<TableHeader>
-							<TableRow>
-								<TableHead className="w-[35%]">Name</TableHead>
-								<TableHead className="w-[35%]">Slug</TableHead>
-								<TableHead>Created</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{result === undefined && (
-								<TableRow>
-									<TableCell
-										colSpan={3}
-										className="h-24 text-center text-muted-foreground"
-									>
-										Loading tags...
-									</TableCell>
-								</TableRow>
-							)}
+					if (!result?.continueCursor) return;
 
-							{result && tags.length === 0 && (
-								<TableRow>
-									<TableCell
-										colSpan={3}
-										className="h-24 text-center text-muted-foreground"
-									>
-										No tags found.
-									</TableCell>
-								</TableRow>
-							)}
-
-							{tags.map((tag) => (
-								<TableRow key={tag._id}>
-									<TableCell
-										className="cursor-text select-none truncate font-medium"
-										title="Double-click to edit"
-										onDoubleClick={() => {
-											startEditingTag(tag, "name");
-										}}
-									>
-										{editingTagId === tag._id ? (
-											<form.Field name="name">
-												{(field) => (
-													<Input
-														ref={nameInputRef}
-														data-editable-cell="true"
-														value={field.state.value}
-														disabled={isSavingEdit}
-														onChange={(event) => {
-															const nextName = event.target.value;
-															field.handleChange(nextName);
-															form.setFieldValue("slug", toSlug(nextName));
-														}}
-														onBlur={(event) => {
-															field.handleBlur();
-															handleInputBlur(event);
-														}}
-														onKeyDown={handleInputKeyDown}
-													/>
-												)}
-											</form.Field>
-										) : (
-											tag.name
-										)}
-									</TableCell>
-									<TableCell
-										className="cursor-text select-none truncate"
-										title="Double-click to edit"
-										onDoubleClick={() => {
-											startEditingTag(tag, "slug");
-										}}
-									>
-										{editingTagId === tag._id ? (
-											<form.Field name="slug">
-												{(field) => (
-													<Input
-														ref={slugInputRef}
-														data-editable-cell="true"
-														value={field.state.value}
-														disabled={isSavingEdit}
-														onChange={(event) => {
-															field.handleChange(event.target.value);
-														}}
-														onBlur={(event) => {
-															field.handleBlur();
-															handleInputBlur(event);
-														}}
-														onKeyDown={handleInputKeyDown}
-													/>
-												)}
-											</form.Field>
-										) : (
-											tag.slug
-										)}
-									</TableCell>
-									<TableCell>
-										{new Date(tag._creationTime).toLocaleString()}
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</CardContent>
-
-				<CardFooter>
-					<CursorPagination
-						currentPage={currentPage}
-						pageCount={pageCount}
-						canGoPrevious={canGoPrevious}
-						canGoNext={canGoNext}
-						onPrevious={() => {
-							setCurrentPage((prev) => Math.max(1, prev - 1));
-						}}
-						onSelectPage={(page) => {
-							setCurrentPage(page);
-						}}
-						onNext={() => {
-							if (currentPage < pageCount) {
-								setCurrentPage((prev) => prev + 1);
-								return;
+					setCursors((prev) => [...prev, result.continueCursor]);
+					setCurrentPage((prev) => prev + 1);
+				}}
+			>
+				{tags.map((tag) => (
+					<TableRow key={tag._id}>
+						<EditableCell
+							isEditing={editingTagId === tag._id}
+							displayValue={tag.name}
+							onDoubleClick={() =>
+								startEditing(
+									tag._id,
+									{ name: tag.name, slug: tag.slug },
+									"name",
+								)
 							}
+							className="font-medium"
+						>
+							<form.Field name="name">
+								{(field) => (
+									<Input
+										ref={nameInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => {
+											const nextName = event.target.value;
+											field.handleChange(nextName);
+											form.setFieldValue("slug", toSlug(nextName));
+										}}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
 
-							if (!result?.continueCursor) {
-								return;
+						<EditableCell
+							isEditing={editingTagId === tag._id}
+							displayValue={tag.slug}
+							onDoubleClick={() =>
+								startEditing(
+									tag._id,
+									{ name: tag.name, slug: tag.slug },
+									"slug",
+								)
 							}
+						>
+							<form.Field name="slug">
+								{(field) => (
+									<Input
+										ref={slugInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => field.handleChange(event.target.value)}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
 
-							setCursors((prev) => [...prev, result.continueCursor]);
-							setCurrentPage((prev) => prev + 1);
-						}}
-					/>
-				</CardFooter>
-			</Card>
+						<TableCell>
+							{new Date(tag._creationTime).toLocaleString()}
+						</TableCell>
+					</TableRow>
+				))}
+			</TaxonomyPageCard>
 			<Outlet />
 		</>
 	);

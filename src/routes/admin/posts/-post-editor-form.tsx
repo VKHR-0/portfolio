@@ -1,10 +1,17 @@
 import { IconPlus, IconX } from "@tabler/icons-react";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import z from "zod";
-import { Editor } from "#/components/editor";
+import { LoadingPage } from "#/components/loading";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
+
+// Lazy-loaded because the editor bundle (TipTap + extensions + KaTeX + lowlight)
+// is large. Deferring it keeps the admin shell and metadata fields fast.
+const Editor = lazy(() =>
+	import("#/components/editor").then((m) => ({ default: m.Editor })),
+);
+
 import { Card, CardContent, CardHeader } from "#/components/ui/card";
 import {
 	Combobox,
@@ -106,12 +113,20 @@ export function createEmptyPostEditorValue(): PostEditorValue {
 
 export function getPostMetadataErrors(value: PostEditorValue) {
 	const normalizedValue = normalizeMetadataValue(value);
-	const titleResult = postMetadataSchema.shape.title.safeParse(normalizedValue.title);
-	const slugResult = postMetadataSchema.shape.slug.safeParse(normalizedValue.slug);
+	const titleResult = postMetadataSchema.shape.title.safeParse(
+		normalizedValue.title,
+	);
+	const slugResult = postMetadataSchema.shape.slug.safeParse(
+		normalizedValue.slug,
+	);
 
 	return {
-		title: titleResult.success ? null : titleResult.error.issues[0]?.message ?? null,
-		slug: slugResult.success ? null : slugResult.error.issues[0]?.message ?? null,
+		title: titleResult.success
+			? null
+			: (titleResult.error.issues[0]?.message ?? null),
+		slug: slugResult.success
+			? null
+			: (slugResult.error.issues[0]?.message ?? null),
 	};
 }
 
@@ -162,7 +177,9 @@ export function PostEditorForm({
 	const selectedProject = projectOptions.find(
 		(option) => option.value === value.projectId,
 	);
-	const selectedTags = tagOptions.filter((tag) => value.tagIds.includes(tag.value));
+	const selectedTags = tagOptions.filter((tag) =>
+		value.tagIds.includes(tag.value),
+	);
 	const nextSaveStateLabel = saveStateLabel(saveState);
 
 	return (
@@ -182,10 +199,7 @@ export function PostEditorForm({
 				</div>
 
 				<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1fr_minmax(12rem,16rem)_5.5rem] md:gap-5">
-					<Field
-						data-invalid={showTitleError || undefined}
-						className="gap-1.5"
-					>
+					<Field data-invalid={showTitleError || undefined} className="gap-1.5">
 						<FieldLabel htmlFor="post-title" className="sr-only">
 							Title
 						</FieldLabel>
@@ -213,10 +227,7 @@ export function PostEditorForm({
 						) : null}
 					</Field>
 
-					<Field
-						data-invalid={showSlugError || undefined}
-						className="gap-1.5"
-					>
+					<Field data-invalid={showSlugError || undefined} className="gap-1.5">
 						<FieldLabel htmlFor="post-slug" className="sr-only">
 							Slug
 						</FieldLabel>
@@ -486,12 +497,18 @@ export function PostEditorForm({
 			<Separator />
 
 			<CardContent className="flex-1">
-				<Editor className="h-full" value={value.content} onChange={(content) => {
-					onChange({
-						...value,
-						content,
-					});
-				}} />
+				<Suspense fallback={<LoadingPage />}>
+					<Editor
+						className="h-full"
+						value={value.content}
+						onChange={(content) => {
+							onChange({
+								...value,
+								content,
+							});
+						}}
+					/>
+				</Suspense>
 			</CardContent>
 		</Card>
 	);

@@ -15,9 +15,9 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "#/components/theme-provider";
 import { Toaster } from "#/components/ui/sonner";
 import { TooltipProvider } from "#/components/ui/tooltip";
-import { getAuth } from "#/functions/auth";
-import { getTheme } from "#/functions/theme";
 import { authClient } from "#/lib/auth-client";
+import { getAuth } from "#/server/auth";
+import { getTheme } from "#/server/theme";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRouteWithContext<{
@@ -87,17 +87,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body>
 				{children}
 				<Toaster position="top-center" />
-				<TanStackDevtools
-					config={{
-						position: "bottom-right",
-					}}
-					plugins={[
-						{
-							name: "Tanstack Router",
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-					]}
-				/>
+				{import.meta.env.DEV && (
+					<TanStackDevtools
+						config={{
+							position: "bottom-right",
+						}}
+						plugins={[
+							{
+								name: "Tanstack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+						]}
+					/>
+				)}
 				<Scripts />
 			</body>
 		</html>

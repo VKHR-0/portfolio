@@ -8,35 +8,20 @@ import { useMutation } from "convex/react";
 import { useEffect, useRef, useState } from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { CursorPagination } from "#/components/cursor-pagination";
+import {
+	EditableCell,
+	TaxonomyPageCard,
+} from "#/components/taxonomy-page-card";
 import { Button } from "#/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "#/components/ui/card";
 import { Input } from "#/components/ui/input";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "#/components/ui/table";
+import { TableCell, TableHead, TableRow } from "#/components/ui/table";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 
 const PAGE_SIZE = 10;
 
 function listSeriesQuery(cursor: string | null) {
 	return convexQuery(api.functions.series.list, {
-		paginationOpts: {
-			numItems: PAGE_SIZE,
-			cursor,
-		},
+		paginationOpts: { numItems: PAGE_SIZE, cursor },
 	});
 }
 
@@ -69,11 +54,7 @@ function RouteComponent() {
 		Id<"series">,
 		{ name: string; slug: string; description: string }
 	>({
-		emptyValues: {
-			name: "",
-			slug: "",
-			description: "",
-		},
+		emptyValues: { name: "", slug: "", description: "" },
 		isUnchanged: ({ value, initialValue }) =>
 			value.name.trim() === initialValue.name &&
 			toSlug(value.slug) === initialValue.slug &&
@@ -114,8 +95,7 @@ function RouteComponent() {
 	});
 
 	const { data: result } = useQuery(listSeriesQuery(currentCursor));
-
-	const series = result?.page ?? [];
+	const seriesList = result?.page ?? [];
 	const pageCount = cursors.length;
 	const canGoPrevious = currentPage > 1;
 	const canGoNext =
@@ -123,9 +103,7 @@ function RouteComponent() {
 		(currentPage < pageCount || result.isDone === false);
 
 	useEffect(() => {
-		if (!editingSeriesId) {
-			return;
-		}
+		if (!editingSeriesId) return;
 
 		if (focusField === "name") {
 			nameInputRef.current?.focus();
@@ -143,206 +121,161 @@ function RouteComponent() {
 		descriptionInputRef.current?.select();
 	}, [editingSeriesId, focusField]);
 
-	const toEditableValues = (item: {
-		name: string;
-		slug: string;
-		description?: string;
-	}) => ({
-		name: item.name,
-		slug: item.slug,
-		description: item.description ?? "",
-	});
-
-	const startEditingSeries = (
-		item: {
-			_id: Id<"series">;
-			name: string;
-			slug: string;
-			description?: string;
-		},
-		field: "name" | "slug" | "description",
-	) => {
-		startEditing(item._id, toEditableValues(item), field);
-	};
-
 	return (
 		<>
-			<Card className="min-w-0 flex-1">
-				<CardHeader className="flex flex-row items-center justify-between gap-3">
-					<div>
-						<CardTitle>Series</CardTitle>
-						<CardDescription>Manage post series.</CardDescription>
-					</div>
-					<Button render={<Link to="/admin/series/new" />}>
+			<TaxonomyPageCard
+				title="Series"
+				description="Manage post series."
+				createButton={
+					<Button nativeButton={false} render={<Link to="/admin/series/new" />}>
 						<IconPlus />
 						Create new
 					</Button>
-				</CardHeader>
+				}
+				loadingLabel="Loading series..."
+				emptyLabel="No series found."
+				columnCount={4}
+				isLoading={result === undefined}
+				isEmpty={seriesList.length === 0}
+				columnHeaders={
+					<>
+						<TableHead className="w-[22%]">Name</TableHead>
+						<TableHead className="w-[22%]">Slug</TableHead>
+						<TableHead className="w-[36%]">Description</TableHead>
+						<TableHead>Created</TableHead>
+					</>
+				}
+				currentPage={currentPage}
+				pageCount={pageCount}
+				canGoPrevious={canGoPrevious}
+				canGoNext={canGoNext}
+				onPrevious={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+				onSelectPage={(page) => setCurrentPage(page)}
+				onNext={() => {
+					if (currentPage < pageCount) {
+						setCurrentPage((prev) => prev + 1);
+						return;
+					}
 
-				<CardContent className="min-w-0 flex-1">
-					<Table className="table-fixed">
-						<TableHeader>
-							<TableRow>
-								<TableHead className="w-[22%]">Name</TableHead>
-								<TableHead className="w-[22%]">Slug</TableHead>
-								<TableHead className="w-[36%]">Description</TableHead>
-								<TableHead>Created</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{result === undefined && (
-								<TableRow>
-									<TableCell
-										colSpan={4}
-										className="h-24 text-center text-muted-foreground"
-									>
-										Loading series...
-									</TableCell>
-								</TableRow>
-							)}
+					if (!result?.continueCursor) return;
 
-							{result && series.length === 0 && (
-								<TableRow>
-									<TableCell
-										colSpan={4}
-										className="h-24 text-center text-muted-foreground"
-									>
-										No series found.
-									</TableCell>
-								</TableRow>
-							)}
-
-							{series.map((item) => (
-								<TableRow key={item._id}>
-									<TableCell
-										className="cursor-text select-none truncate font-medium"
-										title="Double-click to edit"
-										onDoubleClick={() => {
-											startEditingSeries(item, "name");
-										}}
-									>
-										{editingSeriesId === item._id ? (
-											<form.Field name="name">
-												{(field) => (
-													<Input
-														ref={nameInputRef}
-														data-editable-cell="true"
-														value={field.state.value}
-														disabled={isSavingEdit}
-														onChange={(event) => {
-															const nextName = event.target.value;
-															field.handleChange(nextName);
-															form.setFieldValue("slug", toSlug(nextName));
-														}}
-														onBlur={(event) => {
-															field.handleBlur();
-															handleInputBlur(event);
-														}}
-														onKeyDown={handleInputKeyDown}
-													/>
-												)}
-											</form.Field>
-										) : (
-											item.name
-										)}
-									</TableCell>
-									<TableCell
-										className="cursor-text select-none truncate"
-										title="Double-click to edit"
-										onDoubleClick={() => {
-											startEditingSeries(item, "slug");
-										}}
-									>
-										{editingSeriesId === item._id ? (
-											<form.Field name="slug">
-												{(field) => (
-													<Input
-														ref={slugInputRef}
-														data-editable-cell="true"
-														value={field.state.value}
-														disabled={isSavingEdit}
-														onChange={(event) => {
-															field.handleChange(event.target.value);
-														}}
-														onBlur={(event) => {
-															field.handleBlur();
-															handleInputBlur(event);
-														}}
-														onKeyDown={handleInputKeyDown}
-													/>
-												)}
-											</form.Field>
-										) : (
-											item.slug
-										)}
-									</TableCell>
-									<TableCell
-										className="cursor-text select-none truncate text-muted-foreground"
-										title="Double-click to edit"
-										onDoubleClick={() => {
-											startEditingSeries(item, "description");
-										}}
-									>
-										{editingSeriesId === item._id ? (
-											<form.Field name="description">
-												{(field) => (
-													<Input
-														ref={descriptionInputRef}
-														data-editable-cell="true"
-														value={field.state.value}
-														disabled={isSavingEdit}
-														onChange={(event) => {
-															field.handleChange(event.target.value);
-														}}
-														onBlur={(event) => {
-															field.handleBlur();
-															handleInputBlur(event);
-														}}
-														onKeyDown={handleInputKeyDown}
-													/>
-												)}
-											</form.Field>
-										) : (
-											item.description || "-"
-										)}
-									</TableCell>
-									<TableCell>
-										{new Date(item._creationTime).toLocaleString()}
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</CardContent>
-
-				<CardFooter>
-					<CursorPagination
-						currentPage={currentPage}
-						pageCount={pageCount}
-						canGoPrevious={canGoPrevious}
-						canGoNext={canGoNext}
-						onPrevious={() => {
-							setCurrentPage((prev) => Math.max(1, prev - 1));
-						}}
-						onSelectPage={(page) => {
-							setCurrentPage(page);
-						}}
-						onNext={() => {
-							if (currentPage < pageCount) {
-								setCurrentPage((prev) => prev + 1);
-								return;
+					setCursors((prev) => [...prev, result.continueCursor]);
+					setCurrentPage((prev) => prev + 1);
+				}}
+			>
+				{seriesList.map((item) => (
+					<TableRow key={item._id}>
+						<EditableCell
+							isEditing={editingSeriesId === item._id}
+							displayValue={item.name}
+							onDoubleClick={() =>
+								startEditing(
+									item._id,
+									{
+										name: item.name,
+										slug: item.slug,
+										description: item.description ?? "",
+									},
+									"name",
+								)
 							}
+							className="font-medium"
+						>
+							<form.Field name="name">
+								{(field) => (
+									<Input
+										ref={nameInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => {
+											const nextName = event.target.value;
+											field.handleChange(nextName);
+											form.setFieldValue("slug", toSlug(nextName));
+										}}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
 
-							if (!result?.continueCursor) {
-								return;
+						<EditableCell
+							isEditing={editingSeriesId === item._id}
+							displayValue={item.slug}
+							onDoubleClick={() =>
+								startEditing(
+									item._id,
+									{
+										name: item.name,
+										slug: item.slug,
+										description: item.description ?? "",
+									},
+									"slug",
+								)
 							}
+						>
+							<form.Field name="slug">
+								{(field) => (
+									<Input
+										ref={slugInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => field.handleChange(event.target.value)}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
 
-							setCursors((prev) => [...prev, result.continueCursor]);
-							setCurrentPage((prev) => prev + 1);
-						}}
-					/>
-				</CardFooter>
-			</Card>
+						<EditableCell
+							isEditing={editingSeriesId === item._id}
+							displayValue={item.description || "-"}
+							onDoubleClick={() =>
+								startEditing(
+									item._id,
+									{
+										name: item.name,
+										slug: item.slug,
+										description: item.description ?? "",
+									},
+									"description",
+								)
+							}
+							className="text-muted-foreground"
+						>
+							<form.Field name="description">
+								{(field) => (
+									<Input
+										ref={descriptionInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => field.handleChange(event.target.value)}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
+
+						<TableCell>
+							{new Date(item._creationTime).toLocaleString()}
+						</TableCell>
+					</TableRow>
+				))}
+			</TaxonomyPageCard>
 			<Outlet />
 		</>
 	);

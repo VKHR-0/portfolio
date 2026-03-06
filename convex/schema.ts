@@ -26,7 +26,6 @@ export default defineSchema({
 		title: v.string(),
 		slug: v.string(),
 		content: v.string(),
-		excerpt: v.optional(v.number()),
 
 		status: v.union(
 			v.literal("draft"),

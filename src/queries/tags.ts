@@ -4,7 +4,7 @@ import { api } from "convex/_generated/api";
 export function listTagsQuery() {
 	return convexQuery(api.functions.tags.list, {
 		paginationOpts: {
-			numItems: 200,
+			numItems: 100,
 			cursor: null,
 		},
 	});

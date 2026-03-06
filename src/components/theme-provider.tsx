@@ -1,7 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 import React from "react";
-import { setTheme, type Theme } from "#/functions/theme";
 import { FunctionOnce } from "#/lib/function-once";
+import { setTheme, type Theme } from "#/server/theme";
 
 type ThemeContext = {
 	theme: Theme;

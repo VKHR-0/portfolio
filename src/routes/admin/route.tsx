@@ -3,8 +3,8 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { Sidebar } from "#/components/sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
-import { getCurrentUserId } from "#/functions/auth";
-import { getSidebarOpenState } from "#/functions/sidebar";
+import { getCurrentUserId } from "#/server/auth";
+import { getSidebarOpenState } from "#/server/sidebar";
 
 export const Route = createFileRoute("/admin")({
 	beforeLoad: async ({ context, location }) => {
@@ -21,6 +21,10 @@ export const Route = createFileRoute("/admin")({
 		}
 	},
 	loader: async ({ context }) => {
+		if (!context.isAuthenticated) {
+			return { authorId: null, isSidebarOpen: false };
+		}
+
 		const [id, isSidebarOpen] = await Promise.all([
 			getCurrentUserId(),
 			getSidebarOpenState(),
@@ -51,6 +55,14 @@ export const Route = createFileRoute("/admin")({
 
 function AdminLayout() {
 	const { authorId, isSidebarOpen } = Route.useLoaderData();
+
+	if (!authorId) {
+		return (
+			<main className="mx-auto flex min-h-screen w-full place-items-center py-2 pr-2 pl-2">
+				<Outlet />
+			</main>
+		);
+	}
 
 	return (
 		<SidebarProvider open={isSidebarOpen}>

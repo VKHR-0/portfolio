@@ -52,7 +52,7 @@ function RouteComponent() {
 					<CardTitle>Posts</CardTitle>
 					<CardDescription>Manage blog posts.</CardDescription>
 				</div>
-				<Button render={<Link to="/admin/posts/new" />}>
+				<Button nativeButton={false} render={<Link to="/admin/posts/new" />}>
 					<IconPlus />
 					Create new
 				</Button>
