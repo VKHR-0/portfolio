@@ -1,5 +1,5 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { IconPlus } from "@tabler/icons-react";
+import { IconEye, IconPencil, IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
@@ -54,7 +54,7 @@ function RouteComponent() {
 					<TableHead className="w-[30%]">Title</TableHead>
 					<TableHead className="w-[28%]">Slug</TableHead>
 					<TableHead className="w-[16%]">Status</TableHead>
-					<TableHead>Actions</TableHead>
+					<TableHead />
 				</>
 			}
 			columnCount={4}
@@ -94,17 +94,19 @@ function RouteComponent() {
 					<TableCell>
 						<div className="flex items-center gap-2">
 							<Button
-								size="xs"
+								size="icon-xs"
 								variant="outline"
 								nativeButton={false}
 								render={
 									<Link to="/posts/$slugId" params={{ slugId: post.slug }} />
 								}
+								aria-label="Preview"
+								title="Preview"
 							>
-								Preview
+								<IconEye />
 							</Button>
 							<Button
-								size="xs"
+								size="icon-xs"
 								nativeButton={false}
 								render={
 									<Link
@@ -112,8 +114,10 @@ function RouteComponent() {
 										params={{ slugId: post.slug }}
 									/>
 								}
+								aria-label="Edit"
+								title="Edit"
 							>
-								Edit
+								<IconPencil />
 							</Button>
 						</div>
 					</TableCell>
