@@ -6,7 +6,13 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { Editor } from "#/components/editor";
+import {
+	Editor,
+	type ImagePickerHandler,
+	type ImagePickerResult,
+	type ImageUploadHandler,
+} from "#/components/editor";
+import { MediaPickerDialog } from "#/components/media-picker-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
@@ -29,6 +35,12 @@ import {
 } from "#/components/ui/command";
 import { Input } from "#/components/ui/input";
 import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupButton,
+	InputGroupInput,
+} from "#/components/ui/input-group";
+import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
@@ -43,6 +55,7 @@ import {
 } from "#/components/ui/select";
 import { Skeleton } from "#/components/ui/skeleton";
 import { Spinner } from "#/components/ui/spinner";
+import { useConvexUpload } from "#/hooks/use-convex-upload";
 import { cn } from "#/lib/utils";
 
 type PostStatus = "draft" | "private" | "public";
@@ -258,6 +271,25 @@ export function PostEditor({
 		initialPost ? "saved" : "idle",
 	);
 	const [isTagPickerOpen, setIsTagPickerOpen] = React.useState(false);
+	const [pickerResolver, setPickerResolver] = React.useState<{
+		resolve: (result: ImagePickerResult | null) => void;
+	} | null>(null);
+
+	const { uploadFile } = useConvexUpload();
+
+	const handleRequestImage: ImagePickerHandler = React.useCallback(() => {
+		return new Promise<ImagePickerResult | null>((resolve) => {
+			setPickerResolver({ resolve });
+		});
+	}, []);
+
+	const handleUploadImage: ImageUploadHandler = React.useCallback(
+		async (file) => {
+			const result = await uploadFile(file);
+			return { src: result.url };
+		},
+		[uploadFile],
+	);
 
 	const autosaveTimerRef = React.useRef<number | null>(null);
 	const lastPersistedSnapshotRef = React.useRef(
@@ -495,12 +527,17 @@ export function PostEditor({
 						className="h-auto min-w-[18rem] flex-1 border-0 bg-transparent px-0 py-0 font-semibold text-4xl leading-tight shadow-none ring-0 placeholder:text-muted-foreground/70 focus-visible:ring-0 md:text-5xl"
 					/>
 
-					<div className="flex h-9 w-full max-w-xs items-center gap-1 rounded-full border border-border border-dashed bg-muted/30 px-2 text-sm">
-						<Button variant="outline" size="icon-xs" className="rounded-full">
-							<IconLink />
-						</Button>
-
-						<Input
+					<InputGroup className="h-9 max-w-xs rounded-full border-dashed bg-muted/30">
+						<InputGroupAddon>
+							<InputGroupButton
+								size="icon-xs"
+								variant="outline"
+								className="rounded-full"
+							>
+								<IconLink />
+							</InputGroupButton>
+						</InputGroupAddon>
+						<InputGroupInput
 							value={formState.slug}
 							placeholder="slug"
 							onChange={(event) => {
@@ -523,9 +560,8 @@ export function PostEditor({
 									slug: normalizedSlug,
 								}));
 							}}
-							className="h-auto border-0 bg-transparent! px-0 py-0 text-sm shadow-none ring-0 placeholder:text-muted-foreground focus-visible:ring-0"
 						/>
-					</div>
+					</InputGroup>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					{selectedTags.length === 0 ? (
@@ -596,8 +632,25 @@ export function PostEditor({
 						editorClassName="h-full min-h-[65vh] !max-w-none"
 						format="markdown"
 						headingLevels={[2, 3]}
+						enableImagePasteDrop
+						onRequestImage={handleRequestImage}
+						onUploadImage={handleUploadImage}
 					/>
 				</div>
+
+				{pickerResolver && (
+					<MediaPickerDialog
+						open
+						onSelect={(result) => {
+							pickerResolver.resolve(result);
+							setPickerResolver(null);
+						}}
+						onCancel={() => {
+							pickerResolver.resolve(null);
+							setPickerResolver(null);
+						}}
+					/>
+				)}
 			</CardContent>
 		</Card>
 	);

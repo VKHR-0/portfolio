@@ -63,4 +63,16 @@ export default defineSchema({
 		name: v.string(),
 		slug: v.string(),
 	}).index("by_slug", ["slug"]),
+
+	media: defineTable({
+		storageId: v.id("_storage"),
+		filename: v.string(),
+		slug: v.string(),
+		alt: v.optional(v.string()),
+		mimeType: v.string(),
+		size: v.number(),
+		authorId: v.string(),
+	})
+		.index("by_slug", ["slug"])
+		.index("by_storage_id", ["storageId"]),
 });

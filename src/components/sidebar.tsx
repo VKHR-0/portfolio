@@ -3,6 +3,7 @@ import {
 	IconBriefcase,
 	IconFileText,
 	IconLayoutSidebar,
+	IconPhoto,
 	IconPlus,
 	IconSettings,
 	IconTag,
@@ -108,6 +109,17 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 							>
 								<RecentProjectsMenu authorId={authorId} pathname={pathname} />
 							</React.Suspense>
+
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									isActive={pathname.startsWith("/admin/media")}
+									tooltip="Media"
+									render={<Link to="/admin/media" />}
+								>
+									<IconPhoto />
+									<span>Media</span>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
