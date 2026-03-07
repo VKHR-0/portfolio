@@ -1,13 +1,19 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toSlug } from "../../shared/slug";
+import type { Id } from "../_generated/dataModel";
 import {
+	internalMutation,
 	type MutationCtx,
 	mutation,
 	type QueryCtx,
 	query,
 } from "../_generated/server";
 import { authComponent } from "../auth";
+
+const MARKDOWN_IMAGE_REGEX =
+	/!\[[^\]]*]\((?:<([^>]+)>|([^) \t]+))(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\)/g;
+const HTML_IMAGE_REGEX = /<img\b[^>]*\bsrc=(['"])(.*?)\1[^>]*>/gi;
 
 async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
 	const user = await authComponent.getAuthUser(ctx);
@@ -37,6 +43,170 @@ function normalizeSlug(value: string) {
 	}
 
 	return slug;
+}
+
+function extractImageUrls(content: string): string[] {
+	const urls = new Set<string>();
+
+	for (const match of content.matchAll(MARKDOWN_IMAGE_REGEX)) {
+		const url = match[1] ?? match[2];
+
+		if (url && !url.startsWith("blob:") && !url.startsWith("data:")) {
+			urls.add(url);
+		}
+	}
+
+	for (const match of content.matchAll(HTML_IMAGE_REGEX)) {
+		const url = match[2];
+
+		if (url && !url.startsWith("blob:") && !url.startsWith("data:")) {
+			urls.add(url);
+		}
+	}
+
+	return [...urls];
+}
+
+function normalizeResolvableUrl(url: string): Array<string> {
+	try {
+		const parsed = new URL(url);
+
+		return [parsed.href, `${parsed.origin}${parsed.pathname}`];
+	} catch {
+		return [url];
+	}
+}
+
+function extractStorageIdFromUrl(url: string): Id<"_storage"> | null {
+	try {
+		const parsed = new URL(url);
+		const storageIdFromQuery = parsed.searchParams.get("storageId");
+
+		if (storageIdFromQuery) {
+			return storageIdFromQuery as Id<"_storage">;
+		}
+
+		const storagePathMatch = parsed.pathname.match(
+			/\/(?:api\/)?storage\/([^/?#]+)/,
+		);
+
+		if (!storagePathMatch) {
+			return null;
+		}
+
+		return decodeURIComponent(storagePathMatch[1]) as Id<"_storage">;
+	} catch {
+		return null;
+	}
+}
+
+type MediaUrlCache = Map<string, Id<"media">> | null;
+
+async function resolveMediaIdFromUrl(
+	ctx: QueryCtx | MutationCtx,
+	url: string,
+	cache: { current: MediaUrlCache },
+): Promise<Id<"media"> | null> {
+	const storageId = extractStorageIdFromUrl(url);
+
+	if (storageId) {
+		const media = await ctx.db
+			.query("media")
+			.withIndex("by_storage_id", (q) => q.eq("storageId", storageId))
+			.unique();
+
+		if (media) {
+			return media._id;
+		}
+	}
+
+	if (cache.current === null) {
+		const mediaItems = await ctx.db.query("media").collect();
+		const urlEntries = await Promise.all(
+			mediaItems.map(async (media) => ({
+				mediaId: media._id,
+				url: await ctx.storage.getUrl(media.storageId),
+			})),
+		);
+
+		const nextCache = new Map<string, Id<"media">>();
+
+		for (const entry of urlEntries) {
+			if (!entry.url) {
+				continue;
+			}
+
+			for (const candidate of normalizeResolvableUrl(entry.url)) {
+				nextCache.set(candidate, entry.mediaId);
+			}
+		}
+
+		cache.current = nextCache;
+	}
+
+	for (const candidate of normalizeResolvableUrl(url)) {
+		const mediaId = cache.current.get(candidate);
+
+		if (mediaId) {
+			return mediaId;
+		}
+	}
+
+	return null;
+}
+
+async function derivePostAttachmentIds(
+	ctx: QueryCtx | MutationCtx,
+	content: string,
+): Promise<Array<Id<"media">>> {
+	const urls = extractImageUrls(content);
+	const cache = { current: null as MediaUrlCache };
+	const attachmentIds: Array<Id<"media">> = [];
+	const seen = new Set<Id<"media">>();
+
+	for (const url of urls) {
+		const mediaId = await resolveMediaIdFromUrl(ctx, url, cache);
+
+		if (!mediaId || seen.has(mediaId)) {
+			continue;
+		}
+
+		seen.add(mediaId);
+		attachmentIds.push(mediaId);
+	}
+
+	return attachmentIds;
+}
+
+async function syncPostMediaRelations(
+	ctx: MutationCtx,
+	postId: Id<"posts">,
+	mediaIds: Array<Id<"media">>,
+) {
+	const existingRows = await ctx.db
+		.query("postMedia")
+		.withIndex("by_post", (q) => q.eq("postId", postId))
+		.collect();
+
+	const desiredMediaIds = new Set(mediaIds);
+	const seenMediaIds = new Set<Id<"media">>();
+
+	for (const row of existingRows) {
+		if (!desiredMediaIds.has(row.mediaId) || seenMediaIds.has(row.mediaId)) {
+			await ctx.db.delete(row._id);
+			continue;
+		}
+
+		seenMediaIds.add(row.mediaId);
+	}
+
+	for (const mediaId of mediaIds) {
+		if (seenMediaIds.has(mediaId)) {
+			continue;
+		}
+
+		await ctx.db.insert("postMedia", { postId, mediaId });
+	}
 }
 
 export const list = query({
@@ -99,6 +269,7 @@ export const getEditableBySlug = query({
 			categoryId: post.categoryId,
 			projectId: post.projectId,
 			tagIds: post.tags,
+			attachments: post.attachments ?? [],
 		};
 	},
 });
@@ -132,10 +303,12 @@ export const createDraft = mutation({
 			throw new Error("Post with this slug already exists.");
 		}
 
+		const attachments = await derivePostAttachmentIds(ctx, content);
 		const postId = await ctx.db.insert("posts", {
 			title,
 			slug,
 			content,
+			attachments,
 			status,
 			seriesId: args.seriesId,
 			categoryId: args.categoryId,
@@ -143,6 +316,8 @@ export const createDraft = mutation({
 			authorId,
 			tags: tagIds,
 		});
+
+		await syncPostMediaRelations(ctx, postId, attachments);
 
 		return {
 			_id: postId,
@@ -154,6 +329,7 @@ export const createDraft = mutation({
 			categoryId: args.categoryId,
 			projectId: args.projectId,
 			tagIds,
+			attachments,
 		};
 	},
 });
@@ -194,16 +370,21 @@ export const updateDraft = mutation({
 			throw new Error("Post with this slug already exists.");
 		}
 
+		const attachments = await derivePostAttachmentIds(ctx, content);
+
 		await ctx.db.patch(args.id, {
 			title,
 			slug,
 			content,
+			attachments,
 			status: args.status,
 			seriesId: args.seriesId,
 			categoryId: args.categoryId,
 			projectId: args.projectId,
 			tags: args.tagIds,
 		});
+
+		await syncPostMediaRelations(ctx, args.id, attachments);
 
 		return {
 			_id: args.id,
@@ -215,6 +396,26 @@ export const updateDraft = mutation({
 			categoryId: args.categoryId,
 			projectId: args.projectId,
 			tagIds: args.tagIds,
+			attachments,
 		};
+	},
+});
+
+export const backfillPostMediaRelations = internalMutation({
+	args: {},
+	handler: async (ctx) => {
+		const posts = await ctx.db.query("posts").collect();
+		let processedPosts = 0;
+
+		for (const post of posts) {
+			const attachments = await derivePostAttachmentIds(ctx, post.content);
+
+			await ctx.db.patch(post._id, { attachments });
+			await syncPostMediaRelations(ctx, post._id, attachments);
+
+			processedPosts++;
+		}
+
+		return { processedPosts };
 	},
 });

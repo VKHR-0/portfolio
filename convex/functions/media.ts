@@ -125,18 +125,24 @@ export const getBySlug = query({
 		}
 
 		const url = await ctx.storage.getUrl(media.storageId);
-
-		// Usage tracking: scan posts for image URL in markdown content
-		const allPosts = await ctx.db.query("posts").collect();
-		const usedInPosts = url
-			? allPosts
-					.filter((post) => post.content.includes(url))
-					.map((post) => ({
-						_id: post._id,
-						title: post.title,
-						slug: post.slug,
-					}))
-			: [];
+		const postRelations = await ctx.db
+			.query("postMedia")
+			.withIndex("by_media", (q) => q.eq("mediaId", media._id))
+			.collect();
+		const relatedPosts = await Promise.all(
+			postRelations.map((relation) => ctx.db.get(relation.postId)),
+		);
+		const usedInPosts = relatedPosts.flatMap((post) =>
+			post
+				? [
+						{
+							_id: post._id,
+							title: post.title,
+							slug: post.slug,
+						},
+					]
+				: [],
+		);
 
 		// Usage tracking: projects that reference this media via imageId
 		const allProjects = await ctx.db.query("projects").collect();
@@ -172,11 +178,11 @@ export const deleteMedia = mutation({
 
 		const url = await ctx.storage.getUrl(media.storageId);
 
-		// Check usage in posts
-		const allPosts = await ctx.db.query("posts").collect();
-		const usedInPost = url
-			? allPosts.some((post) => post.content.includes(url))
-			: false;
+		const usedInPost =
+			(await ctx.db
+				.query("postMedia")
+				.withIndex("by_media", (q) => q.eq("mediaId", args.id))
+				.first()) !== null;
 
 		// Check usage in projects
 		const allProjects = await ctx.db.query("projects").collect();

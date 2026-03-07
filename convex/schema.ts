@@ -26,6 +26,7 @@ export default defineSchema({
 		title: v.string(),
 		slug: v.string(),
 		content: v.string(),
+		attachments: v.array(v.id("media")),
 
 		status: v.union(
 			v.literal("draft"),
@@ -75,4 +76,12 @@ export default defineSchema({
 	})
 		.index("by_slug", ["slug"])
 		.index("by_storage_id", ["storageId"]),
+
+	postMedia: defineTable({
+		postId: v.id("posts"),
+		mediaId: v.id("media"),
+	})
+		.index("by_post", ["postId"])
+		.index("by_media", ["mediaId"])
+		.index("by_post_and_media", ["postId", "mediaId"]),
 });
