@@ -11,7 +11,7 @@ export function PostEditor({ initialValue = "" }: PostEditorProps) {
 			<CardContent className="h-full min-w-0">
 				<Editor
 					value={initialValue}
-					className="prose prose-neutral dark:prose-invert h-full w-full max-w-none!"
+					className="prose prose-amber dark:prose-invert h-full w-full max-w-none!"
 					editorClassName="h-full w-full !max-w-none"
 					format="markdown"
 				/>

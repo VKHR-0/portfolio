@@ -1,213 +1,34 @@
-import {
-	type Icon,
-	IconBold,
-	IconCheck,
-	IconClearFormatting,
-	IconCode,
-	IconGripVertical,
-	IconItalic,
-	IconLink,
-	IconMinus,
-	IconPlus,
-	IconStrikethrough,
-	IconTable,
-	IconUnderline,
-	IconX,
-} from "@tabler/icons-react";
+import { IconGripVertical } from "@tabler/icons-react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { DragHandle } from "@tiptap/extension-drag-handle-react";
-import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
-import Placeholder from "@tiptap/extension-placeholder";
-import { Table } from "@tiptap/extension-table";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import TableRow from "@tiptap/extension-table-row";
-import Underline from "@tiptap/extension-underline";
-import { Markdown } from "@tiptap/markdown";
-import { DOMSerializer, type Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { DOMSerializer } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
-import { BubbleMenu } from "@tiptap/react/menus";
-import StarterKit from "@tiptap/starter-kit";
-import { type HTMLAttributes, useEffect, useRef, useState } from "react";
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectLabel,
-	SelectTrigger,
-	SelectValue,
-} from "#/components/ui/select";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "#/components/ui/button";
 import { Skeleton } from "#/components/ui/skeleton";
 import { cn } from "#/lib/utils";
-import { Button } from "../ui/button";
-import SlashCommands from "./slash-command/commands";
-import type {
-	ImagePickerContext,
-	ImagePickerFileResult,
-	ImagePickerHandler,
-	ImagePickerResult,
-	ImagePickerUrlResult,
-	SlashImageFallback,
-} from "./slash-command/suggestion";
+import { EditorBubbleMenu } from "./bubble-menu";
+import { defaultActiveState } from "./constants";
+import { buildExtensions } from "./extensions";
+import type { ActiveState, BlockType, EditorProps } from "./types";
+import { useBubbleMenu } from "./use-bubble-menu";
+import { useImageUpload } from "./use-image-upload";
 
-export type EditorFormat = "html" | "markdown";
-export type ImageFallbackMode = "data-url" | "prompt-url" | "none";
-export type ImageUploadContext = {
-	editor: TiptapEditor;
-	source: "paste" | "drop" | "slash";
-};
-export type ImageUploadResult = {
-	src: string;
-	alt?: string;
-	title?: string;
-};
-export type ImageUploadHandler = (
-	file: File,
-	context: ImageUploadContext,
-) => ImageUploadResult | null | Promise<ImageUploadResult | null>;
-
-const DEFAULT_MAX_IMAGE_BYTES = 1_000_000;
-const UPLOADED_IMAGE_PRELOAD_TIMEOUT_MS = 8_000;
-const UploadableImage = Image.extend({
-	addAttributes() {
-		return {
-			...this.parent?.(),
-			uploadId: {
-				default: null,
-				parseHTML: (element: HTMLElement) =>
-					element.getAttribute("data-upload-id"),
-				renderHTML: (attributes: { uploadId?: string | null }) =>
-					attributes.uploadId ? { "data-upload-id": attributes.uploadId } : {},
-			},
-			uploading: {
-				default: false,
-				parseHTML: (element: HTMLElement) =>
-					element.getAttribute("data-uploading") === "true",
-				renderHTML: (attributes: { uploading?: boolean }) =>
-					attributes.uploading ? { "data-uploading": "true" } : {},
-			},
-			uploadError: {
-				default: null,
-				parseHTML: (element: HTMLElement) =>
-					element.getAttribute("data-upload-error"),
-				renderHTML: (attributes: { uploadError?: string | null }) =>
-					attributes.uploadError
-						? { "data-upload-error": attributes.uploadError }
-						: {},
-			},
-		};
-	},
-});
-
-export type EditorProps = {
-	value?: string;
-	onChange?: (value: string) => void;
-	disabled?: boolean;
-	format?: EditorFormat;
-	enableImages?: boolean;
-	enableImagePasteDrop?: boolean;
-	onUploadImage?: ImageUploadHandler;
-	imageFallback?: ImageFallbackMode;
-	maxImageBytes?: number;
-	onRequestImage?: ImagePickerHandler;
-	onPendingUploadsChange?: (count: number) => void;
-	className?: string;
-	editorClassName?: string;
-} & Omit<HTMLAttributes<HTMLDivElement>, "onChange" | "className">;
 export type {
+	EditorFormat,
+	EditorProps,
+	ImageFallbackMode,
 	ImagePickerContext,
 	ImagePickerFileResult,
 	ImagePickerHandler,
 	ImagePickerResult,
 	ImagePickerUrlResult,
+	ImageUploadContext,
+	ImageUploadHandler,
+	ImageUploadResult,
 	SlashImageFallback,
-};
-
-type ToggleAction = {
-	label: string;
-	icon: Icon;
-	isActive: () => boolean;
-	run: () => void;
-	toggle: true;
-};
-
-type PlainAction = {
-	label: string;
-	icon: Icon;
-	run: () => void;
-	toggle?: false;
-};
-
-type MenuAction = ToggleAction | PlainAction;
-
-type IconButtonOptions = {
-	label: string;
-	icon: Icon;
-	onClick: () => void;
-	disabled: boolean;
-	toggle?: boolean;
-	pressed?: boolean;
-	className?: string;
-};
-
-type BlockType =
-	| "paragraph"
-	| "heading1"
-	| "heading2"
-	| "heading3"
-	| "bulletList"
-	| "orderedList"
-	| "blockquote"
-	| "codeBlock";
-
-type ActiveState = {
-	blockType: BlockType;
-	bold: boolean;
-	italic: boolean;
-	underline: boolean;
-	strike: boolean;
-	code: boolean;
-	link: boolean;
-};
-
-const defaultActiveState: ActiveState = {
-	blockType: "paragraph",
-	bold: false,
-	italic: false,
-	underline: false,
-	strike: false,
-	code: false,
-	link: false,
-};
-
-type UploadableImageAttrs = {
-	src?: unknown;
-	alt?: unknown;
-	title?: unknown;
-	uploadId?: unknown;
-	uploading?: unknown;
-	uploadError?: unknown;
-	[key: string]: unknown;
-};
-
-const toUploadableAttrs = (attrs: unknown): UploadableImageAttrs => {
-	if (!attrs || typeof attrs !== "object") return {};
-	return attrs as UploadableImageAttrs;
-};
-
-const blockOptions: Array<{ value: BlockType; label: string }> = [
-	{ value: "paragraph", label: "Text" },
-	{ value: "heading1", label: "Heading 1" },
-	{ value: "heading2", label: "Heading 2" },
-	{ value: "heading3", label: "Heading 3" },
-	{ value: "bulletList", label: "Bulleted list" },
-	{ value: "orderedList", label: "Numbered list" },
-	{ value: "blockquote", label: "Quote" },
-	{ value: "codeBlock", label: "Code block" },
-];
+} from "./types";
 
 const getActiveBlockType = (editor: TiptapEditor): BlockType => {
 	if (editor.isActive("heading", { level: 1 })) return "heading1";
@@ -217,7 +38,6 @@ const getActiveBlockType = (editor: TiptapEditor): BlockType => {
 	if (editor.isActive("orderedList")) return "orderedList";
 	if (editor.isActive("blockquote")) return "blockquote";
 	if (editor.isActive("codeBlock")) return "codeBlock";
-
 	return "paragraph";
 };
 
@@ -230,27 +50,27 @@ export function Editor({
 	enableImagePasteDrop = false,
 	onUploadImage,
 	imageFallback = "prompt-url",
-	maxImageBytes = DEFAULT_MAX_IMAGE_BYTES,
+	maxImageBytes,
 	onRequestImage,
 	onPendingUploadsChange,
 	className,
 	editorClassName,
 	...props
 }: EditorProps) {
-	const [showLinkInput, setShowLinkInput] = useState(false);
-	const [showTableActions, setShowTableActions] = useState(false);
-	const [showAltInput, setShowAltInput] = useState(false);
-	const [isInTable, setIsInTable] = useState(false);
-	const [isOnImage, setIsOnImage] = useState(false);
-	const [linkUrl, setLinkUrl] = useState("");
-	const [imageAltText, setImageAltText] = useState("");
 	const [menuBoundary, setMenuBoundary] = useState<HTMLDivElement | null>(null);
-	const bubbleMenuRef = useRef<HTMLDivElement>(null);
-	const linkInputRef = useRef<HTMLInputElement>(null);
+
+	// Stable callback ref so the extension always calls the latest insertLocalImageFile,
+	// regardless of which render created the extension config.
+	const insertLocalImageFileRef = useRef<
+		(
+			file: File,
+			source: "paste" | "drop" | "slash",
+			initialAttrs?: { alt?: string; title?: string },
+		) => Promise<void>
+	>(async () => undefined);
+
 	const lastEmittedValueRef = useRef<string>(value);
-	const pendingUploadsRef = useRef(0);
-	const objectUrlByUploadIdRef = useRef(new Map<string, string>());
-	const expectedBlobByUploadIdRef = useRef(new Map<string, string>());
+
 	const tiptapSurfaceClass = cn(
 		"min-h-16 w-full rounded-md border border-input bg-transparent px-8 py-2 text-base shadow-xs outline-none transition-[color,box-shadow]",
 		"selection:bg-primary placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30",
@@ -261,45 +81,15 @@ export function Editor({
 	);
 
 	const editor = useEditor({
-		extensions: [
-			StarterKit.configure({
-				link: false,
-				underline: false,
-			}),
-			Underline,
-			Link.configure({
-				openOnClick: false,
-				enableClickSelection: true,
-				HTMLAttributes: {
-					rel: null,
-					target: null,
-				},
-			}),
-			UploadableImage,
-			Table,
-			TableRow,
-			TableHeader,
-			TableCell,
-			Placeholder.configure({
-				placeholder: ({ node }: { node: ProseMirrorNode }): string =>
-					node.type.name === "paragraph" ? "Press '/' for commands" : "",
-				showOnlyCurrent: true,
-				includeChildren: true,
-			}),
-			Markdown,
-			SlashCommands.configure({
-				onRequestImage: enableImages ? (onRequestImage ?? null) : null,
-				onInsertLocalImageFile: ({ file, alt, title }) => {
-					void insertLocalImageFile(file, "slash", {
-						...(alt ? { alt } : {}),
-						...(title ? { title } : {}),
-					});
-				},
-				enableImages,
-				imageSlashFallback:
-					imageFallback === "prompt-url" ? "prompt-url" : "none",
-			}),
-		],
+		extensions: buildExtensions({
+			enableImages,
+			onRequestImage,
+			imageFallback,
+			// Indirection via ref so the extension closure always calls the
+			// latest insertLocalImageFile without recreating extensions.
+			insertLocalImageFile: (file, source, initialAttrs) =>
+				insertLocalImageFileRef.current(file, source, initialAttrs),
+		}),
 		content: value || (format === "markdown" ? "" : "<p></p>"),
 		contentType: format,
 		editorProps: {
@@ -389,14 +179,9 @@ export function Editor({
 		(useEditorState({
 			editor,
 			selector: ({ editor: currentEditor }) => {
-				if (!currentEditor) {
-					return defaultActiveState;
-				}
-
-				const blockType = getActiveBlockType(currentEditor);
-
+				if (!currentEditor) return defaultActiveState;
 				return {
-					blockType,
+					blockType: getActiveBlockType(currentEditor),
 					bold: currentEditor.isActive("bold"),
 					italic: currentEditor.isActive("italic"),
 					underline: currentEditor.isActive("underline"),
@@ -407,6 +192,7 @@ export function Editor({
 			},
 		}) as ActiveState | null) ?? defaultActiveState;
 
+	// Sync external value changes into the editor
 	useEffect(() => {
 		if (!editor) return;
 		if (value === lastEmittedValueRef.current) return;
@@ -421,10 +207,7 @@ export function Editor({
 		if (hasChanged) {
 			editor.commands.setContent(
 				value || (format === "markdown" ? "" : "<p></p>"),
-				{
-					emitUpdate: false,
-					contentType: format,
-				},
+				{ emitUpdate: false, contentType: format },
 			);
 			lastEmittedValueRef.current = value;
 		}
@@ -438,316 +221,28 @@ export function Editor({
 	useEffect(() => {
 		if (!editor) return;
 		editor.setOptions({
-			editorProps: {
-				attributes: {
-					class: tiptapSurfaceClass,
-				},
-			},
+			editorProps: { attributes: { class: tiptapSurfaceClass } },
 		});
 	}, [editor, tiptapSurfaceClass]);
 
-	useEffect(() => {
-		if ((!showLinkInput && !showTableActions && !showAltInput) || !editor)
-			return;
+	const { insertLocalImageFile, insertImagesFromFiles } = useImageUpload(
+		editor,
+		{
+			onUploadImage,
+			imageFallback,
+			maxImageBytes: maxImageBytes ?? 1_000_000,
+			onPendingUploadsChange,
+		},
+	);
 
-		const onPointerDown = (event: PointerEvent) => {
-			const target = event.target as Node | null;
-			if (!target) return;
+	// Keep the ref in sync so the extension always calls the latest function
+	insertLocalImageFileRef.current = insertLocalImageFile;
 
-			const insideBubble = bubbleMenuRef.current?.contains(target) ?? false;
-			if (!insideBubble) {
-				setShowLinkInput(false);
-				setShowTableActions(false);
-				setShowAltInput(false);
-			}
-		};
-
-		document.addEventListener("pointerdown", onPointerDown, true);
-		return () => {
-			document.removeEventListener("pointerdown", onPointerDown, true);
-		};
-	}, [showLinkInput, showTableActions, showAltInput, editor]);
-
-	useEffect(() => {
-		if (!showLinkInput) return;
-		const frameId = requestAnimationFrame(() => {
-			linkInputRef.current?.focus();
-			linkInputRef.current?.select();
-		});
-		return () => cancelAnimationFrame(frameId);
-	}, [showLinkInput]);
-
-	useEffect(() => {
-		if (!editor) return;
-
-		const updateTableContext = () => {
-			const nextIsInTable =
-				editor.isActive("table") ||
-				editor.isActive("tableRow") ||
-				editor.isActive("tableHeader") ||
-				editor.isActive("tableCell");
-			const nextIsOnImage = enableImages && editor.isActive("image");
-
-			setIsInTable(nextIsInTable);
-			if (!nextIsInTable) setShowTableActions(false);
-			setIsOnImage(nextIsOnImage);
-			if (!nextIsOnImage) setShowAltInput(false);
-		};
-
-		updateTableContext();
-		editor.on("selectionUpdate", updateTableContext);
-		editor.on("transaction", updateTableContext);
-
-		return () => {
-			editor.off("selectionUpdate", updateTableContext);
-			editor.off("transaction", updateTableContext);
-		};
-	}, [editor, enableImages]);
-
-	useEffect(() => {
-		onPendingUploadsChange?.(pendingUploadsRef.current);
-
-		return () => {
-			for (const url of objectUrlByUploadIdRef.current.values()) {
-				URL.revokeObjectURL(url);
-			}
-			objectUrlByUploadIdRef.current.clear();
-			expectedBlobByUploadIdRef.current.clear();
-			pendingUploadsRef.current = 0;
-			onPendingUploadsChange?.(0);
-		};
-	}, [onPendingUploadsChange]);
-
-	if (!editor) {
-		return (
-			<div
-				{...props}
-				ref={setMenuBoundary}
-				className={cn("min-w-0", className)}
-			>
-				<div className="flex h-full flex-col gap-1">
-					<div className="rounded-md border border-border bg-popover p-1 shadow-sm">
-						<Skeleton className="h-7 w-full rounded-sm" />
-					</div>
-					<div className={tiptapSurfaceClass}>
-						<Skeleton className="h-full min-h-[70vh] w-full rounded-sm" />
-					</div>
-				</div>
-			</div>
-		);
-	}
-
-	const updatePendingUploads = (delta: number): void => {
-		pendingUploadsRef.current = Math.max(0, pendingUploadsRef.current + delta);
-		onPendingUploadsChange?.(pendingUploadsRef.current);
-	};
-
-	const createUploadId = (): string =>
-		typeof crypto !== "undefined" && "randomUUID" in crypto
-			? crypto.randomUUID()
-			: `upload-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-
-	const fileToDataUrl = (file: File): Promise<string> =>
-		new Promise<string>((resolve, reject) => {
-			const reader = new FileReader();
-			reader.onerror = () => reject(new Error("Failed to read image file."));
-			reader.onload = () => resolve(String(reader.result ?? ""));
-			reader.readAsDataURL(file);
-		});
-
-	const preloadImageSource = async (
-		src: string,
-		timeoutMs = UPLOADED_IMAGE_PRELOAD_TIMEOUT_MS,
-	): Promise<boolean> =>
-		new Promise<boolean>((resolve) => {
-			const image = new window.Image();
-			let settled = false;
-			const timeoutId = window.setTimeout(() => {
-				if (settled) return;
-				settled = true;
-				image.onload = null;
-				image.onerror = null;
-				resolve(false);
-			}, timeoutMs);
-
-			const finish = (ok: boolean): void => {
-				if (settled) return;
-				settled = true;
-				window.clearTimeout(timeoutId);
-				image.onload = null;
-				image.onerror = null;
-				resolve(ok);
-			};
-
-			image.onerror = () => finish(false);
-			image.onload = () => {
-				if (typeof image.decode === "function") {
-					void image.decode().then(
-						() => finish(true),
-						// decode errors can still have a usable image after load; keep it non-blocking.
-						() => finish(true),
-					);
-					return;
-				}
-				finish(true);
-			};
-
-			image.src = src;
-			if (image.complete && image.naturalWidth > 0) finish(true);
-		});
-
-	const findImageNodeByUploadId = (
-		uploadId: string,
-	): { pos: number; attrs: UploadableImageAttrs } | null => {
-		let match: { pos: number; attrs: UploadableImageAttrs } | null = null;
-		editor.state.doc.descendants((node, pos) => {
-			if (node.type.name !== "image") return true;
-			const attrs = toUploadableAttrs(node.attrs);
-			if (attrs.uploadId === uploadId) {
-				match = { pos, attrs };
-				return false;
-			}
-			return true;
-		});
-		return match;
-	};
-
-	const finalizeImageUpload = (
-		uploadId: string,
-		updater: (
-			currentAttrs: UploadableImageAttrs,
-		) => UploadableImageAttrs | null,
-	): boolean => {
-		const match = findImageNodeByUploadId(uploadId);
-		if (!match) return false;
-
-		const nextAttrs = updater(match.attrs);
-		if (!nextAttrs) return false;
-
-		editor.view.dispatch(
-			editor.state.tr.setNodeMarkup(match.pos, undefined, nextAttrs),
-		);
-		return true;
-	};
-
-	const cleanupUpload = (
-		uploadId: string,
-		options?: { revokeBlob?: boolean },
-	): void => {
-		const shouldRevoke = options?.revokeBlob ?? true;
-		const objectUrl = objectUrlByUploadIdRef.current.get(uploadId);
-		if (shouldRevoke && objectUrl) URL.revokeObjectURL(objectUrl);
-		if (shouldRevoke) {
-			objectUrlByUploadIdRef.current.delete(uploadId);
-		}
-		expectedBlobByUploadIdRef.current.delete(uploadId);
-		updatePendingUploads(-1);
-	};
-
-	const insertLocalImageFile = async (
-		file: File,
-		source: "paste" | "drop" | "slash",
-		initialAttrs?: { alt?: string; title?: string },
-	): Promise<void> => {
-		if (!file.type.startsWith("image/")) return;
-		const uploadId = createUploadId();
-		const blobUrl = URL.createObjectURL(file);
-		const fallbackAlt = initialAttrs?.alt ?? file.name;
-
-		objectUrlByUploadIdRef.current.set(uploadId, blobUrl);
-		expectedBlobByUploadIdRef.current.set(uploadId, blobUrl);
-		updatePendingUploads(1);
-
-		editor
-			.chain()
-			.focus()
-			.insertContent({
-				type: "image",
-				attrs: {
-					src: blobUrl,
-					alt: fallbackAlt,
-					title: initialAttrs?.title,
-					uploadId,
-					uploading: true,
-					uploadError: null,
-				},
-			})
-			.run();
-
-		try {
-			let resolved: ImageUploadResult | null = null;
-			if (onUploadImage) {
-				resolved = await onUploadImage(file, { editor, source });
-			} else if (imageFallback === "data-url") {
-				if (file.size <= maxImageBytes) {
-					resolved = { src: await fileToDataUrl(file), alt: fallbackAlt };
-				}
-			}
-
-			if (!resolved?.src) {
-				finalizeImageUpload(uploadId, (attrs) => ({
-					...attrs,
-					uploading: false,
-					uploadError: "Upload failed",
-				}));
-				cleanupUpload(uploadId, { revokeBlob: false });
-				return;
-			}
-
-			const preloaded = await preloadImageSource(resolved.src);
-			if (!preloaded) {
-				finalizeImageUpload(uploadId, (attrs) => ({
-					...attrs,
-					uploading: false,
-					uploadError: "Image uploaded, but preview failed to load",
-				}));
-				cleanupUpload(uploadId, { revokeBlob: false });
-				return;
-			}
-
-			finalizeImageUpload(uploadId, (attrs): UploadableImageAttrs | null => {
-				const expectedBlob = expectedBlobByUploadIdRef.current.get(uploadId);
-				const currentSrc = typeof attrs.src === "string" ? attrs.src : "";
-				if (!expectedBlob || currentSrc !== expectedBlob) return null;
-
-				return {
-					...attrs,
-					src: resolved.src,
-					alt:
-						resolved.alt ??
-						(typeof attrs.alt === "string" ? attrs.alt : undefined),
-					title:
-						resolved.title ??
-						(typeof attrs.title === "string" ? attrs.title : undefined),
-					uploading: false,
-					uploadError: null,
-					uploadId: null,
-				};
-			});
-
-			cleanupUpload(uploadId, { revokeBlob: true });
-		} catch (error) {
-			finalizeImageUpload(uploadId, (attrs) => ({
-				...attrs,
-				uploading: false,
-				uploadError: error instanceof Error ? error.message : "Upload failed",
-			}));
-			cleanupUpload(uploadId, { revokeBlob: false });
-		}
-	};
-
-	const insertImagesFromFiles = async (
-		files: File[],
-		source: "paste" | "drop",
-	): Promise<void> => {
-		for (const file of files) {
-			await insertLocalImageFile(file, source);
-		}
-	};
+	const menu = useBubbleMenu(editor, { enableImages, disabled });
 
 	const setBlockType = (next: BlockType): void => {
+		if (!editor) return;
 		const chain = editor.chain().focus();
-
 		switch (next) {
 			case "paragraph":
 				chain.setParagraph().run();
@@ -773,385 +268,38 @@ export function Editor({
 			case "codeBlock":
 				chain.toggleCodeBlock().run();
 				break;
-			default:
-				break;
 		}
 	};
 
-	const inlineActions: MenuAction[] = [
-		{
-			label: "Bold",
-			icon: IconBold,
-			isActive: () => activeState.bold,
-			run: () => editor.chain().focus().toggleBold().run(),
-			toggle: true,
-		},
-		{
-			label: "Italic",
-			icon: IconItalic,
-			isActive: () => activeState.italic,
-			run: () => editor.chain().focus().toggleItalic().run(),
-			toggle: true,
-		},
-		{
-			label: "Underline",
-			icon: IconUnderline,
-			isActive: () => activeState.underline,
-			run: () => editor.chain().focus().toggleUnderline().run(),
-			toggle: true,
-		},
-		{
-			label: "Strikethrough",
-			icon: IconStrikethrough,
-			isActive: () => activeState.strike,
-			run: () => editor.chain().focus().toggleStrike().run(),
-			toggle: true,
-		},
-		{
-			label: "Code",
-			icon: IconCode,
-			isActive: () => activeState.code,
-			run: () => editor.chain().focus().toggleCode().run(),
-			toggle: true,
-		},
-		{
-			label: "Remove formatting",
-			icon: IconClearFormatting,
-			run: () => editor.chain().focus().unsetAllMarks().clearNodes().run(),
-		},
-	];
+	if (!editor) {
+		return (
+			<div
+				{...props}
+				ref={setMenuBoundary}
+				className={cn("min-w-0", className)}
+			>
+				<div className="flex h-full flex-col gap-1">
+					<div className="rounded-md border border-border bg-popover p-1 shadow-sm">
+						<Skeleton className="h-7 w-full rounded-sm" />
+					</div>
+					<div className={tiptapSurfaceClass}>
+						<Skeleton className="h-full min-h-[70vh] w-full rounded-sm" />
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-	const openLinkInput = () => {
-		if (showLinkInput) {
-			setShowLinkInput(false);
-			return;
-		}
-		const linkAttrs = editor.getAttributes("link");
-		const href = typeof linkAttrs.href === "string" ? linkAttrs.href : "";
-		setLinkUrl(editor.isActive("link") ? href : "");
-		setShowLinkInput(true);
-		setShowTableActions(false);
-		setShowAltInput(false);
-	};
-
-	const toggleTableActions = () => {
-		if (!isInTable) return;
-		setShowTableActions((current) => !current);
-		setShowLinkInput(false);
-		setShowAltInput(false);
-	};
-
-	const toggleAltInput = () => {
-		if (!enableImages || !isOnImage) return;
-		if (showAltInput) {
-			setShowAltInput(false);
-			return;
-		}
-		const imageAttrs = editor.getAttributes("image");
-		const { alt } = imageAttrs;
-		setImageAltText(typeof alt === "string" ? alt : "");
-		setShowAltInput(true);
-		setShowLinkInput(false);
-		setShowTableActions(false);
-	};
-
-	const applyLink = () => {
-		const trimmed = linkUrl.trim();
-		if (!trimmed) return;
-		editor
-			.chain()
-			.focus()
-			.extendMarkRange("link")
-			.setLink({ href: trimmed })
-			.run();
-		setShowLinkInput(false);
-	};
-
-	const removeLink = () => {
-		editor.chain().focus().extendMarkRange("link").unsetLink().run();
-		setShowLinkInput(false);
-		setLinkUrl("");
-	};
-
-	const confirmOrRemoveLink = () => {
-		const trimmed = linkUrl.trim();
-		if (trimmed || editor.isActive("link")) {
-			removeLink();
-			return;
-		}
-
-		setShowLinkInput(false);
-	};
-
-	const applyImageAlt = () => {
-		if (!enableImages || !isOnImage) return;
-		const trimmed = imageAltText.trim();
-		editor
-			.chain()
-			.focus()
-			.updateAttributes("image", {
-				alt: trimmed || undefined,
-			})
-			.run();
-		setShowAltInput(false);
-	};
-
-	const clearImageAlt = () => {
-		if (!enableImages || !isOnImage) return;
-		editor.chain().focus().updateAttributes("image", {}).run();
-		setImageAltText("");
-		setShowAltInput(false);
-	};
-
-	const addRow = () => editor.chain().focus().addRowAfter().run();
-	const removeRow = () => editor.chain().focus().deleteRow().run();
-	const addColumn = () => editor.chain().focus().addColumnAfter().run();
-	const removeColumn = () => editor.chain().focus().deleteColumn().run();
-
-	const toolbarButtonClass =
-		"inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50";
-	const toolbarToggleButtonClass = `${toolbarButtonClass} aria-pressed:bg-accent aria-pressed:text-accent-foreground`;
-	const toolbarInputClass =
-		"border-input bg-background text-foreground h-7 rounded-md border px-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]";
-
-	const renderIconButton = ({
-		label,
-		icon: Icon,
-		onClick,
-		disabled,
-		toggle = false,
-		pressed = false,
-		className,
-	}: IconButtonOptions) => (
-		<button
-			key={label}
-			type="button"
-			onClick={onClick}
-			disabled={disabled}
-			aria-label={label}
-			aria-pressed={toggle ? pressed : undefined}
-			className={`${toggle ? toolbarToggleButtonClass : toolbarButtonClass}${className ? ` ${className}` : ""}`}
-			title={label}
-		>
-			<Icon className="size-4" />
-		</button>
-	);
 	return (
 		<div {...props} ref={setMenuBoundary} className={cn("min-w-0", className)}>
-			<BubbleMenu
-				pluginKey="editor-bubble"
-				ref={bubbleMenuRef}
+			<EditorBubbleMenu
 				editor={editor}
-				appendTo={menuBoundary ? () => menuBoundary : undefined}
-				className="z-50 w-fit max-w-[95vw] text-popover-foreground outline-hidden"
-				options={{
-					placement: "top-end",
-					offset: 10,
-					flip: {
-						padding: 8,
-						boundary: menuBoundary ?? undefined,
-					},
-					shift: {
-						padding: 8,
-						crossAxis: true,
-						boundary: menuBoundary ?? undefined,
-					},
-					inline: true,
-				}}
-				shouldShow={({ editor: bubbleEditor, view, element }) => {
-					const hasEditorFocus =
-						view.hasFocus() || element.contains(document.activeElement);
-					if (!hasEditorFocus) return false;
-
-					const selection = bubbleEditor.state.selection;
-					const hasTextSelection =
-						selection instanceof TextSelection && !selection.empty;
-
-					return (
-						showLinkInput ||
-						showTableActions ||
-						showAltInput ||
-						hasTextSelection
-					);
-				}}
-			>
-				<div className="flex flex-col gap-1">
-					<div className="flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm">
-						<div className="w-fit">
-							<Select
-								value={activeState.blockType}
-								onValueChange={(nextValue) => {
-									if (!nextValue) return;
-									setBlockType(nextValue);
-								}}
-								disabled={disabled}
-							>
-								<SelectTrigger
-									size="sm"
-									aria-label="Block style"
-									className="min-w-29 border-transparent bg-transparent py-0 pr-1.5 pl-2 shadow-none hover:bg-accent focus-visible:border-transparent focus-visible:ring-0"
-								>
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent
-									alignItemWithTrigger
-									align="start"
-									className="w-44"
-								>
-									<SelectGroup>
-										<SelectLabel>Block type</SelectLabel>
-										{blockOptions.map((option) => (
-											<SelectItem key={option.value} value={option.value}>
-												{option.label}
-											</SelectItem>
-										))}
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-						</div>
-						{inlineActions.map((action) =>
-							renderIconButton({
-								label: action.label,
-								icon: action.icon,
-								onClick: action.run,
-								disabled,
-								toggle: Boolean(action.toggle),
-								pressed: action.toggle ? action.isActive() : false,
-							}),
-						)}
-						{renderIconButton({
-							label: "Link",
-							icon: IconLink,
-							onClick: openLinkInput,
-							disabled,
-							toggle: true,
-							pressed: showLinkInput || activeState.link,
-						})}
-						{isOnImage ? (
-							<button
-								type="button"
-								aria-label="Image alt text"
-								title="Image alt text"
-								aria-pressed={showAltInput}
-								onClick={toggleAltInput}
-								disabled={disabled}
-								className={`${toolbarToggleButtonClass} size-7 text-xs`}
-							>
-								ALT
-							</button>
-						) : null}
-						{isInTable
-							? renderIconButton({
-									label: "Table",
-									icon: IconTable,
-									onClick: toggleTableActions,
-									disabled,
-									toggle: true,
-									pressed: showTableActions,
-								})
-							: null}
-					</div>
-					{showLinkInput ? (
-						<div
-							data-state="open"
-							className="data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm duration-200 data-[state=open]:animate-in"
-						>
-							<input
-								id="link-url"
-								ref={linkInputRef}
-								type="url"
-								placeholder="https://example.com"
-								value={linkUrl}
-								onChange={(event) => setLinkUrl(event.target.value)}
-								onKeyDown={(event) => {
-									if (event.key === "Enter") {
-										event.preventDefault();
-										applyLink();
-									}
-								}}
-								disabled={disabled}
-								className={`${toolbarInputClass} min-w-56 flex-1`}
-							/>
-							{renderIconButton({
-								label: "Set link",
-								icon: IconCheck,
-								onClick: applyLink,
-								disabled: disabled || !linkUrl.trim(),
-							})}
-							{renderIconButton({
-								label: "Remove link",
-								icon: IconX,
-								onClick: confirmOrRemoveLink,
-								disabled,
-								className: "ml-auto",
-							})}
-						</div>
-					) : null}
-					{showAltInput && isOnImage ? (
-						<div
-							data-state="open"
-							className="data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm duration-200 data-[state=open]:animate-in"
-						>
-							<input
-								id="image-alt"
-								type="text"
-								placeholder="Describe image"
-								value={imageAltText}
-								onChange={(event) => setImageAltText(event.target.value)}
-								disabled={disabled}
-								className={`${toolbarInputClass} min-w-56 flex-1`}
-							/>
-							{renderIconButton({
-								label: "Save alt text",
-								icon: IconCheck,
-								onClick: applyImageAlt,
-								disabled,
-							})}
-							{renderIconButton({
-								label: "Remove alt text",
-								icon: IconX,
-								onClick: clearImageAlt,
-								disabled,
-								className: "ml-auto",
-							})}
-						</div>
-					) : null}
-					{showTableActions && isInTable ? (
-						<div
-							data-state="open"
-							className="data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 inline-flex w-fit flex-nowrap items-center gap-1 self-end overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm duration-200 data-[state=open]:animate-in"
-						>
-							<span className="ml-1 text-muted-foreground text-sm">Rows:</span>
-							{renderIconButton({
-								label: "Add row",
-								icon: IconPlus,
-								onClick: addRow,
-								disabled,
-							})}
-							{renderIconButton({
-								label: "Remove row",
-								icon: IconMinus,
-								onClick: removeRow,
-								disabled,
-							})}
-							<span className="mx-0.5 h-4 w-px bg-border" aria-hidden="true" />
-							<span className="text-muted-foreground text-sm">Columns:</span>
-							{renderIconButton({
-								label: "Add column",
-								icon: IconPlus,
-								onClick: addColumn,
-								disabled,
-							})}
-							{renderIconButton({
-								label: "Remove column",
-								icon: IconMinus,
-								onClick: removeColumn,
-								disabled,
-							})}
-						</div>
-					) : null}
-				</div>
-			</BubbleMenu>
+				menuBoundary={menuBoundary}
+				disabled={disabled}
+				activeState={activeState}
+				onSetBlockType={setBlockType}
+				menu={menu}
+			/>
 			{disabled ? null : (
 				<DragHandle
 					editor={editor}
