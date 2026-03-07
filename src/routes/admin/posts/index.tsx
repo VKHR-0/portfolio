@@ -83,33 +83,6 @@ function RouteComponent() {
 	const columns = React.useMemo<Array<ColumnDef<PostRow>>>(
 		() => [
 			{
-				accessorKey: "title",
-				header: "Title",
-				meta: {
-					headerClassName: "w-[30%]",
-					cellClassName: "truncate font-medium",
-				},
-				cell: ({ row }) => row.original.title,
-			},
-			{
-				accessorKey: "slug",
-				header: "Slug",
-				meta: {
-					headerClassName: "w-[28%]",
-					cellClassName: "truncate",
-				},
-				cell: ({ row }) => row.original.slug,
-			},
-			{
-				accessorKey: "status",
-				header: "Status",
-				meta: {
-					headerClassName: "w-[16%]",
-					cellClassName: "text-muted-foreground capitalize",
-				},
-				cell: ({ row }) => row.original.status,
-			},
-			{
 				id: "actions",
 				enableSorting: false,
 				header: "",
@@ -149,6 +122,33 @@ function RouteComponent() {
 						</Button>
 					</div>
 				),
+			},
+			{
+				accessorKey: "title",
+				header: "Title",
+				meta: {
+					headerClassName: "w-[30%]",
+					cellClassName: "truncate font-medium",
+				},
+				cell: ({ row }) => row.original.title,
+			},
+			{
+				accessorKey: "slug",
+				header: "Slug",
+				meta: {
+					headerClassName: "w-[28%]",
+					cellClassName: "truncate",
+				},
+				cell: ({ row }) => row.original.slug,
+			},
+			{
+				accessorKey: "status",
+				header: "Status",
+				meta: {
+					headerClassName: "w-[16%]",
+					cellClassName: "text-muted-foreground capitalize",
+				},
+				cell: ({ row }) => row.original.status,
 			},
 		],
 		[],

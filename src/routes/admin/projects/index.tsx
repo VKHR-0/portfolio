@@ -84,24 +84,6 @@ function RouteComponent() {
 	const columns = React.useMemo<Array<ColumnDef<ProjectRow>>>(
 		() => [
 			{
-				accessorKey: "title",
-				header: "Title",
-				meta: {
-					headerClassName: "w-[40%]",
-					cellClassName: "truncate font-medium",
-				},
-				cell: ({ row }) => row.original.title,
-			},
-			{
-				accessorKey: "slug",
-				header: "Slug",
-				meta: {
-					headerClassName: "w-[35%]",
-					cellClassName: "truncate",
-				},
-				cell: ({ row }) => row.original.slug,
-			},
-			{
 				id: "actions",
 				enableSorting: false,
 				header: "",
@@ -141,6 +123,24 @@ function RouteComponent() {
 						</Button>
 					</div>
 				),
+			},
+			{
+				accessorKey: "title",
+				header: "Title",
+				meta: {
+					headerClassName: "w-[40%]",
+					cellClassName: "truncate font-medium",
+				},
+				cell: ({ row }) => row.original.title,
+			},
+			{
+				accessorKey: "slug",
+				header: "Slug",
+				meta: {
+					headerClassName: "w-[35%]",
+					cellClassName: "truncate",
+				},
+				cell: ({ row }) => row.original.slug,
 			},
 		],
 		[],

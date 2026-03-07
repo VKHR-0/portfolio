@@ -202,6 +202,26 @@ function RouteComponent() {
 	const columns = React.useMemo<Array<ColumnDef<SeriesRow>>>(
 		() => [
 			{
+				id: "actions",
+				enableSorting: false,
+				header: "",
+				meta: {
+					cellClassName: "w-[1%]",
+				},
+				cell: ({ row }) => (
+					<Button
+						type="button"
+						size="icon-xs"
+						variant="ghost"
+						aria-label={`Delete ${row.original.name}`}
+						title="Delete"
+						onClick={() => setSeriesToDelete(row.original)}
+					>
+						<IconTrash />
+					</Button>
+				),
+			},
+			{
 				accessorKey: "name",
 				header: "Name",
 				meta: {
@@ -349,26 +369,6 @@ function RouteComponent() {
 				header: "Created",
 				cell: ({ row }) =>
 					new Date(row.original._creationTime).toLocaleString(),
-			},
-			{
-				id: "actions",
-				enableSorting: false,
-				header: "",
-				meta: {
-					cellClassName: "w-[1%]",
-				},
-				cell: ({ row }) => (
-					<Button
-						type="button"
-						size="icon-xs"
-						variant="ghost"
-						aria-label={`Delete ${row.original.name}`}
-						title="Delete"
-						onClick={() => setSeriesToDelete(row.original)}
-					>
-						<IconTrash />
-					</Button>
-				),
 			},
 		],
 		[
