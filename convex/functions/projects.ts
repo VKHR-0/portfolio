@@ -3,13 +3,34 @@ import { v } from "convex/values";
 import { query } from "../_generated/server";
 
 export const list = query({
-	args: { paginationOpts: paginationOptsValidator },
+	args: {
+		paginationOpts: paginationOptsValidator,
+		sortField: v.optional(v.union(v.literal("title"), v.literal("slug"))),
+		sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+	},
 	handler: async (ctx, args) => {
-		return await ctx.db
-			.query("projects")
-			.withIndex("by_creation_time")
-			.order("desc")
-			.paginate(args.paginationOpts);
+		const direction = args.sortDirection ?? "desc";
+
+		switch (args.sortField) {
+			case "title":
+				return await ctx.db
+					.query("projects")
+					.withIndex("by_title")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			case "slug":
+				return await ctx.db
+					.query("projects")
+					.withIndex("by_slug")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			default:
+				return await ctx.db
+					.query("projects")
+					.withIndex("by_creation_time")
+					.order("desc")
+					.paginate(args.paginationOpts);
+		}
 	},
 });
 

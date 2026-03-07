@@ -4,13 +4,53 @@ import { toSlug } from "../../shared/slug";
 import { mutation, query } from "../_generated/server";
 
 export const list = query({
-	args: { paginationOpts: paginationOptsValidator },
+	args: {
+		paginationOpts: paginationOptsValidator,
+		sortField: v.optional(
+			v.union(
+				v.literal("name"),
+				v.literal("slug"),
+				v.literal("description"),
+				v.literal("_creationTime"),
+			),
+		),
+		sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+	},
 	handler: async (ctx, args) => {
-		return await ctx.db
-			.query("categories")
-			.withIndex("by_creation_time")
-			.order("desc")
-			.paginate(args.paginationOpts);
+		const direction = args.sortDirection ?? "desc";
+
+		switch (args.sortField) {
+			case "name":
+				return await ctx.db
+					.query("categories")
+					.withIndex("by_name")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			case "slug":
+				return await ctx.db
+					.query("categories")
+					.withIndex("by_slug")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			case "description":
+				return await ctx.db
+					.query("categories")
+					.withIndex("by_description")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			case "_creationTime":
+				return await ctx.db
+					.query("categories")
+					.withIndex("by_creation_time")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			default:
+				return await ctx.db
+					.query("categories")
+					.withIndex("by_creation_time")
+					.order("desc")
+					.paginate(args.paginationOpts);
+		}
 	},
 });
 

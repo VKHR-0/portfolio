@@ -2,33 +2,76 @@ import { convexQuery } from "@convex-dev/react-query";
 import { IconEye, IconPencil, IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { api } from "convex/_generated/api";
 import * as React from "react";
 import { PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
-import { TableCell, TableHead, TableRow } from "#/components/ui/table";
+import {
+	createAdminTableSearchSchema,
+	searchFromSortingState,
+	sortingStateFromSearch,
+} from "#/lib/admin-table-sorting";
 
 const PAGE_SIZE = 10;
+const POST_SORT_FIELDS = ["title", "slug", "status"] as const;
 
-function listPostsQuery(cursor: string | null) {
+type PostSortField = (typeof POST_SORT_FIELDS)[number];
+
+type PostRow = {
+	_id: string;
+	title: string;
+	slug: string;
+	status: "draft" | "private" | "public";
+};
+
+function listPostsQuery(
+	cursor: string | null,
+	search: { sortField?: PostSortField; sortDirection?: "asc" | "desc" },
+) {
 	return convexQuery(api.functions.posts.list, {
 		paginationOpts: { numItems: PAGE_SIZE, cursor },
+		sortField: search.sortField,
+		sortDirection: search.sortDirection,
 	});
 }
 
 export const Route = createFileRoute("/admin/posts/")({
-	loader: async ({ context }) => {
-		await context.queryClient.ensureQueryData(listPostsQuery(null));
+	validateSearch: zodValidator(createAdminTableSearchSchema(POST_SORT_FIELDS)),
+	loaderDeps: ({ search }) => ({ search }),
+	loader: async ({ context, deps }) => {
+		await context.queryClient.ensureQueryData(
+			listPostsQuery(null, deps.search),
+		);
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
+	const navigate = Route.useNavigate();
+	const search = Route.useSearch();
 	const [cursors, setCursors] = React.useState<Array<string | null>>([null]);
 	const [currentPage, setCurrentPage] = React.useState(1);
 	const currentCursor = cursors[currentPage - 1] ?? null;
+	const sortKey = `${search.sortField ?? ""}:${search.sortDirection ?? ""}`;
+	const previousSortKeyRef = React.useRef(sortKey);
+	const sorting = React.useMemo(
+		() => sortingStateFromSearch<PostSortField>(search),
+		[search],
+	);
 
-	const { data: result } = useQuery(listPostsQuery(currentCursor));
+	React.useEffect(() => {
+		if (previousSortKeyRef.current === sortKey) {
+			return;
+		}
+
+		previousSortKeyRef.current = sortKey;
+		setCursors([null]);
+		setCurrentPage(1);
+	}, [sortKey]);
+
+	const { data: result } = useQuery(listPostsQuery(currentCursor, search));
 
 	const posts = result?.page ?? [];
 	const pageCount = cursors.length;
@@ -36,6 +79,80 @@ function RouteComponent() {
 	const canGoNext =
 		result !== undefined &&
 		(currentPage < pageCount || result.isDone === false);
+
+	const columns = React.useMemo<Array<ColumnDef<PostRow>>>(
+		() => [
+			{
+				accessorKey: "title",
+				header: "Title",
+				meta: {
+					headerClassName: "w-[30%]",
+					cellClassName: "truncate font-medium",
+				},
+				cell: ({ row }) => row.original.title,
+			},
+			{
+				accessorKey: "slug",
+				header: "Slug",
+				meta: {
+					headerClassName: "w-[28%]",
+					cellClassName: "truncate",
+				},
+				cell: ({ row }) => row.original.slug,
+			},
+			{
+				accessorKey: "status",
+				header: "Status",
+				meta: {
+					headerClassName: "w-[16%]",
+					cellClassName: "text-muted-foreground capitalize",
+				},
+				cell: ({ row }) => row.original.status,
+			},
+			{
+				id: "actions",
+				enableSorting: false,
+				header: "",
+				meta: {
+					cellClassName: "w-[1%]",
+				},
+				cell: ({ row }) => (
+					<div className="flex items-center gap-2">
+						<Button
+							size="icon-xs"
+							variant="outline"
+							nativeButton={false}
+							render={
+								<Link
+									to="/posts/$slugId"
+									params={{ slugId: row.original.slug }}
+								/>
+							}
+							aria-label="Preview"
+							title="Preview"
+						>
+							<IconEye />
+						</Button>
+						<Button
+							size="icon-xs"
+							nativeButton={false}
+							render={
+								<Link
+									to="/admin/posts/$slugId"
+									params={{ slugId: row.original.slug }}
+								/>
+							}
+							aria-label="Edit"
+							title="Edit"
+						>
+							<IconPencil />
+						</Button>
+					</div>
+				),
+			},
+		],
+		[],
+	);
 
 	return (
 		<PageCard
@@ -49,17 +166,21 @@ function RouteComponent() {
 			}
 			loadingLabel="Loading posts..."
 			emptyLabel="No posts found."
-			columnHeaders={
-				<>
-					<TableHead className="w-[30%]">Title</TableHead>
-					<TableHead className="w-[28%]">Slug</TableHead>
-					<TableHead className="w-[16%]">Status</TableHead>
-					<TableHead />
-				</>
-			}
-			columnCount={4}
+			columns={columns}
+			data={posts}
+			sorting={sorting}
+			onSortingChange={(nextSorting: SortingState) => {
+				const nextSearch = searchFromSortingState<PostSortField>(nextSorting);
+
+				void navigate({
+					search: (prev) => ({
+						...prev,
+						sortField: nextSearch.sortField,
+						sortDirection: nextSearch.sortDirection,
+					}),
+				});
+			}}
 			isLoading={result === undefined}
-			isEmpty={posts.length === 0}
 			currentPage={currentPage}
 			pageCount={pageCount}
 			canGoPrevious={canGoPrevious}
@@ -83,46 +204,7 @@ function RouteComponent() {
 				setCursors((prev) => [...prev, result.continueCursor]);
 				setCurrentPage((prev) => prev + 1);
 			}}
-		>
-			{posts.map((post) => (
-				<TableRow key={post._id}>
-					<TableCell className="truncate font-medium">{post.title}</TableCell>
-					<TableCell className="truncate">{post.slug}</TableCell>
-					<TableCell className="text-muted-foreground capitalize">
-						{post.status}
-					</TableCell>
-					<TableCell>
-						<div className="flex items-center gap-2">
-							<Button
-								size="icon-xs"
-								variant="outline"
-								nativeButton={false}
-								render={
-									<Link to="/posts/$slugId" params={{ slugId: post.slug }} />
-								}
-								aria-label="Preview"
-								title="Preview"
-							>
-								<IconEye />
-							</Button>
-							<Button
-								size="icon-xs"
-								nativeButton={false}
-								render={
-									<Link
-										to="/admin/posts/$slugId"
-										params={{ slugId: post.slug }}
-									/>
-								}
-								aria-label="Edit"
-								title="Edit"
-							>
-								<IconPencil />
-							</Button>
-						</div>
-					</TableCell>
-				</TableRow>
-			))}
-		</PageCard>
+			getRowId={(row) => row._id}
+		/>
 	);
 }

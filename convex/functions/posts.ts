@@ -240,13 +240,42 @@ async function syncPostTagRelations(
 }
 
 export const list = query({
-	args: { paginationOpts: paginationOptsValidator },
+	args: {
+		paginationOpts: paginationOptsValidator,
+		sortField: v.optional(
+			v.union(v.literal("title"), v.literal("slug"), v.literal("status")),
+		),
+		sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+	},
 	handler: async (ctx, args) => {
-		return await ctx.db
-			.query("posts")
-			.withIndex("by_creation_time")
-			.order("desc")
-			.paginate(args.paginationOpts);
+		const direction = args.sortDirection ?? "desc";
+
+		switch (args.sortField) {
+			case "title":
+				return await ctx.db
+					.query("posts")
+					.withIndex("by_title")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			case "slug":
+				return await ctx.db
+					.query("posts")
+					.withIndex("by_slug")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			case "status":
+				return await ctx.db
+					.query("posts")
+					.withIndex("by_status")
+					.order(direction)
+					.paginate(args.paginationOpts);
+			default:
+				return await ctx.db
+					.query("posts")
+					.withIndex("by_creation_time")
+					.order("desc")
+					.paginate(args.paginationOpts);
+		}
 	},
 });
 
@@ -430,5 +459,40 @@ export const updateDraft = mutation({
 			tagIds: args.tagIds,
 			attachments,
 		};
+	},
+});
+
+export const deletePost = mutation({
+	args: {
+		id: v.id("posts"),
+	},
+	handler: async (ctx, args) => {
+		const authorId = await requireCurrentUserId(ctx);
+		const post = await ctx.db.get(args.id);
+
+		if (!post || post.authorId !== authorId) {
+			throw new Error("Post not found.");
+		}
+
+		const [postMediaRows, postTagRows] = await Promise.all([
+			ctx.db
+				.query("postMedia")
+				.withIndex("by_post", (q) => q.eq("postId", args.id))
+				.collect(),
+			ctx.db
+				.query("postTag")
+				.withIndex("by_post", (q) => q.eq("postId", args.id))
+				.collect(),
+		]);
+
+		for (const row of postMediaRows) {
+			await ctx.db.delete(row._id);
+		}
+
+		for (const row of postTagRows) {
+			await ctx.db.delete(row._id);
+		}
+
+		await ctx.db.delete(args.id);
 	},
 });

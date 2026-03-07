@@ -20,7 +20,9 @@ export default defineSchema({
 		demoUrl: v.optional(v.string()),
 
 		techStack: v.array(v.string()),
-	}).index("by_slug", ["slug"]),
+	})
+		.index("by_slug", ["slug"])
+		.index("by_title", ["title"]),
 
 	posts: defineTable({
 		title: v.string(),
@@ -43,6 +45,7 @@ export default defineSchema({
 		tags: v.array(v.id("tags")),
 	})
 		.index("by_slug", ["slug"])
+		.index("by_title", ["title"])
 		.index("by_status", ["status"])
 		.index("by_category", ["categoryId"])
 		.index("by_series", ["seriesId"])
@@ -52,18 +55,26 @@ export default defineSchema({
 		name: v.string(),
 		slug: v.string(),
 		description: v.optional(v.string()),
-	}).index("by_slug", ["slug"]),
+	})
+		.index("by_slug", ["slug"])
+		.index("by_name", ["name"])
+		.index("by_description", ["description"]),
 
 	series: defineTable({
 		name: v.string(),
 		slug: v.string(),
 		description: v.optional(v.string()),
-	}).index("by_slug", ["slug"]),
+	})
+		.index("by_slug", ["slug"])
+		.index("by_name", ["name"])
+		.index("by_description", ["description"]),
 
 	tags: defineTable({
 		name: v.string(),
 		slug: v.string(),
-	}).index("by_slug", ["slug"]),
+	})
+		.index("by_slug", ["slug"])
+		.index("by_name", ["name"]),
 
 	media: defineTable({
 		storageId: v.id("_storage"),

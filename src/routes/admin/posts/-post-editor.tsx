@@ -1,4 +1,4 @@
-import { IconLink, IconPlus, IconX } from "@tabler/icons-react";
+import { IconLink, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
@@ -7,6 +7,7 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
+import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
 import {
 	Editor,
 	type ImagePickerHandler,
@@ -372,6 +373,7 @@ export function PostEditor({
 	const navigate = useNavigate();
 
 	const createDraft = useMutation(api.functions.posts.createDraft);
+	const deletePost = useMutation(api.functions.posts.deletePost);
 	const updateDraft = useMutation(api.functions.posts.updateDraft);
 
 	const [draftId, setDraftId] = React.useState<Id<"posts"> | undefined>(
@@ -381,6 +383,8 @@ export function PostEditor({
 	const [saveState, setSaveState] = React.useState<SaveState>(
 		initialPost ? "saved" : "idle",
 	);
+	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+	const [isDeletingPost, setIsDeletingPost] = React.useState(false);
 
 	const [pickerResolver, setPickerResolver] = React.useState<{
 		resolve: (result: ImagePickerResult | null) => void;
@@ -507,6 +511,28 @@ export function PostEditor({
 		},
 	);
 
+	const handleDeletePost = React.useEffectEvent(async () => {
+		if (!draftId) {
+			return;
+		}
+
+		clearAutosaveTimer();
+		setIsDeletingPost(true);
+
+		try {
+			await deletePost({ id: draftId });
+			toast.success("Post deleted.");
+			setIsDeleteDialogOpen(false);
+			void navigate({ to: "/admin/posts" });
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : "Unable to delete post.",
+			);
+		} finally {
+			setIsDeletingPost(false);
+		}
+	});
+
 	React.useEffect(
 		() => () => {
 			clearAutosaveTimer();
@@ -515,265 +541,288 @@ export function PostEditor({
 	);
 
 	return (
-		<Card size="sm" className="w-full min-w-0 flex-1">
-			<CardContent className="flex h-full min-w-0 flex-col gap-5">
-				<form.Subscribe selector={(state) => state.values}>
-					{(values) => (
-						<PostEditorAutosave
-							values={values}
-							saveState={saveState}
-							lastPersistedSnapshot={lastPersistedSnapshotRef.current}
-							clearAutosaveTimer={clearAutosaveTimer}
-							submitDraft={submitDraft}
-						/>
-					)}
-				</form.Subscribe>
+		<>
+			<Card size="sm" className="w-full min-w-0 flex-1">
+				<CardContent className="flex h-full min-w-0 flex-col gap-5">
+					<form.Subscribe selector={(state) => state.values}>
+						{(values) => (
+							<PostEditorAutosave
+								values={values}
+								saveState={saveState}
+								lastPersistedSnapshot={lastPersistedSnapshotRef.current}
+								clearAutosaveTimer={clearAutosaveTimer}
+								submitDraft={submitDraft}
+							/>
+						)}
+					</form.Subscribe>
+					<div className="flex flex-wrap items-start justify-between gap-3">
+						<div className="flex flex-wrap gap-2">
+							<form.Field name="projectId">
+								{(field) => (
+									<OptionalSelect
+										label="project"
+										value={field.state.value}
+										placeholder="Project"
+										options={projects}
+										onChange={field.handleChange}
+									/>
+								)}
+							</form.Field>
+							<form.Field name="categoryId">
+								{(field) => (
+									<OptionalSelect
+										label="category"
+										value={field.state.value}
+										placeholder="Category"
+										options={categories}
+										onChange={field.handleChange}
+									/>
+								)}
+							</form.Field>
+							<form.Field name="seriesId">
+								{(field) => (
+									<OptionalSelect
+										label="series"
+										value={field.state.value}
+										placeholder="Series"
+										options={series}
+										onChange={field.handleChange}
+									/>
+								)}
+							</form.Field>
+						</div>
 
-				<div className="flex flex-wrap items-start justify-between gap-3">
-					<div className="flex flex-wrap gap-2">
-						<form.Field name="projectId">
+						<div className="flex flex-wrap items-center gap-2">
+							{draftId && (
+								<Button
+									type="button"
+									size="sm"
+									variant="destructive"
+									disabled={saveState === "saving" || isDeletingPost}
+									onClick={() => setIsDeleteDialogOpen(true)}
+								>
+									<IconTrash data-icon="inline-start" />
+									Delete
+								</Button>
+							)}
+							<ButtonGroup className="rounded-lg border border-input bg-background dark:bg-input/30">
+								<form.Field name="status">
+									{(field) => (
+										<Select
+											value={field.state.value}
+											onValueChange={(nextValue) => {
+												if (!nextValue) return;
+												field.handleChange(nextValue as PostStatus);
+											}}
+										>
+											<SelectTrigger
+												size="sm"
+												className="rounded-r-none! border-transparent bg-transparent shadow-none hover:bg-muted focus-visible:border-transparent focus-visible:ring-0"
+											>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent align="end">
+												<SelectGroup>
+													{STATUS_OPTIONS.map((option) => (
+														<SelectItem key={option.value} value={option.value}>
+															{option.label}
+														</SelectItem>
+													))}
+												</SelectGroup>
+											</SelectContent>
+										</Select>
+									)}
+								</form.Field>
+
+								<form.Subscribe selector={(state) => state.values}>
+									{(values) => (
+										<PostEditorSaveButton
+											values={values}
+											saveState={saveState}
+											lastPersistedSnapshot={lastPersistedSnapshotRef.current}
+											onClick={() => {
+												clearAutosaveTimer();
+												submitDraft();
+											}}
+										/>
+									)}
+								</form.Subscribe>
+							</ButtonGroup>
+						</div>
+					</div>
+
+					<div className="flex flex-wrap items-center gap-3">
+						<form.Field name="title">
 							{(field) => (
-								<OptionalSelect
-									label="project"
+								<Input
+									id="post-title"
 									value={field.state.value}
-									placeholder="Project"
-									options={projects}
-									onChange={field.handleChange}
+									placeholder="Untitled"
+									onChange={(event) => {
+										const nextTitle = event.target.value;
+
+										field.handleChange(nextTitle);
+
+										if (!isSlugManuallyEdited) {
+											form.setFieldValue("slug", toSlug(nextTitle));
+										}
+									}}
+									className="h-auto min-w-[18rem] flex-1 border-0 bg-transparent px-0 py-0 font-semibold text-4xl leading-tight shadow-none ring-0 placeholder:text-muted-foreground/70 focus-visible:ring-0 md:text-5xl"
 								/>
 							)}
 						</form.Field>
-						<form.Field name="categoryId">
+
+						<form.Field name="slug">
 							{(field) => (
-								<OptionalSelect
-									label="category"
-									value={field.state.value}
-									placeholder="Category"
-									options={categories}
-									onChange={field.handleChange}
-								/>
+								<InputGroup className="h-9 max-w-xs rounded-full border-dashed bg-muted/30">
+									<InputGroupAddon>
+										<InputGroupButton
+											size="icon-xs"
+											variant="outline"
+											className="rounded-full"
+										>
+											<IconLink />
+										</InputGroupButton>
+									</InputGroupAddon>
+									<InputGroupInput
+										value={field.state.value}
+										placeholder="slug"
+										onChange={(event) => {
+											const nextSlug = event.target.value;
+
+											setIsSlugManuallyEdited(nextSlug.length > 0);
+											field.handleChange(nextSlug);
+										}}
+										onBlur={() => {
+											field.handleBlur();
+											const normalizedSlug =
+												toSlug(field.state.value) ||
+												(isSlugManuallyEdited
+													? ""
+													: toSlug(form.getFieldValue("title")));
+
+											setIsSlugManuallyEdited(normalizedSlug.length > 0);
+											field.handleChange(normalizedSlug);
+										}}
+									/>
+								</InputGroup>
 							)}
 						</form.Field>
-						<form.Field name="seriesId">
+					</div>
+					<form.Subscribe selector={(state) => state.values.tagIds}>
+						{(tagIds) => {
+							const availableTags = tags.filter(
+								(tag) => !tagIds.includes(tag.id),
+							);
+							const selectedTags = tagIds
+								.map((tagId) => tags.find((tag) => tag.id === tagId))
+								.filter((tag): tag is LookupOption<Id<"tags">> => Boolean(tag));
+
+							return (
+								<div className="flex flex-wrap items-center gap-2">
+									{selectedTags.length === 0 ? (
+										<Badge
+											variant="outline"
+											className="h-7 rounded-full px-3 text-xs"
+										>
+											No Tags
+										</Badge>
+									) : (
+										selectedTags.map((tag) => (
+											<PostTagBadge
+												key={tag.id}
+												label={tag.label}
+												onRemove={() =>
+													form.setFieldValue("tagIds", (current) =>
+														current.filter((tagId) => tagId !== tag.id),
+													)
+												}
+											/>
+										))
+									)}
+
+									<Popover>
+										<PopoverTrigger
+											render={<Button variant="outline" size="icon-xs" />}
+										>
+											<IconPlus />
+										</PopoverTrigger>
+										<PopoverContent align="start" className="w-72 p-0">
+											<Command>
+												<CommandInput placeholder="Search tags..." />
+												<CommandList>
+													<CommandEmpty>No tags available.</CommandEmpty>
+													<CommandGroup>
+														{availableTags.map((tag) => (
+															<CommandItem
+																key={tag.id}
+																onSelect={() => {
+																	form.setFieldValue("tagIds", (current) => [
+																		...current,
+																		tag.id,
+																	]);
+																}}
+															>
+																<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+																	<span className="truncate">{tag.label}</span>
+																	{tag.description && (
+																		<span className="truncate text-muted-foreground text-xs">
+																			{tag.description}
+																		</span>
+																	)}
+																</div>
+															</CommandItem>
+														))}
+													</CommandGroup>
+												</CommandList>
+											</Command>
+										</PopoverContent>
+									</Popover>
+								</div>
+							);
+						}}
+					</form.Subscribe>
+					<div className="min-h-0 flex-1">
+						<form.Field name="content">
 							{(field) => (
-								<OptionalSelect
-									label="series"
+								<Editor
 									value={field.state.value}
-									placeholder="Series"
-									options={series}
 									onChange={field.handleChange}
+									className="prose prose-amber dark:prose-invert h-full w-full max-w-none!"
+									editorClassName="h-full min-h-[65vh] !max-w-none"
+									format="markdown"
+									headingLevels={[2, 3]}
+									enableImagePasteDrop
+									onRequestImage={handleRequestImage}
+									onUploadImage={handleUploadImage}
 								/>
 							)}
 						</form.Field>
 					</div>
 
-					<ButtonGroup className="rounded-lg border border-input bg-background dark:bg-input/30">
-						<form.Field name="status">
-							{(field) => (
-								<Select
-									value={field.state.value}
-									onValueChange={(nextValue) => {
-										if (!nextValue) return;
-										field.handleChange(nextValue as PostStatus);
-									}}
-								>
-									<SelectTrigger
-										size="sm"
-										className="rounded-r-none! border-transparent bg-transparent shadow-none hover:bg-muted focus-visible:border-transparent focus-visible:ring-0"
-									>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent align="end">
-										<SelectGroup>
-											{STATUS_OPTIONS.map((option) => (
-												<SelectItem key={option.value} value={option.value}>
-													{option.label}
-												</SelectItem>
-											))}
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-							)}
-						</form.Field>
-
-						<form.Subscribe selector={(state) => state.values}>
-							{(values) => (
-								<PostEditorSaveButton
-									values={values}
-									saveState={saveState}
-									lastPersistedSnapshot={lastPersistedSnapshotRef.current}
-									onClick={() => {
-										clearAutosaveTimer();
-										submitDraft();
-									}}
-								/>
-							)}
-						</form.Subscribe>
-					</ButtonGroup>
-				</div>
-
-				<div className="flex flex-wrap items-center gap-3">
-					<form.Field name="title">
-						{(field) => (
-							<Input
-								id="post-title"
-								value={field.state.value}
-								placeholder="Untitled"
-								onChange={(event) => {
-									const nextTitle = event.target.value;
-
-									field.handleChange(nextTitle);
-
-									if (!isSlugManuallyEdited) {
-										form.setFieldValue("slug", toSlug(nextTitle));
-									}
-								}}
-								className="h-auto min-w-[18rem] flex-1 border-0 bg-transparent px-0 py-0 font-semibold text-4xl leading-tight shadow-none ring-0 placeholder:text-muted-foreground/70 focus-visible:ring-0 md:text-5xl"
-							/>
-						)}
-					</form.Field>
-
-					<form.Field name="slug">
-						{(field) => (
-							<InputGroup className="h-9 max-w-xs rounded-full border-dashed bg-muted/30">
-								<InputGroupAddon>
-									<InputGroupButton
-										size="icon-xs"
-										variant="outline"
-										className="rounded-full"
-									>
-										<IconLink />
-									</InputGroupButton>
-								</InputGroupAddon>
-								<InputGroupInput
-									value={field.state.value}
-									placeholder="slug"
-									onChange={(event) => {
-										const nextSlug = event.target.value;
-
-										setIsSlugManuallyEdited(nextSlug.length > 0);
-										field.handleChange(nextSlug);
-									}}
-									onBlur={() => {
-										field.handleBlur();
-										const normalizedSlug =
-											toSlug(field.state.value) ||
-											(isSlugManuallyEdited
-												? ""
-												: toSlug(form.getFieldValue("title")));
-
-										setIsSlugManuallyEdited(normalizedSlug.length > 0);
-										field.handleChange(normalizedSlug);
-									}}
-								/>
-							</InputGroup>
-						)}
-					</form.Field>
-				</div>
-				<form.Subscribe selector={(state) => state.values.tagIds}>
-					{(tagIds) => {
-						const availableTags = tags.filter(
-							(tag) => !tagIds.includes(tag.id),
-						);
-						const selectedTags = tagIds
-							.map((tagId) => tags.find((tag) => tag.id === tagId))
-							.filter((tag): tag is LookupOption<Id<"tags">> => Boolean(tag));
-
-						return (
-							<div className="flex flex-wrap items-center gap-2">
-								{selectedTags.length === 0 ? (
-									<Badge
-										variant="outline"
-										className="h-7 rounded-full px-3 text-xs"
-									>
-										No Tags
-									</Badge>
-								) : (
-									selectedTags.map((tag) => (
-										<PostTagBadge
-											key={tag.id}
-											label={tag.label}
-											onRemove={() =>
-												form.setFieldValue("tagIds", (current) =>
-													current.filter((tagId) => tagId !== tag.id),
-												)
-											}
-										/>
-									))
-								)}
-
-								<Popover>
-									<PopoverTrigger
-										render={<Button variant="outline" size="icon-xs" />}
-									>
-										<IconPlus />
-									</PopoverTrigger>
-									<PopoverContent align="start" className="w-72 p-0">
-										<Command>
-											<CommandInput placeholder="Search tags..." />
-											<CommandList>
-												<CommandEmpty>No tags available.</CommandEmpty>
-												<CommandGroup>
-													{availableTags.map((tag) => (
-														<CommandItem
-															key={tag.id}
-															onSelect={() => {
-																form.setFieldValue("tagIds", (current) => [
-																	...current,
-																	tag.id,
-																]);
-															}}
-														>
-															<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-																<span className="truncate">{tag.label}</span>
-																{tag.description && (
-																	<span className="truncate text-muted-foreground text-xs">
-																		{tag.description}
-																	</span>
-																)}
-															</div>
-														</CommandItem>
-													))}
-												</CommandGroup>
-											</CommandList>
-										</Command>
-									</PopoverContent>
-								</Popover>
-							</div>
-						);
-					}}
-				</form.Subscribe>
-				<div className="min-h-0 flex-1">
-					<form.Field name="content">
-						{(field) => (
-							<Editor
-								value={field.state.value}
-								onChange={field.handleChange}
-								className="prose prose-amber dark:prose-invert h-full w-full max-w-none!"
-								editorClassName="h-full min-h-[65vh] !max-w-none"
-								format="markdown"
-								headingLevels={[2, 3]}
-								enableImagePasteDrop
-								onRequestImage={handleRequestImage}
-								onUploadImage={handleUploadImage}
-							/>
-						)}
-					</form.Field>
-				</div>
-
-				{pickerResolver && (
-					<MediaPickerDialog
-						open
-						onSelect={(result) => {
-							pickerResolver.resolve(result);
-							setPickerResolver(null);
-						}}
-						onCancel={() => {
-							pickerResolver.resolve(null);
-							setPickerResolver(null);
-						}}
-					/>
-				)}
-			</CardContent>
-		</Card>
+					{pickerResolver && (
+						<MediaPickerDialog
+							open
+							onSelect={(result) => {
+								pickerResolver.resolve(result);
+								setPickerResolver(null);
+							}}
+							onCancel={() => {
+								pickerResolver.resolve(null);
+								setPickerResolver(null);
+							}}
+						/>
+					)}
+				</CardContent>
+			</Card>
+			<ConfirmDeleteDialog
+				open={isDeleteDialogOpen}
+				title="Delete this post?"
+				description="This action cannot be undone."
+				isPending={isDeletingPost}
+				onOpenChange={setIsDeleteDialogOpen}
+				onConfirm={() => void handleDeletePost()}
+			/>
+		</>
 	);
 }

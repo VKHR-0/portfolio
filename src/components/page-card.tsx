@@ -1,4 +1,6 @@
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import type * as React from "react";
+import { AdminDataTable } from "#/components/admin-data-table";
 import { CursorPagination } from "#/components/cursor-pagination";
 import {
 	Card,
@@ -8,24 +10,19 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHeader,
-	TableRow,
-} from "#/components/ui/table";
+import { cn } from "#/lib/utils";
 
-type PageCardProps = {
+type PageCardProps<TData> = {
 	title: string;
 	description: string;
 	createButton: React.ReactNode;
 	loadingLabel: string;
 	emptyLabel: string;
-	columnHeaders: React.ReactNode;
-	columnCount: number;
+	columns: Array<ColumnDef<TData>>;
+	data: Array<TData>;
+	sorting: SortingState;
+	onSortingChange: (sorting: SortingState) => void;
 	isLoading: boolean;
-	isEmpty: boolean;
 	currentPage: number;
 	pageCount: number;
 	canGoPrevious: boolean;
@@ -33,19 +30,20 @@ type PageCardProps = {
 	onPrevious: () => void;
 	onNext: () => void;
 	onSelectPage: (page: number) => void;
-	children: React.ReactNode;
+	getRowId?: (originalRow: TData, index: number) => string;
 };
 
-export function PageCard({
+export function PageCard<TData>({
 	title,
 	description,
 	createButton,
 	loadingLabel,
 	emptyLabel,
-	columnHeaders,
-	columnCount,
+	columns,
+	data,
+	sorting,
+	onSortingChange,
 	isLoading,
-	isEmpty,
 	currentPage,
 	pageCount,
 	canGoPrevious,
@@ -53,8 +51,8 @@ export function PageCard({
 	onPrevious,
 	onNext,
 	onSelectPage,
-	children,
-}: PageCardProps) {
+	getRowId,
+}: PageCardProps<TData>) {
 	return (
 		<Card className="min-w-0 flex-1">
 			<CardHeader className="flex flex-row items-center justify-between gap-3">
@@ -66,36 +64,16 @@ export function PageCard({
 			</CardHeader>
 
 			<CardContent className="min-w-0 flex-1">
-				<Table className="table-fixed">
-					<TableHeader>
-						<TableRow>{columnHeaders}</TableRow>
-					</TableHeader>
-					<TableBody>
-						{isLoading && (
-							<TableRow>
-								<TableCell
-									colSpan={columnCount}
-									className="h-24 text-center text-muted-foreground"
-								>
-									{loadingLabel}
-								</TableCell>
-							</TableRow>
-						)}
-
-						{!isLoading && isEmpty && (
-							<TableRow>
-								<TableCell
-									colSpan={columnCount}
-									className="h-24 text-center text-muted-foreground"
-								>
-									{emptyLabel}
-								</TableCell>
-							</TableRow>
-						)}
-
-						{children}
-					</TableBody>
-				</Table>
+				<AdminDataTable
+					columns={columns}
+					data={data}
+					sorting={sorting}
+					onSortingChange={onSortingChange}
+					loadingLabel={loadingLabel}
+					emptyLabel={emptyLabel}
+					isLoading={isLoading}
+					getRowId={getRowId}
+				/>
 			</CardContent>
 
 			<CardFooter>
@@ -128,13 +106,21 @@ export function EditableCell({
 	className,
 	children,
 }: EditableCellProps) {
+	if (isEditing) {
+		return <>{children}</>;
+	}
+
 	return (
-		<TableCell
-			className={`cursor-text select-none truncate ${className ?? ""}`}
+		<button
+			type="button"
+			className={cn(
+				"w-full cursor-text select-none truncate text-left",
+				className,
+			)}
 			title="Double-click to edit"
 			onDoubleClick={onDoubleClick}
 		>
-			{isEditing ? children : displayValue}
-		</TableCell>
+			{displayValue}
+		</button>
 	);
 }
