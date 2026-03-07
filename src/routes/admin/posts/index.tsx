@@ -96,6 +96,7 @@ function RouteComponent() {
 							<Button
 								size="xs"
 								variant="outline"
+								nativeButton={false}
 								render={
 									<Link to="/posts/$slugId" params={{ slugId: post.slug }} />
 								}
@@ -104,6 +105,7 @@ function RouteComponent() {
 							</Button>
 							<Button
 								size="xs"
+								nativeButton={false}
 								render={
 									<Link
 										to="/admin/posts/$slugId"

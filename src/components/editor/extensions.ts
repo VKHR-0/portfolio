@@ -44,6 +44,7 @@ export const UploadableImage = Image.extend({
 });
 
 type BuildExtensionsOptions = {
+	headingLevels: Array<1 | 2 | 3>;
 	enableImages: boolean;
 	onRequestImage: ImagePickerHandler | null | undefined;
 	imageFallback: ImageFallbackMode;
@@ -56,12 +57,16 @@ type BuildExtensionsOptions = {
 };
 
 export const buildExtensions = ({
+	headingLevels,
 	enableImages,
 	onRequestImage,
 	imageFallback,
 	insertLocalImageFile,
 }: BuildExtensionsOptions) => [
 	StarterKit.configure({
+		heading: {
+			levels: headingLevels,
+		},
 		link: false,
 		underline: false,
 	}),

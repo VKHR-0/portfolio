@@ -35,6 +35,7 @@ export type EditorProps = {
 	onChange?: (value: string) => void;
 	disabled?: boolean;
 	format?: EditorFormat;
+	headingLevels?: Array<1 | 2 | 3>;
 	enableImages?: boolean;
 	enableImagePasteDrop?: boolean;
 	onUploadImage?: ImageUploadHandler;

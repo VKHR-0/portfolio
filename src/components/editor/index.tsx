@@ -9,7 +9,7 @@ import { Button } from "#/components/ui/button";
 import { Skeleton } from "#/components/ui/skeleton";
 import { cn } from "#/lib/utils";
 import { EditorBubbleMenu } from "./bubble-menu";
-import { defaultActiveState } from "./constants";
+import { defaultActiveState, getBlockOptions } from "./constants";
 import { buildExtensions } from "./extensions";
 import type { ActiveState, BlockType, EditorProps } from "./types";
 import { useBubbleMenu } from "./use-bubble-menu";
@@ -46,6 +46,7 @@ export function Editor({
 	onChange = () => undefined,
 	disabled = false,
 	format = "html",
+	headingLevels = [1, 2, 3],
 	enableImages = true,
 	enableImagePasteDrop = false,
 	onUploadImage,
@@ -72,7 +73,7 @@ export function Editor({
 	const lastEmittedValueRef = React.useRef<string>(value);
 
 	const tiptapSurfaceClass = cn(
-		"min-h-16 w-full rounded-md border border-input bg-transparent px-8 py-2 text-base shadow-xs outline-none transition-[color,box-shadow]",
+		"min-h-16 w-full rounded-md border border-input bg-transparent px-8 text-base shadow-xs outline-none transition-[color,box-shadow]",
 		"selection:bg-primary placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30",
 		"[&_.ProseMirror-selectednode]:bg-primary/15 [&_.ProseMirror-selectednode]:outline-none [&_li.ProseMirror-selectednode::after]:border-0 [&_li.ProseMirror-selectednode::after]:bg-primary/15",
 		"[&_img[data-upload-error]]:ring-2 [&_img[data-upload-error]]:ring-destructive [&_img[data-upload-error]]:ring-offset-2 [&_img[data-upload-error]]:ring-offset-background [&_img[data-uploading=true]]:animate-pulse [&_img[data-uploading=true]]:opacity-70",
@@ -82,6 +83,7 @@ export function Editor({
 
 	const editor = useEditor({
 		extensions: buildExtensions({
+			headingLevels,
 			enableImages,
 			onRequestImage,
 			imageFallback,
@@ -235,6 +237,7 @@ export function Editor({
 	insertLocalImageFileRef.current = insertLocalImageFile;
 
 	const menu = useBubbleMenu(editor, { enableImages, disabled });
+	const blockOptions = getBlockOptions(headingLevels);
 
 	const setBlockType = (next: BlockType): void => {
 		if (!editor) return;
@@ -275,9 +278,6 @@ export function Editor({
 				className={cn("min-w-0", className)}
 			>
 				<div className="flex h-full flex-col gap-1">
-					<div className="rounded-md border border-border bg-popover p-1 shadow-sm">
-						<Skeleton className="h-7 w-full rounded-sm" />
-					</div>
 					<div className={tiptapSurfaceClass}>
 						<Skeleton className="h-full min-h-[70vh] w-full rounded-sm" />
 					</div>
@@ -293,6 +293,7 @@ export function Editor({
 				menuBoundary={menuBoundary}
 				disabled={disabled}
 				activeState={activeState}
+				blockOptions={blockOptions}
 				onSetBlockType={setBlockType}
 				menu={menu}
 			/>

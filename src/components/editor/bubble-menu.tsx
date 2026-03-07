@@ -26,7 +26,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
-import { blockOptions } from "./constants";
 import type { ActiveState, BlockType } from "./types";
 import type { BubbleMenuState } from "./use-bubble-menu";
 
@@ -35,6 +34,7 @@ type EditorBubbleMenuProps = {
 	menuBoundary: HTMLDivElement | null;
 	disabled: boolean;
 	activeState: ActiveState;
+	blockOptions: Array<{ value: BlockType; label: string }>;
 	onSetBlockType: (next: BlockType) => void;
 	menu: BubbleMenuState;
 };
@@ -44,6 +44,7 @@ export function EditorBubbleMenu({
 	menuBoundary,
 	disabled,
 	activeState,
+	blockOptions,
 	onSetBlockType,
 	menu,
 }: EditorBubbleMenuProps) {
