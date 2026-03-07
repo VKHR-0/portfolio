@@ -8,7 +8,7 @@ import { toSlug } from "shared/slug";
 import { toast } from "sonner";
 import { Editor } from "#/components/editor";
 import { Badge } from "#/components/ui/badge";
-import { Button, buttonVariants } from "#/components/ui/button";
+import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
 import { Card, CardContent } from "#/components/ui/card";
 import {
