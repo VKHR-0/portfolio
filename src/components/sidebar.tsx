@@ -83,10 +83,7 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 							<React.Suspense
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
-								<RecentPostsMenu
-									authorId={authorId}
-									isActive={pathname.startsWith("/admin/posts")}
-								/>
+								<RecentPostsMenu authorId={authorId} pathname={pathname} />
 							</React.Suspense>
 
 							<SidebarMenuItem>
@@ -109,10 +106,7 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 							<React.Suspense
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
-								<RecentProjectsMenu
-									authorId={authorId}
-									isActive={pathname.startsWith("/admin/projects")}
-								/>
+								<RecentProjectsMenu authorId={authorId} pathname={pathname} />
 							</React.Suspense>
 						</SidebarMenu>
 					</SidebarGroupContent>
@@ -199,10 +193,10 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 
 function RecentPostsMenu({
 	authorId,
-	isActive,
+	pathname,
 }: {
 	authorId: SidebarAuthorId;
-	isActive: boolean;
+	pathname: string;
 }) {
 	const { data: recentPosts } = useSuspenseQuery(
 		convexQuery(api.functions.posts.listRecentPosts, { authorId, limit: 5 }),
@@ -225,8 +219,10 @@ function RecentPostsMenu({
 			{recentPosts.map((post) => (
 				<SidebarMenuSubItem key={post._id}>
 					<SidebarMenuSubButton
-						isActive={isActive}
-						render={<Link to="/admin/posts" />}
+						isActive={pathname === `/admin/posts/${post.slug}`}
+						render={
+							<Link to="/admin/posts/$slugId" params={{ slugId: post.slug }} />
+						}
 					>
 						<span>{post.title}</span>
 					</SidebarMenuSubButton>
@@ -238,10 +234,10 @@ function RecentPostsMenu({
 
 function RecentProjectsMenu({
 	authorId,
-	isActive,
+	pathname,
 }: {
 	authorId: SidebarAuthorId;
-	isActive: boolean;
+	pathname: string;
 }) {
 	const { data: recentProjects } = useSuspenseQuery(
 		convexQuery(api.functions.projects.listRecentProjects, {
@@ -267,8 +263,13 @@ function RecentProjectsMenu({
 			{recentProjects.map((project) => (
 				<SidebarMenuSubItem key={project._id}>
 					<SidebarMenuSubButton
-						isActive={isActive}
-						render={<Link to="/admin/projects" />}
+						isActive={pathname === `/admin/projects/${project.slug}`}
+						render={
+							<Link
+								to="/admin/projects/$slugId"
+								params={{ slugId: project.slug }}
+							/>
+						}
 					>
 						<span>{project.title}</span>
 					</SidebarMenuSubButton>
