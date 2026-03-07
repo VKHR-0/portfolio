@@ -3,7 +3,6 @@ import { v } from "convex/values";
 import { toSlug } from "../../shared/slug";
 import type { Id } from "../_generated/dataModel";
 import {
-	internalMutation,
 	type MutationCtx,
 	mutation,
 	type QueryCtx,
@@ -209,6 +208,37 @@ async function syncPostMediaRelations(
 	}
 }
 
+async function syncPostTagRelations(
+	ctx: MutationCtx,
+	postId: Id<"posts">,
+	tagIds: Array<Id<"tags">>,
+) {
+	const existingRows = await ctx.db
+		.query("postTag")
+		.withIndex("by_post", (q) => q.eq("postId", postId))
+		.collect();
+
+	const desiredTagIds = new Set(tagIds);
+	const seenTagIds = new Set<Id<"tags">>();
+
+	for (const row of existingRows) {
+		if (!desiredTagIds.has(row.tagId) || seenTagIds.has(row.tagId)) {
+			await ctx.db.delete(row._id);
+			continue;
+		}
+
+		seenTagIds.add(row.tagId);
+	}
+
+	for (const tagId of tagIds) {
+		if (seenTagIds.has(tagId)) {
+			continue;
+		}
+
+		await ctx.db.insert("postTag", { postId, tagId });
+	}
+}
+
 export const list = query({
 	args: { paginationOpts: paginationOptsValidator },
 	handler: async (ctx, args) => {
@@ -269,7 +299,7 @@ export const getEditableBySlug = query({
 			categoryId: post.categoryId,
 			projectId: post.projectId,
 			tagIds: post.tags,
-			attachments: post.attachments ?? [],
+			attachments: post.attachments,
 		};
 	},
 });
@@ -318,6 +348,7 @@ export const createDraft = mutation({
 		});
 
 		await syncPostMediaRelations(ctx, postId, attachments);
+		await syncPostTagRelations(ctx, postId, tagIds);
 
 		return {
 			_id: postId,
@@ -385,6 +416,7 @@ export const updateDraft = mutation({
 		});
 
 		await syncPostMediaRelations(ctx, args.id, attachments);
+		await syncPostTagRelations(ctx, args.id, args.tagIds);
 
 		return {
 			_id: args.id,
@@ -398,24 +430,5 @@ export const updateDraft = mutation({
 			tagIds: args.tagIds,
 			attachments,
 		};
-	},
-});
-
-export const backfillPostMediaRelations = internalMutation({
-	args: {},
-	handler: async (ctx) => {
-		const posts = await ctx.db.query("posts").collect();
-		let processedPosts = 0;
-
-		for (const post of posts) {
-			const attachments = await derivePostAttachmentIds(ctx, post.content);
-
-			await ctx.db.patch(post._id, { attachments });
-			await syncPostMediaRelations(ctx, post._id, attachments);
-
-			processedPosts++;
-		}
-
-		return { processedPosts };
 	},
 });

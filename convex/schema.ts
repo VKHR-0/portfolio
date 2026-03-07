@@ -84,4 +84,12 @@ export default defineSchema({
 		.index("by_post", ["postId"])
 		.index("by_media", ["mediaId"])
 		.index("by_post_and_media", ["postId", "mediaId"]),
+
+	postTag: defineTable({
+		postId: v.id("posts"),
+		tagId: v.id("tags"),
+	})
+		.index("by_post", ["postId"])
+		.index("by_tag", ["tagId"])
+		.index("by_post_and_tag", ["postId", "tagId"]),
 });

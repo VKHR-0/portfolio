@@ -98,10 +98,11 @@ export const deleteTag = mutation({
 			throw new Error("Tag not found.");
 		}
 
-		const posts = await ctx.db.query("posts").collect();
-		const associatedPost = posts.find((post) =>
-			post.tags.some((tagId) => tagId === args.id),
-		);
+		const associatedPost =
+			(await ctx.db
+				.query("postTag")
+				.withIndex("by_tag", (q) => q.eq("tagId", args.id))
+				.first()) !== null;
 
 		if (associatedPost) {
 			throw new Error("Cannot delete tag while it is associated with posts.");
