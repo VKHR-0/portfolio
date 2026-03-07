@@ -1,5 +1,5 @@
 import { useRouter } from "@tanstack/react-router";
-import React from "react";
+import * as React from "react";
 import { FunctionOnce } from "#/lib/function-once";
 import { setTheme, type Theme } from "#/server/theme";
 

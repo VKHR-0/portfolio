@@ -5,7 +5,7 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
-import { useEffect, useRef, useState } from "react";
+import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
 import { EditableCell, PageCard } from "#/components/page-card";
@@ -30,13 +30,13 @@ export const Route = createFileRoute("/admin/categories")({
 });
 
 function RouteComponent() {
-	const [cursors, setCursors] = useState<Array<string | null>>([null]);
-	const [currentPage, setCurrentPage] = useState(1);
+	const [cursors, setCursors] = React.useState<Array<string | null>>([null]);
+	const [currentPage, setCurrentPage] = React.useState(1);
 	const currentCursor = cursors[currentPage - 1] ?? null;
 	const updateCategory = useMutation(api.functions.categories.updateCategory);
-	const nameInputRef = useRef<HTMLInputElement>(null);
-	const slugInputRef = useRef<HTMLInputElement>(null);
-	const descriptionInputRef = useRef<HTMLInputElement>(null);
+	const nameInputRef = React.useRef<HTMLInputElement>(null);
+	const slugInputRef = React.useRef<HTMLInputElement>(null);
+	const descriptionInputRef = React.useRef<HTMLInputElement>(null);
 
 	const {
 		form,
@@ -99,7 +99,7 @@ function RouteComponent() {
 		result !== undefined &&
 		(currentPage < pageCount || result.isDone === false);
 
-	useEffect(() => {
+	React.useEffect(() => {
 		if (!editingCategoryId) return;
 
 		if (focusField === "name") {

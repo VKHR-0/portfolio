@@ -1,7 +1,7 @@
 import type { Icon } from "@tabler/icons-react";
 import { IconBan } from "@tabler/icons-react";
 import type { Editor } from "@tiptap/core";
-import { useImperativeHandle, useRef, useState } from "react";
+import * as React from "react";
 import { Command, CommandItem, CommandList } from "#/components/ui/command";
 
 export type SlashItem = {
@@ -24,13 +24,11 @@ export type CommandsListHandle = {
 };
 
 function CommandsList({ items, command, ref }: CommandsListProps) {
-	const [selectedIndex, setSelectedIndex] = useState(0);
-	// Keep a stable ref to selectedIndex so the useImperativeHandle closure stays fresh
-	const selectedIndexRef = useRef(selectedIndex);
+	const [selectedIndex, setSelectedIndex] = React.useState(0);
+	const selectedIndexRef = React.useRef(selectedIndex);
 	selectedIndexRef.current = selectedIndex;
 
-	// Reset selection when the filtered list changes (setState-during-render avoids useEffect)
-	const [prevItems, setPrevItems] = useState(items);
+	const [prevItems, setPrevItems] = React.useState(items);
 	if (prevItems !== items) {
 		setPrevItems(items);
 		setSelectedIndex(0);
@@ -41,7 +39,7 @@ function CommandsList({ items, command, ref }: CommandsListProps) {
 		if (item) command(item);
 	};
 
-	useImperativeHandle(ref, () => ({
+	React.useImperativeHandle(ref, () => ({
 		onKeyDown: (event: KeyboardEvent) => {
 			if (!items.length) return false;
 

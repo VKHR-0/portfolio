@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import type { FocusEvent, KeyboardEvent } from "react";
-import { useRef, useState } from "react";
+import * as React from "react";
 
 type InlineEditValues = Record<string, string>;
 
@@ -23,10 +22,12 @@ type InlineEditOptions<TId, TValues extends InlineEditValues> = {
 export function useInlineEditForm<TId, TValues extends InlineEditValues>(
 	options: InlineEditOptions<TId, TValues>,
 ) {
-	const [editingId, setEditingId] = useState<TId | null>(null);
-	const [isSaving, setIsSaving] = useState(false);
-	const [focusField, setFocusField] = useState<keyof TValues | null>(null);
-	const initialValueRef = useRef<TValues>(options.emptyValues);
+	const [editingId, setEditingId] = React.useState<TId | null>(null);
+	const [isSaving, setIsSaving] = React.useState(false);
+	const [focusField, setFocusField] = React.useState<keyof TValues | null>(
+		null,
+	);
+	const initialValueRef = React.useRef<TValues>(options.emptyValues);
 
 	const form = useForm({
 		defaultValues: options.emptyValues,
@@ -108,7 +109,7 @@ export function useInlineEditForm<TId, TValues extends InlineEditValues>(
 		await form.handleSubmit();
 	};
 
-	const handleInputBlur = (event: FocusEvent<HTMLElement>) => {
+	const handleInputBlur = (event: React.FocusEvent<HTMLElement>) => {
 		const nextTarget = event.relatedTarget as HTMLElement | null;
 
 		const shouldSkip = options.shouldSkipBlurSave
@@ -122,7 +123,7 @@ export function useInlineEditForm<TId, TValues extends InlineEditValues>(
 		void saveEditing();
 	};
 
-	const handleInputKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+	const handleInputKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
 		if (event.key === "Enter") {
 			event.preventDefault();
 			void saveEditing();

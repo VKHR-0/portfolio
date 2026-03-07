@@ -3,7 +3,7 @@ import { IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
-import { useState } from "react";
+import * as React from "react";
 import { PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
 import { TableCell, TableHead, TableRow } from "#/components/ui/table";
@@ -24,8 +24,8 @@ export const Route = createFileRoute("/admin/projects/")({
 });
 
 function RouteComponent() {
-	const [cursors, setCursors] = useState<Array<string | null>>([null]);
-	const [currentPage, setCurrentPage] = useState(1);
+	const [cursors, setCursors] = React.useState<Array<string | null>>([null]);
+	const [currentPage, setCurrentPage] = React.useState(1);
 	const currentCursor = cursors[currentPage - 1] ?? null;
 
 	const { data: result } = useQuery(listProjectsQuery(currentCursor));

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type * as React from "react";
 import { CursorPagination } from "#/components/cursor-pagination";
 import {
 	Card,
@@ -19,10 +19,10 @@ import {
 type PageCardProps = {
 	title: string;
 	description: string;
-	createButton: ReactNode;
+	createButton: React.ReactNode;
 	loadingLabel: string;
 	emptyLabel: string;
-	columnHeaders: ReactNode;
+	columnHeaders: React.ReactNode;
 	columnCount: number;
 	isLoading: boolean;
 	isEmpty: boolean;
@@ -33,7 +33,7 @@ type PageCardProps = {
 	onPrevious: () => void;
 	onNext: () => void;
 	onSelectPage: (page: number) => void;
-	children: ReactNode;
+	children: React.ReactNode;
 };
 
 export function PageCard({
@@ -118,7 +118,7 @@ type EditableCellProps = {
 	displayValue: string;
 	onDoubleClick: () => void;
 	className?: string;
-	children: ReactNode;
+	children: React.ReactNode;
 };
 
 export function EditableCell({

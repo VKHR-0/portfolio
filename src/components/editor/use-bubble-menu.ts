@@ -1,5 +1,5 @@
 import type { Editor as TiptapEditor } from "@tiptap/core";
-import { type RefObject, useEffect, useRef, useState } from "react";
+import * as React from "react";
 
 type ActivePanel = "link" | "table" | "alt" | null;
 
@@ -14,8 +14,8 @@ export type BubbleMenuState = {
 	imageAltText: string;
 	isInTable: boolean;
 	isOnImage: boolean;
-	bubbleMenuRef: RefObject<HTMLDivElement | null>;
-	linkInputRef: RefObject<HTMLInputElement | null>;
+	bubbleMenuRef: React.RefObject<HTMLDivElement | null>;
+	linkInputRef: React.RefObject<HTMLInputElement | null>;
 	setLinkUrl: (url: string) => void;
 	setImageAltText: (text: string) => void;
 	openLinkInput: () => void;
@@ -36,17 +36,16 @@ export function useBubbleMenu(
 	editor: TiptapEditor | null,
 	{ enableImages, disabled: _disabled }: UseBubbleMenuOptions,
 ): BubbleMenuState {
-	const [activePanel, setActivePanel] = useState<ActivePanel>(null);
-	const [isInTable, setIsInTable] = useState(false);
-	const [isOnImage, setIsOnImage] = useState(false);
-	const [linkUrl, setLinkUrl] = useState("");
-	const [imageAltText, setImageAltText] = useState("");
+	const [activePanel, setActivePanel] = React.useState<ActivePanel>(null);
+	const [isInTable, setIsInTable] = React.useState(false);
+	const [isOnImage, setIsOnImage] = React.useState(false);
+	const [linkUrl, setLinkUrl] = React.useState("");
+	const [imageAltText, setImageAltText] = React.useState("");
 
-	const bubbleMenuRef = useRef<HTMLDivElement | null>(null);
-	const linkInputRef = useRef<HTMLInputElement | null>(null);
+	const bubbleMenuRef = React.useRef<HTMLDivElement | null>(null);
+	const linkInputRef = React.useRef<HTMLInputElement | null>(null);
 
-	// Close the active panel when clicking outside the bubble menu
-	useEffect(() => {
+	React.useEffect(() => {
 		if (!activePanel || !editor) return;
 
 		const onPointerDown = (event: PointerEvent) => {
@@ -62,8 +61,7 @@ export function useBubbleMenu(
 		};
 	}, [activePanel, editor]);
 
-	// Auto-focus the link input when it opens
-	useEffect(() => {
+	React.useEffect(() => {
 		if (activePanel !== "link") return;
 		const frameId = requestAnimationFrame(() => {
 			linkInputRef.current?.focus();
@@ -72,8 +70,7 @@ export function useBubbleMenu(
 		return () => cancelAnimationFrame(frameId);
 	}, [activePanel]);
 
-	// Track whether the cursor is inside a table or on an image
-	useEffect(() => {
+	React.useEffect(() => {
 		if (!editor) return;
 
 		const update = () => {

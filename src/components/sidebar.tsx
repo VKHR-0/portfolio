@@ -11,7 +11,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import type { FunctionArgs } from "convex/server";
-import { Suspense } from "react";
+import * as React from "react";
 import {
 	Sidebar,
 	SidebarContent,
@@ -80,14 +80,14 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 									<span className="sr-only">Create post</span>
 								</SidebarMenuAction>
 							</SidebarMenuItem>
-							<Suspense
+							<React.Suspense
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
 								<RecentPostsMenu
 									authorId={authorId}
 									isActive={pathname.startsWith("/admin/posts")}
 								/>
-							</Suspense>
+							</React.Suspense>
 
 							<SidebarMenuItem>
 								<SidebarMenuButton
@@ -106,14 +106,14 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 									<span className="sr-only">Create project</span>
 								</SidebarMenuAction>
 							</SidebarMenuItem>
-							<Suspense
+							<React.Suspense
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
 								<RecentProjectsMenu
 									authorId={authorId}
 									isActive={pathname.startsWith("/admin/projects")}
 								/>
-							</Suspense>
+							</React.Suspense>
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>

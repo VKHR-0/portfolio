@@ -4,7 +4,7 @@ import { DragHandle } from "@tiptap/extension-drag-handle-react";
 import { DOMSerializer } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
-import { useEffect, useRef, useState } from "react";
+import * as React from "react";
 import { Button } from "#/components/ui/button";
 import { Skeleton } from "#/components/ui/skeleton";
 import { cn } from "#/lib/utils";
@@ -57,11 +57,11 @@ export function Editor({
 	editorClassName,
 	...props
 }: EditorProps) {
-	const [menuBoundary, setMenuBoundary] = useState<HTMLDivElement | null>(null);
+	const [menuBoundary, setMenuBoundary] = React.useState<HTMLDivElement | null>(
+		null,
+	);
 
-	// Stable callback ref so the extension always calls the latest insertLocalImageFile,
-	// regardless of which render created the extension config.
-	const insertLocalImageFileRef = useRef<
+	const insertLocalImageFileRef = React.useRef<
 		(
 			file: File,
 			source: "paste" | "drop" | "slash",
@@ -69,7 +69,7 @@ export function Editor({
 		) => Promise<void>
 	>(async () => undefined);
 
-	const lastEmittedValueRef = useRef<string>(value);
+	const lastEmittedValueRef = React.useRef<string>(value);
 
 	const tiptapSurfaceClass = cn(
 		"min-h-16 w-full rounded-md border border-input bg-transparent px-8 py-2 text-base shadow-xs outline-none transition-[color,box-shadow]",
@@ -85,8 +85,6 @@ export function Editor({
 			enableImages,
 			onRequestImage,
 			imageFallback,
-			// Indirection via ref so the extension closure always calls the
-			// latest insertLocalImageFile without recreating extensions.
 			insertLocalImageFile: (file, source, initialAttrs) =>
 				insertLocalImageFileRef.current(file, source, initialAttrs),
 		}),
@@ -192,8 +190,7 @@ export function Editor({
 			},
 		}) as ActiveState | null) ?? defaultActiveState;
 
-	// Sync external value changes into the editor
-	useEffect(() => {
+	React.useEffect(() => {
 		if (!editor) return;
 		if (value === lastEmittedValueRef.current) return;
 
@@ -213,12 +210,12 @@ export function Editor({
 		}
 	}, [editor, value, format]);
 
-	useEffect(() => {
+	React.useEffect(() => {
 		if (!editor) return;
 		editor.setEditable(!disabled);
 	}, [editor, disabled]);
 
-	useEffect(() => {
+	React.useEffect(() => {
 		if (!editor) return;
 		editor.setOptions({
 			editorProps: { attributes: { class: tiptapSurfaceClass } },
@@ -235,7 +232,6 @@ export function Editor({
 		},
 	);
 
-	// Keep the ref in sync so the extension always calls the latest function
 	insertLocalImageFileRef.current = insertLocalImageFile;
 
 	const menu = useBubbleMenu(editor, { enableImages, disabled });

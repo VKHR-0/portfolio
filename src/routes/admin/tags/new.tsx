@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useMutation } from "convex/react";
-import { useState } from "react";
+import * as React from "react";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import { toast } from "sonner";
 import z from "zod";
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/admin/tags/new")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const createTag = useMutation(api.functions.tags.createTag);
-	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
 
 	const form = useForm({
 		defaultValues: {

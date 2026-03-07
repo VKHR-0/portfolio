@@ -1,5 +1,5 @@
 import type { Editor as TiptapEditor } from "@tiptap/core";
-import { useEffect, useRef } from "react";
+import * as React from "react";
 import {
 	DEFAULT_MAX_IMAGE_BYTES,
 	UPLOADED_IMAGE_PRELOAD_TIMEOUT_MS,
@@ -44,11 +44,11 @@ export function useImageUpload(
 		onPendingUploadsChange,
 	}: UseImageUploadOptions,
 ): UseImageUploadReturn {
-	const pendingUploadsRef = useRef(0);
-	const objectUrlByUploadIdRef = useRef(new Map<string, string>());
-	const expectedBlobByUploadIdRef = useRef(new Map<string, string>());
+	const pendingUploadsRef = React.useRef(0);
+	const objectUrlByUploadIdRef = React.useRef(new Map<string, string>());
+	const expectedBlobByUploadIdRef = React.useRef(new Map<string, string>());
 
-	useEffect(() => {
+	React.useEffect(() => {
 		onPendingUploadsChange?.(pendingUploadsRef.current);
 
 		return () => {
@@ -109,7 +109,6 @@ export function useImageUpload(
 				if (typeof image.decode === "function") {
 					void image.decode().then(
 						() => finish(true),
-						// decode errors can still have a usable image after load; keep it non-blocking.
 						() => finish(true),
 					);
 					return;

@@ -8,7 +8,7 @@ import {
 	Scripts,
 	useRouteContext,
 } from "@tanstack/react-router";
-import { lazy, type ReactNode, Suspense } from "react";
+import * as React from "react";
 import { ThemeProvider } from "#/components/theme-provider";
 import { Toaster } from "#/components/ui/sonner";
 import { TooltipProvider } from "#/components/ui/tooltip";
@@ -19,7 +19,7 @@ import appCss from "../styles.css?url";
 
 const Devtools =
 	import.meta.env.DEV &&
-	lazy(() =>
+	React.lazy(() =>
 		import("#/components/devtools").then((module) => ({
 			default: module.Devtools,
 		})),
@@ -83,7 +83,7 @@ function RootComponent() {
 	);
 }
 
-function RootDocument({ children }: { children: ReactNode }) {
+function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
@@ -93,9 +93,9 @@ function RootDocument({ children }: { children: ReactNode }) {
 				{children}
 				<Toaster position="top-center" />
 				{Devtools ? (
-					<Suspense fallback={null}>
+					<React.Suspense fallback={null}>
 						<Devtools />
-					</Suspense>
+					</React.Suspense>
 				) : null}
 				<Scripts />
 			</body>
