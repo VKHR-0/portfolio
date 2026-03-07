@@ -24,10 +24,16 @@ import {
 } from "#/components/ui/table";
 import { cn } from "#/lib/utils";
 
+declare const columnMetaType: unique symbol;
+
 declare module "@tanstack/react-table" {
-	interface ColumnMeta<_Data extends RowData, TValue> {
+	interface ColumnMeta<TData extends RowData, TValue> {
 		headerClassName?: string;
 		cellClassName?: string;
+		[columnMetaType]?: {
+			data: TData;
+			value: TValue;
+		};
 	}
 }
 
