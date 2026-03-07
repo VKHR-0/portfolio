@@ -1,6 +1,8 @@
-import { type Icon, IconBan } from "@tabler/icons-react";
+import type { Icon } from "@tabler/icons-react";
+import { IconBan } from "@tabler/icons-react";
 import type { Editor } from "@tiptap/core";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { useImperativeHandle, useRef, useState } from "react";
+import { Command, CommandItem, CommandList } from "#/components/ui/command";
 
 export type SlashItem = {
 	title: string;
@@ -14,66 +16,74 @@ export type SlashItem = {
 type CommandsListProps = {
 	items: SlashItem[];
 	command: (item: SlashItem) => void;
+	ref?: React.Ref<CommandsListHandle>;
 };
 
 export type CommandsListHandle = {
 	onKeyDown: (event: KeyboardEvent) => boolean;
 };
 
-const CommandsList = forwardRef<CommandsListHandle, CommandsListProps>(
-	({ items, command }, ref) => {
-		const [selectedIndex, setSelectedIndex] = useState(0);
+function CommandsList({ items, command, ref }: CommandsListProps) {
+	const [selectedIndex, setSelectedIndex] = useState(0);
+	// Keep a stable ref to selectedIndex so the useImperativeHandle closure stays fresh
+	const selectedIndexRef = useRef(selectedIndex);
+	selectedIndexRef.current = selectedIndex;
 
-		useEffect(() => {
-			setSelectedIndex(0);
-		}, []);
+	// Reset selection when the filtered list changes (setState-during-render avoids useEffect)
+	const [prevItems, setPrevItems] = useState(items);
+	if (prevItems !== items) {
+		setPrevItems(items);
+		setSelectedIndex(0);
+	}
 
-		const selectItem = (index: number) => {
-			const item = items[index];
-			if (item) command(item);
-		};
+	const selectItem = (index: number) => {
+		const item = items[index];
+		if (item) command(item);
+	};
 
-		useImperativeHandle(ref, () => ({
-			onKeyDown: (event: KeyboardEvent) => {
-				if (!items.length) return false;
+	useImperativeHandle(ref, () => ({
+		onKeyDown: (event: KeyboardEvent) => {
+			if (!items.length) return false;
 
-				if (event.key === "ArrowUp") {
-					event.preventDefault();
-					setSelectedIndex(
-						(current) => (current + items.length - 1) % items.length,
-					);
-					return true;
-				}
+			if (event.key === "ArrowUp") {
+				event.preventDefault();
+				setSelectedIndex(
+					(current) => (current + items.length - 1) % items.length,
+				);
+				return true;
+			}
 
-				if (event.key === "ArrowDown") {
-					event.preventDefault();
-					setSelectedIndex((current) => (current + 1) % items.length);
-					return true;
-				}
+			if (event.key === "ArrowDown") {
+				event.preventDefault();
+				setSelectedIndex((current) => (current + 1) % items.length);
+				return true;
+			}
 
-				if (event.key === "Enter") {
-					event.preventDefault();
-					selectItem(selectedIndex);
-					return true;
-				}
+			if (event.key === "Enter") {
+				event.preventDefault();
+				selectItem(selectedIndexRef.current);
+				return true;
+			}
 
-				return false;
-			},
-		}));
+			return false;
+		},
+	}));
 
-		return (
-			<div className="z-50 min-w-44 overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md">
+	return (
+		<Command className="min-w-44 overflow-hidden rounded-md border border-border shadow-md">
+			<CommandList>
 				{items.length ? (
 					items.map((item, index) => (
-						<button
+						<CommandItem
 							key={item.title}
-							type="button"
-							onClick={() => selectItem(index)}
-							className="relative flex w-full cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground aria-selected:bg-accent aria-selected:text-accent-foreground"
+							value={item.title}
+							data-selected={index === selectedIndex ? true : undefined}
+							onSelect={() => selectItem(index)}
+							onMouseEnter={() => setSelectedIndex(index)}
 						>
-							<item.icon className="mr-2 size-4" />
+							<item.icon />
 							{item.title}
-						</button>
+						</CommandItem>
 					))
 				) : (
 					<div className="flex items-center px-2 py-1.5 text-muted-foreground text-sm">
@@ -81,11 +91,9 @@ const CommandsList = forwardRef<CommandsListHandle, CommandsListProps>(
 						No results
 					</div>
 				)}
-			</div>
-		);
-	},
-);
-
-CommandsList.displayName = "CommandsList";
+			</CommandList>
+		</Command>
+	);
+}
 
 export default CommandsList;

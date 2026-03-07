@@ -13,7 +13,6 @@ import {
 import type { Editor } from "@tiptap/core";
 import { ReactRenderer } from "@tiptap/react";
 import type { SuggestionOptions as TiptapSuggestionOptions } from "@tiptap/suggestion";
-import tippy, { type Instance as TippyInstance } from "tippy.js";
 import CommandsList, {
 	type CommandsListHandle,
 	type SlashItem,
@@ -191,6 +190,11 @@ type SuggestionKeyDownProps = Parameters<
 	NonNullable<SuggestionRenderLifecycle["onKeyDown"]>
 >[0];
 
+const updatePosition = (el: HTMLElement, rect: DOMRect): void => {
+	el.style.top = `${rect.bottom + 4}px`;
+	el.style.left = `${rect.left}px`;
+};
+
 const createSuggestion = (
 	options: SuggestionOptions = {},
 ): SlashSuggestion => ({
@@ -204,7 +208,7 @@ const createSuggestion = (
 
 	render: (): SuggestionRenderLifecycle => {
 		let component: ReactRenderer<CommandsListHandle> | null = null;
-		let popup: TippyInstance | null = null;
+		let el: HTMLElement | null = null;
 
 		return {
 			onStart: (props) => {
@@ -217,29 +221,27 @@ const createSuggestion = (
 				const referenceRect = () =>
 					props.clientRect?.() ?? new DOMRect(0, 0, 0, 0);
 
-				popup = tippy(document.body, {
-					getReferenceClientRect: referenceRect,
-					appendTo: () => document.body,
-					content: component.element,
-					showOnCreate: true,
-					interactive: true,
-					trigger: "manual",
-					placement: "bottom-start",
-				});
+				el = component.element as HTMLElement;
+				Object.assign(el.style, { position: "fixed", zIndex: "50" });
+				document.body.appendChild(el);
+				updatePosition(el, referenceRect());
 			},
 
 			onUpdate: (props) => {
 				if (!component) return;
 				component.updateProps(props);
-				if (!props.clientRect || !popup) return;
+				if (!props.clientRect || !el) return;
 				const referenceRect = () =>
 					props.clientRect?.() ?? new DOMRect(0, 0, 0, 0);
-				popup.setProps({ getReferenceClientRect: referenceRect });
+				updatePosition(el, referenceRect());
 			},
 
 			onKeyDown: ({ event }: SuggestionKeyDownProps): boolean => {
-				if (event.key === "Escape" && popup) {
-					popup.hide();
+				if (event.key === "Escape" && el) {
+					el.remove();
+					el = null;
+					component?.destroy();
+					component = null;
 					return true;
 				}
 
@@ -247,8 +249,10 @@ const createSuggestion = (
 			},
 
 			onExit: (): void => {
-				if (popup) popup.destroy();
+				el?.remove();
 				component?.destroy();
+				el = null;
+				component = null;
 			},
 		};
 	},

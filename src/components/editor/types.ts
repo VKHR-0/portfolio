@@ -1,4 +1,3 @@
-import type { Icon } from "@tabler/icons-react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import type { HTMLAttributes } from "react";
 import type {
@@ -87,31 +86,4 @@ export type UploadableImageAttrs = {
 	uploading?: unknown;
 	uploadError?: unknown;
 	[key: string]: unknown;
-};
-
-export type ToggleAction = {
-	label: string;
-	icon: Icon;
-	isActive: () => boolean;
-	run: () => void;
-	toggle: true;
-};
-
-export type PlainAction = {
-	label: string;
-	icon: Icon;
-	run: () => void;
-	toggle?: false;
-};
-
-export type MenuAction = ToggleAction | PlainAction;
-
-export type IconButtonOptions = {
-	label: string;
-	icon: Icon;
-	onClick: () => void;
-	disabled: boolean;
-	toggle?: boolean;
-	pressed?: boolean;
-	className?: string;
 };
