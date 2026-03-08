@@ -9,3 +9,9 @@ export function listProjectsQuery() {
 		},
 	});
 }
+
+export function getEditableProjectBySlugQuery(slug: string) {
+	return convexQuery(api.functions.projects.getEditableBySlug, {
+		slug,
+	});
+}

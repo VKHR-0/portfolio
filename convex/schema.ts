@@ -6,6 +6,7 @@ export default defineSchema({
 		title: v.string(),
 		slug: v.string(),
 		description: v.string(),
+		content: v.string(),
 		imageId: v.optional(v.string()),
 
 		status: v.union(

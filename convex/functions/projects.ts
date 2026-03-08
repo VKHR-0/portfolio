@@ -132,3 +132,151 @@ export const updateProjectSummary = mutation({
 		};
 	},
 });
+
+export const getEditableBySlug = query({
+	args: {
+		slug: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const authorId = await requireCurrentUserId(ctx);
+		const project = await ctx.db
+			.query("projects")
+			.withIndex("by_slug", (q) => q.eq("slug", normalizeSlug(args.slug)))
+			.unique();
+
+		if (!project || project.authorId !== authorId) {
+			throw new Error("Project not found.");
+		}
+
+		return {
+			_id: project._id,
+			title: project.title,
+			slug: project.slug,
+			description: project.description,
+			content: project.content,
+			status: project.status,
+			imageId: project.imageId,
+			repositoryUrl: project.repositoryUrl,
+			demoUrl: project.demoUrl,
+			techStack: project.techStack,
+		};
+	},
+});
+
+export const createDraft = mutation({
+	args: {
+		title: v.string(),
+		slug: v.string(),
+		description: v.optional(v.string()),
+		content: v.optional(v.string()),
+		status: v.optional(
+			v.union(
+				v.literal("active"),
+				v.literal("completed"),
+				v.literal("archived"),
+			),
+		),
+		imageId: v.optional(v.string()),
+		repositoryUrl: v.optional(v.string()),
+		demoUrl: v.optional(v.string()),
+		techStack: v.optional(v.array(v.string())),
+	},
+	handler: async (ctx, args) => {
+		const authorId = await requireCurrentUserId(ctx);
+		const title = normalizeTitle(args.title);
+		const slug = normalizeSlug(args.slug);
+
+		const existingProject = await ctx.db
+			.query("projects")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (existingProject) {
+			throw new Error("Project with this slug already exists.");
+		}
+
+		const projectId = await ctx.db.insert("projects", {
+			title,
+			slug,
+			description: args.description?.trim() ?? "",
+			content: args.content?.trim() ?? "",
+			status: args.status ?? "active",
+			imageId: args.imageId,
+			repositoryUrl: args.repositoryUrl,
+			demoUrl: args.demoUrl,
+			techStack: args.techStack ?? [],
+			authorId,
+		});
+
+		return { _id: projectId, title, slug };
+	},
+});
+
+export const updateDraft = mutation({
+	args: {
+		id: v.id("projects"),
+		title: v.string(),
+		slug: v.string(),
+		description: v.string(),
+		content: v.string(),
+		status: v.union(
+			v.literal("active"),
+			v.literal("completed"),
+			v.literal("archived"),
+		),
+		imageId: v.optional(v.string()),
+		repositoryUrl: v.optional(v.string()),
+		demoUrl: v.optional(v.string()),
+		techStack: v.array(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const authorId = await requireCurrentUserId(ctx);
+		const existingProject = await ctx.db.get(args.id);
+
+		if (!existingProject || existingProject.authorId !== authorId) {
+			throw new Error("Project not found.");
+		}
+
+		const title = normalizeTitle(args.title);
+		const slug = normalizeSlug(args.slug);
+
+		const conflictingProject = await ctx.db
+			.query("projects")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (conflictingProject && conflictingProject._id !== args.id) {
+			throw new Error("Project with this slug already exists.");
+		}
+
+		await ctx.db.patch(args.id, {
+			title,
+			slug,
+			description: args.description.trim(),
+			content: args.content.trim(),
+			status: args.status,
+			imageId: args.imageId,
+			repositoryUrl: args.repositoryUrl,
+			demoUrl: args.demoUrl,
+			techStack: args.techStack,
+		});
+
+		return { _id: args.id, title, slug };
+	},
+});
+
+export const deleteProject = mutation({
+	args: {
+		id: v.id("projects"),
+	},
+	handler: async (ctx, args) => {
+		const authorId = await requireCurrentUserId(ctx);
+		const project = await ctx.db.get(args.id);
+
+		if (!project || project.authorId !== authorId) {
+			throw new Error("Project not found.");
+		}
+
+		await ctx.db.delete(args.id);
+	},
+});
