@@ -16,6 +16,12 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
+import { useMutation } from "convex/react";
+import * as React from "react";
+import { toSlug } from "shared/slug";
+import { toast } from "sonner";
+import { EditableCell } from "#/components/page-card";
 import { useTheme } from "#/components/theme-provider";
 import { Button } from "#/components/ui/button";
 import {
@@ -25,6 +31,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { Input } from "#/components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -33,6 +40,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "#/components/ui/table";
+import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import { authClient } from "#/lib/auth-client";
 import { isAuthError } from "#/lib/auth-errors";
 import { cn } from "#/lib/utils";
@@ -109,12 +117,134 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const { user } = Route.useLoaderData();
 	const { theme, setTheme } = useTheme();
+	const updatePostSummary = useMutation(api.functions.posts.updatePostSummary);
+	const updateProjectSummary = useMutation(
+		api.functions.projects.updateProjectSummary,
+	);
 	const { data: recentPosts } = useSuspenseQuery(recentPostsQuery(user._id));
 	const { data: recentProjects } = useSuspenseQuery(
 		recentProjectsQuery(user._id),
 	);
+	const postTitleInputRef = React.useRef<HTMLInputElement>(null);
+	const postSlugInputRef = React.useRef<HTMLInputElement>(null);
+	const projectTitleInputRef = React.useRef<HTMLInputElement>(null);
+	const projectSlugInputRef = React.useRef<HTMLInputElement>(null);
+	const {
+		form: postForm,
+		editingId: editingPostId,
+		isSaving: isSavingPost,
+		focusField: postFocusField,
+		setFocusField: setPostFocusField,
+		startEditing: startEditingPost,
+		handleInputBlur: handlePostInputBlur,
+		handleInputKeyDown: handlePostInputKeyDown,
+	} = useInlineEditForm<Id<"posts">, { title: string; slug: string }>({
+		emptyValues: { title: "", slug: "" },
+		isUnchanged: ({ value, initialValue }) =>
+			value.title.trim() === initialValue.title &&
+			toSlug(value.slug) === initialValue.slug,
+		onSubmit: async ({ id, value }) => {
+			const title = value.title.trim();
+			const slug = toSlug(value.slug);
+
+			if (!title) {
+				toast.error("Title is required.");
+				setPostFocusField("title");
+				postTitleInputRef.current?.focus();
+				return false;
+			}
+
+			if (!slug) {
+				toast.error("Slug is required.");
+				setPostFocusField("slug");
+				postSlugInputRef.current?.focus();
+				return false;
+			}
+
+			await updatePostSummary({ id, title, slug });
+		},
+		onError: (mutationError) => {
+			toast.error(
+				mutationError instanceof Error
+					? mutationError.message
+					: "Unable to update post.",
+			);
+		},
+	});
+	const {
+		form: projectForm,
+		editingId: editingProjectId,
+		isSaving: isSavingProject,
+		focusField: projectFocusField,
+		setFocusField: setProjectFocusField,
+		startEditing: startEditingProject,
+		handleInputBlur: handleProjectInputBlur,
+		handleInputKeyDown: handleProjectInputKeyDown,
+	} = useInlineEditForm<Id<"projects">, { title: string; slug: string }>({
+		emptyValues: { title: "", slug: "" },
+		isUnchanged: ({ value, initialValue }) =>
+			value.title.trim() === initialValue.title &&
+			toSlug(value.slug) === initialValue.slug,
+		onSubmit: async ({ id, value }) => {
+			const title = value.title.trim();
+			const slug = toSlug(value.slug);
+
+			if (!title) {
+				toast.error("Title is required.");
+				setProjectFocusField("title");
+				projectTitleInputRef.current?.focus();
+				return false;
+			}
+
+			if (!slug) {
+				toast.error("Slug is required.");
+				setProjectFocusField("slug");
+				projectSlugInputRef.current?.focus();
+				return false;
+			}
+
+			await updateProjectSummary({ id, title, slug });
+		},
+		onError: (mutationError) => {
+			toast.error(
+				mutationError instanceof Error
+					? mutationError.message
+					: "Unable to update project.",
+			);
+		},
+	});
 	const nextTheme = getNextTheme(theme);
 	const ThemeIcon = getThemeIcon(theme);
+
+	React.useEffect(() => {
+		if (!editingPostId) {
+			return;
+		}
+
+		if (postFocusField === "title") {
+			postTitleInputRef.current?.focus();
+			postTitleInputRef.current?.select();
+			return;
+		}
+
+		postSlugInputRef.current?.focus();
+		postSlugInputRef.current?.select();
+	}, [editingPostId, postFocusField]);
+
+	React.useEffect(() => {
+		if (!editingProjectId) {
+			return;
+		}
+
+		if (projectFocusField === "title") {
+			projectTitleInputRef.current?.focus();
+			projectTitleInputRef.current?.select();
+			return;
+		}
+
+		projectSlugInputRef.current?.focus();
+		projectSlugInputRef.current?.select();
+	}, [editingProjectId, projectFocusField]);
 
 	return (
 		<section className="flex min-h-0 flex-1 flex-col gap-2">
@@ -163,6 +293,71 @@ function RouteComponent() {
 				rows={recentPosts}
 				viewAllLink="/admin/posts"
 				createLink="/admin/posts/new"
+				renderTitleCell={(post) => (
+					<EditableCell
+						isEditing={editingPostId === post._id}
+						displayValue={post.title}
+						onDoubleClick={() =>
+							startEditingPost(
+								post._id,
+								{ title: post.title, slug: post.slug },
+								"title",
+							)
+						}
+						className="font-medium"
+					>
+						<postForm.Field name="title">
+							{(field) => (
+								<Input
+									ref={postTitleInputRef}
+									data-editable-cell="true"
+									value={field.state.value}
+									disabled={isSavingPost}
+									onChange={(event) => {
+										const nextTitle = event.target.value;
+										field.handleChange(nextTitle);
+										postForm.setFieldValue("slug", toSlug(nextTitle));
+									}}
+									onBlur={(event) => {
+										field.handleBlur();
+										handlePostInputBlur(event);
+									}}
+									onKeyDown={handlePostInputKeyDown}
+								/>
+							)}
+						</postForm.Field>
+					</EditableCell>
+				)}
+				renderSlugCell={(post) => (
+					<EditableCell
+						isEditing={editingPostId === post._id}
+						displayValue={post.slug}
+						onDoubleClick={() =>
+							startEditingPost(
+								post._id,
+								{ title: post.title, slug: post.slug },
+								"slug",
+							)
+						}
+					>
+						<postForm.Field name="slug">
+							{(field) => (
+								<Input
+									ref={postSlugInputRef}
+									data-editable-cell="true"
+									value={field.state.value}
+									disabled={isSavingPost}
+									onChange={(event) => field.handleChange(event.target.value)}
+									onBlur={(event) => {
+										field.handleBlur();
+										handlePostInputBlur(event);
+									}}
+									onKeyDown={handlePostInputKeyDown}
+								/>
+							)}
+						</postForm.Field>
+					</EditableCell>
+				)}
 				renderRowActions={(post) => (
 					<>
 						<Button
@@ -202,6 +397,71 @@ function RouteComponent() {
 				rows={recentProjects}
 				viewAllLink="/admin/projects"
 				createLink="/admin/projects/new"
+				renderTitleCell={(project) => (
+					<EditableCell
+						isEditing={editingProjectId === project._id}
+						displayValue={project.title}
+						onDoubleClick={() =>
+							startEditingProject(
+								project._id,
+								{ title: project.title, slug: project.slug },
+								"title",
+							)
+						}
+						className="font-medium"
+					>
+						<projectForm.Field name="title">
+							{(field) => (
+								<Input
+									ref={projectTitleInputRef}
+									data-editable-cell="true"
+									value={field.state.value}
+									disabled={isSavingProject}
+									onChange={(event) => {
+										const nextTitle = event.target.value;
+										field.handleChange(nextTitle);
+										projectForm.setFieldValue("slug", toSlug(nextTitle));
+									}}
+									onBlur={(event) => {
+										field.handleBlur();
+										handleProjectInputBlur(event);
+									}}
+									onKeyDown={handleProjectInputKeyDown}
+								/>
+							)}
+						</projectForm.Field>
+					</EditableCell>
+				)}
+				renderSlugCell={(project) => (
+					<EditableCell
+						isEditing={editingProjectId === project._id}
+						displayValue={project.slug}
+						onDoubleClick={() =>
+							startEditingProject(
+								project._id,
+								{ title: project.title, slug: project.slug },
+								"slug",
+							)
+						}
+					>
+						<projectForm.Field name="slug">
+							{(field) => (
+								<Input
+									ref={projectSlugInputRef}
+									data-editable-cell="true"
+									value={field.state.value}
+									disabled={isSavingProject}
+									onChange={(event) => field.handleChange(event.target.value)}
+									onBlur={(event) => {
+										field.handleBlur();
+										handleProjectInputBlur(event);
+									}}
+									onKeyDown={handleProjectInputKeyDown}
+								/>
+							)}
+						</projectForm.Field>
+					</EditableCell>
+				)}
 				renderRowActions={(project) => (
 					<>
 						<Button
@@ -241,7 +501,7 @@ function RouteComponent() {
 }
 
 type RecentItem = {
-	_id: string;
+	_id: Id<"posts"> | Id<"projects">;
 	title: string;
 	slug: string;
 	status?: string;
@@ -255,6 +515,8 @@ type RecentItemsCardProps<TItem extends RecentItem> = {
 	rows: Array<TItem>;
 	viewAllLink: "/admin/posts" | "/admin/projects";
 	createLink: "/admin/posts/new" | "/admin/projects/new";
+	renderTitleCell: (item: TItem) => React.ReactNode;
+	renderSlugCell: (item: TItem) => React.ReactNode;
 	renderRowActions: (item: TItem) => React.ReactNode;
 };
 
@@ -265,6 +527,8 @@ function RecentItemsCard<TItem extends RecentItem>({
 	rows,
 	viewAllLink,
 	createLink,
+	renderTitleCell,
+	renderSlugCell,
 	renderRowActions,
 }: RecentItemsCardProps<TItem>) {
 	return (
@@ -309,9 +573,11 @@ function RecentItemsCard<TItem extends RecentItem>({
 											{renderRowActions(item)}
 										</div>
 									</TableCell>
-									<TableCell className="font-medium">{item.title}</TableCell>
+									<TableCell className="font-medium">
+										{renderTitleCell(item)}
+									</TableCell>
 									<TableCell className="text-muted-foreground">
-										{item.slug}
+										{renderSlugCell(item)}
 									</TableCell>
 									<TableCell
 										className={cn(
