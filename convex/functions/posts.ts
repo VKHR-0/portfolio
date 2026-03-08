@@ -462,6 +462,44 @@ export const updateDraft = mutation({
 	},
 });
 
+export const updatePostSummary = mutation({
+	args: {
+		id: v.id("posts"),
+		title: v.string(),
+		slug: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const authorId = await requireCurrentUserId(ctx);
+		const existingPost = await ctx.db.get(args.id);
+
+		if (!existingPost || existingPost.authorId !== authorId) {
+			throw new Error("Post not found.");
+		}
+
+		const title = normalizeTitle(args.title);
+		const slug = normalizeSlug(args.slug);
+		const conflictingPost = await ctx.db
+			.query("posts")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (conflictingPost && conflictingPost._id !== args.id) {
+			throw new Error("Post with this slug already exists.");
+		}
+
+		await ctx.db.patch(args.id, {
+			title,
+			slug,
+		});
+
+		return {
+			_id: args.id,
+			title,
+			slug,
+		};
+	},
+});
+
 export const deletePost = mutation({
 	args: {
 		id: v.id("posts"),

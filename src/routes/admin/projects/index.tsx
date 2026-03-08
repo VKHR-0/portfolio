@@ -5,9 +5,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
+import { useMutation } from "convex/react";
 import * as React from "react";
-import { PageCard } from "#/components/page-card";
+import { toSlug } from "shared/slug";
+import { toast } from "sonner";
+import { EditableCell, PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
+import { Input } from "#/components/ui/input";
+import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
 	createAdminTableSearchSchema,
 	searchFromSortingState,
@@ -20,7 +26,7 @@ const PROJECT_SORT_FIELDS = ["title", "slug"] as const;
 type ProjectSortField = (typeof PROJECT_SORT_FIELDS)[number];
 
 type ProjectRow = {
-	_id: string;
+	_id: Id<"projects">;
 	title: string;
 	slug: string;
 };
@@ -61,6 +67,57 @@ function RouteComponent() {
 		() => sortingStateFromSearch<ProjectSortField>(search),
 		[search],
 	);
+	const updateProjectSummary = useMutation(
+		api.functions.projects.updateProjectSummary,
+	);
+	const titleInputRef = React.useRef<HTMLInputElement>(null);
+	const slugInputRef = React.useRef<HTMLInputElement>(null);
+	const {
+		form,
+		editingId: editingProjectId,
+		isSaving: isSavingEdit,
+		focusField,
+		setFocusField,
+		startEditing,
+		handleInputBlur,
+		handleInputKeyDown,
+	} = useInlineEditForm<Id<"projects">, { title: string; slug: string }>({
+		emptyValues: { title: "", slug: "" },
+		isUnchanged: ({ value, initialValue }) =>
+			value.title.trim() === initialValue.title &&
+			toSlug(value.slug) === initialValue.slug,
+		onSubmit: async ({ id, value }) => {
+			const title = value.title.trim();
+			const slug = toSlug(value.slug);
+
+			if (!title) {
+				toast.error("Title is required.");
+				setFocusField("title");
+				titleInputRef.current?.focus();
+				return false;
+			}
+
+			if (!slug) {
+				toast.error("Slug is required.");
+				setFocusField("slug");
+				slugInputRef.current?.focus();
+				return false;
+			}
+
+			await updateProjectSummary({
+				id,
+				title,
+				slug,
+			});
+		},
+		onError: (mutationError) => {
+			toast.error(
+				mutationError instanceof Error
+					? mutationError.message
+					: "Unable to update project.",
+			);
+		},
+	});
 
 	React.useEffect(() => {
 		if (previousSortKeyRef.current === sortKey) {
@@ -80,6 +137,35 @@ function RouteComponent() {
 	const canGoNext =
 		result !== undefined &&
 		(currentPage < pageCount || result.isDone === false);
+
+	React.useEffect(() => {
+		if (!editingProjectId) {
+			return;
+		}
+
+		if (focusField === "title") {
+			titleInputRef.current?.focus();
+			titleInputRef.current?.select();
+			return;
+		}
+
+		slugInputRef.current?.focus();
+		slugInputRef.current?.select();
+	}, [editingProjectId, focusField]);
+
+	const startEditingProject = React.useCallback(
+		(project: ProjectRow, field: "title" | "slug") => {
+			startEditing(
+				project._id,
+				{
+					title: project.title,
+					slug: project.slug,
+				},
+				field,
+			);
+		},
+		[startEditing],
+	);
 
 	const columns = React.useMemo<Array<ColumnDef<ProjectRow>>>(
 		() => [
@@ -131,7 +217,39 @@ function RouteComponent() {
 					headerClassName: "w-[40%]",
 					cellClassName: "truncate font-medium",
 				},
-				cell: ({ row }) => row.original.title,
+				cell: ({ row }) => {
+					const project = row.original;
+
+					return (
+						<EditableCell
+							isEditing={editingProjectId === project._id}
+							displayValue={project.title}
+							onDoubleClick={() => startEditingProject(project, "title")}
+							className="font-medium"
+						>
+							<form.Field name="title">
+								{(field) => (
+									<Input
+										ref={titleInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => {
+											const nextTitle = event.target.value;
+											field.handleChange(nextTitle);
+											form.setFieldValue("slug", toSlug(nextTitle));
+										}}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
+					);
+				},
 			},
 			{
 				accessorKey: "slug",
@@ -140,10 +258,44 @@ function RouteComponent() {
 					headerClassName: "w-[35%]",
 					cellClassName: "truncate",
 				},
-				cell: ({ row }) => row.original.slug,
+				cell: ({ row }) => {
+					const project = row.original;
+
+					return (
+						<EditableCell
+							isEditing={editingProjectId === project._id}
+							displayValue={project.slug}
+							onDoubleClick={() => startEditingProject(project, "slug")}
+						>
+							<form.Field name="slug">
+								{(field) => (
+									<Input
+										ref={slugInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => field.handleChange(event.target.value)}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
+					);
+				},
 			},
 		],
-		[],
+		[
+			editingProjectId,
+			form,
+			handleInputBlur,
+			handleInputKeyDown,
+			isSavingEdit,
+			startEditingProject,
+		],
 	);
 
 	return (

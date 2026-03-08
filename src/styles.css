@@ -79,7 +79,7 @@
 }
 
 @theme inline {
-	--font-sans: 'Noto Sans Variable', sans-serif;
+	--font-sans: "Noto Sans Variable", sans-serif;
 	--font-mono: "Noto Sans Mono Variable", monospace;
 	--color-sidebar-ring: var(--sidebar-ring);
 	--color-sidebar-border: var(--sidebar-border);

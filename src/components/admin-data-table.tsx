@@ -1,9 +1,9 @@
 "use client";
 
 import {
-	IconArrowsSort,
 	IconChevronDown,
 	IconChevronUp,
+	IconSelector,
 } from "@tabler/icons-react";
 import {
 	type ColumnDef,
@@ -122,7 +122,7 @@ export function AdminDataTable<TData>({
 											) : currentSort === "asc" ? (
 												<IconChevronUp data-icon="inline-end" />
 											) : (
-												<IconArrowsSort
+												<IconSelector
 													data-icon="inline-end"
 													className="text-muted-foreground"
 												/>

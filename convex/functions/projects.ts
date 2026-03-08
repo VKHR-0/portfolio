@@ -1,6 +1,43 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { query } from "../_generated/server";
+import { toSlug } from "../../shared/slug";
+import {
+	type MutationCtx,
+	mutation,
+	type QueryCtx,
+	query,
+} from "../_generated/server";
+import { authComponent } from "../auth";
+
+async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
+	const user = await authComponent.getAuthUser(ctx);
+
+	if (!user?._id) {
+		throw new Error("You must be signed in.");
+	}
+
+	return user._id;
+}
+
+function normalizeTitle(value: string) {
+	const title = value.trim();
+
+	if (!title) {
+		throw new Error("Title is required.");
+	}
+
+	return title;
+}
+
+function normalizeSlug(value: string) {
+	const slug = toSlug(value.trim());
+
+	if (!slug) {
+		throw new Error("Slug is required.");
+	}
+
+	return slug;
+}
 
 export const list = query({
 	args: {
@@ -55,5 +92,43 @@ export const listRecentProjects = query({
 			status: project.status,
 			_creationTime: project._creationTime,
 		}));
+	},
+});
+
+export const updateProjectSummary = mutation({
+	args: {
+		id: v.id("projects"),
+		title: v.string(),
+		slug: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const authorId = await requireCurrentUserId(ctx);
+		const existingProject = await ctx.db.get(args.id);
+
+		if (!existingProject || existingProject.authorId !== authorId) {
+			throw new Error("Project not found.");
+		}
+
+		const title = normalizeTitle(args.title);
+		const slug = normalizeSlug(args.slug);
+		const conflictingProject = await ctx.db
+			.query("projects")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (conflictingProject && conflictingProject._id !== args.id) {
+			throw new Error("Project with this slug already exists.");
+		}
+
+		await ctx.db.patch(args.id, {
+			title,
+			slug,
+		});
+
+		return {
+			_id: args.id,
+			title,
+			slug,
+		};
 	},
 });

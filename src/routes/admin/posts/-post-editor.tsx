@@ -101,7 +101,7 @@ type EditorFormState = {
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
-const AUTOSAVE_DELAY_MS = 5_000;
+const AUTOSAVE_DELAY_MS = 1_500;
 
 const STATUS_OPTIONS: Array<{ value: PostStatus; label: string }> = [
 	{ value: "draft", label: "Draft" },

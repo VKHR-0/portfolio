@@ -5,9 +5,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { api } from "convex/_generated/api";
+import type { Id } from "convex/_generated/dataModel";
+import { useMutation } from "convex/react";
 import * as React from "react";
-import { PageCard } from "#/components/page-card";
+import { toSlug } from "shared/slug";
+import { toast } from "sonner";
+import { EditableCell, PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
+import { Input } from "#/components/ui/input";
+import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
 	createAdminTableSearchSchema,
 	searchFromSortingState,
@@ -20,7 +26,7 @@ const POST_SORT_FIELDS = ["title", "slug", "status"] as const;
 type PostSortField = (typeof POST_SORT_FIELDS)[number];
 
 type PostRow = {
-	_id: string;
+	_id: Id<"posts">;
 	title: string;
 	slug: string;
 	status: "draft" | "private" | "public";
@@ -60,6 +66,55 @@ function RouteComponent() {
 		() => sortingStateFromSearch<PostSortField>(search),
 		[search],
 	);
+	const updatePostSummary = useMutation(api.functions.posts.updatePostSummary);
+	const titleInputRef = React.useRef<HTMLInputElement>(null);
+	const slugInputRef = React.useRef<HTMLInputElement>(null);
+	const {
+		form,
+		editingId: editingPostId,
+		isSaving: isSavingEdit,
+		focusField,
+		setFocusField,
+		startEditing,
+		handleInputBlur,
+		handleInputKeyDown,
+	} = useInlineEditForm<Id<"posts">, { title: string; slug: string }>({
+		emptyValues: { title: "", slug: "" },
+		isUnchanged: ({ value, initialValue }) =>
+			value.title.trim() === initialValue.title &&
+			toSlug(value.slug) === initialValue.slug,
+		onSubmit: async ({ id, value }) => {
+			const title = value.title.trim();
+			const slug = toSlug(value.slug);
+
+			if (!title) {
+				toast.error("Title is required.");
+				setFocusField("title");
+				titleInputRef.current?.focus();
+				return false;
+			}
+
+			if (!slug) {
+				toast.error("Slug is required.");
+				setFocusField("slug");
+				slugInputRef.current?.focus();
+				return false;
+			}
+
+			await updatePostSummary({
+				id,
+				title,
+				slug,
+			});
+		},
+		onError: (mutationError) => {
+			toast.error(
+				mutationError instanceof Error
+					? mutationError.message
+					: "Unable to update post.",
+			);
+		},
+	});
 
 	React.useEffect(() => {
 		if (previousSortKeyRef.current === sortKey) {
@@ -79,6 +134,35 @@ function RouteComponent() {
 	const canGoNext =
 		result !== undefined &&
 		(currentPage < pageCount || result.isDone === false);
+
+	React.useEffect(() => {
+		if (!editingPostId) {
+			return;
+		}
+
+		if (focusField === "title") {
+			titleInputRef.current?.focus();
+			titleInputRef.current?.select();
+			return;
+		}
+
+		slugInputRef.current?.focus();
+		slugInputRef.current?.select();
+	}, [editingPostId, focusField]);
+
+	const startEditingPost = React.useCallback(
+		(post: PostRow, field: "title" | "slug") => {
+			startEditing(
+				post._id,
+				{
+					title: post.title,
+					slug: post.slug,
+				},
+				field,
+			);
+		},
+		[startEditing],
+	);
 
 	const columns = React.useMemo<Array<ColumnDef<PostRow>>>(
 		() => [
@@ -130,7 +214,39 @@ function RouteComponent() {
 					headerClassName: "w-[30%]",
 					cellClassName: "truncate font-medium",
 				},
-				cell: ({ row }) => row.original.title,
+				cell: ({ row }) => {
+					const post = row.original;
+
+					return (
+						<EditableCell
+							isEditing={editingPostId === post._id}
+							displayValue={post.title}
+							onDoubleClick={() => startEditingPost(post, "title")}
+							className="font-medium"
+						>
+							<form.Field name="title">
+								{(field) => (
+									<Input
+										ref={titleInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => {
+											const nextTitle = event.target.value;
+											field.handleChange(nextTitle);
+											form.setFieldValue("slug", toSlug(nextTitle));
+										}}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
+					);
+				},
 			},
 			{
 				accessorKey: "slug",
@@ -139,7 +255,34 @@ function RouteComponent() {
 					headerClassName: "w-[28%]",
 					cellClassName: "truncate",
 				},
-				cell: ({ row }) => row.original.slug,
+				cell: ({ row }) => {
+					const post = row.original;
+
+					return (
+						<EditableCell
+							isEditing={editingPostId === post._id}
+							displayValue={post.slug}
+							onDoubleClick={() => startEditingPost(post, "slug")}
+						>
+							<form.Field name="slug">
+								{(field) => (
+									<Input
+										ref={slugInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingEdit}
+										onChange={(event) => field.handleChange(event.target.value)}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleInputBlur(event);
+										}}
+										onKeyDown={handleInputKeyDown}
+									/>
+								)}
+							</form.Field>
+						</EditableCell>
+					);
+				},
 			},
 			{
 				accessorKey: "status",
@@ -151,7 +294,14 @@ function RouteComponent() {
 				cell: ({ row }) => row.original.status,
 			},
 		],
-		[],
+		[
+			editingPostId,
+			form,
+			handleInputBlur,
+			handleInputKeyDown,
+			isSavingEdit,
+			startEditingPost,
+		],
 	);
 
 	return (
