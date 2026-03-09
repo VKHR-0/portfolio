@@ -1,5 +1,5 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconDice, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
@@ -9,46 +9,141 @@ import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
+import {
+	getRandomColorKey,
+	TECHNOLOGY_COLOR_KEYS,
+	TECHNOLOGY_COLORS,
+	type TechnologyColorKey,
+} from "shared/technology-colors";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
 import { EditableCell, PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "#/components/ui/popover";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
 	createAdminTableSearchSchema,
 	searchFromSortingState,
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
+import { cn } from "#/lib/utils";
 
 const PAGE_SIZE = 10;
-const TAG_SORT_FIELDS = ["name", "slug", "_creationTime"] as const;
+const TECH_SORT_FIELDS = ["name", "slug", "_creationTime"] as const;
 
-type TagSortField = (typeof TAG_SORT_FIELDS)[number];
+type TechSortField = (typeof TECH_SORT_FIELDS)[number];
 
-type TagRow = {
-	_id: Id<"tags">;
+type TechRow = {
+	_id: Id<"technologies">;
 	name: string;
 	slug: string;
+	color: string;
 	_creationTime: number;
 };
 
-function listTagsQuery(
+function listTechQuery(
 	cursor: string | null,
-	search: { sortField?: TagSortField; sortDirection?: "asc" | "desc" },
+	search: { sortField?: TechSortField; sortDirection?: "asc" | "desc" },
 ) {
-	return convexQuery(api.functions.tags.list, {
+	return convexQuery(api.functions.technologies.list, {
 		paginationOpts: { numItems: PAGE_SIZE, cursor },
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
 	});
 }
 
-export const Route = createFileRoute("/admin/tags")({
-	validateSearch: zodValidator(createAdminTableSearchSchema(TAG_SORT_FIELDS)),
+function ColorSwatch({ color }: { color: string }) {
+	const palette = TECHNOLOGY_COLORS[color as TechnologyColorKey];
+
+	if (!palette) {
+		return <span className="size-4 rounded-full bg-muted" />;
+	}
+
+	return (
+		<span
+			className={cn(
+				"inline-block size-4 rounded-full border",
+				palette.bg,
+				palette.border,
+			)}
+		/>
+	);
+}
+
+function ColorSwatchPicker({
+	value,
+	onChange,
+}: {
+	value: string;
+	onChange: (color: string) => void;
+}) {
+	const [open, setOpen] = React.useState(false);
+
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger
+				render={
+					<button
+						type="button"
+						className="flex size-8 items-center justify-center rounded-md border border-input hover:bg-muted"
+					>
+						<ColorSwatch color={value} />
+					</button>
+				}
+			/>
+			<PopoverContent align="start" className="w-auto p-2">
+				<div className="grid grid-cols-6 gap-x-1.5 gap-y-2.5">
+					{TECHNOLOGY_COLOR_KEYS.map((key) => {
+						const palette = TECHNOLOGY_COLORS[key];
+						const isSelected = key === value;
+
+						return (
+							<button
+								key={key}
+								type="button"
+								className={cn(
+									"flex size-7 items-center justify-center rounded-md border transition-colors",
+									palette.bg,
+									palette.border,
+									isSelected && "ring-2 ring-ring ring-offset-1",
+								)}
+								title={key}
+								onClick={() => {
+									onChange(key);
+									setOpen(false);
+								}}
+							/>
+						);
+					})}
+				</div>
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					className="mt-2 w-full"
+					onClick={() => {
+						onChange(getRandomColorKey());
+						setOpen(false);
+					}}
+				>
+					<IconDice data-icon="inline-start" />
+					Random
+				</Button>
+			</PopoverContent>
+		</Popover>
+	);
+}
+
+export const Route = createFileRoute("/admin/technologies")({
+	validateSearch: zodValidator(createAdminTableSearchSchema(TECH_SORT_FIELDS)),
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context, deps }) => {
-		await context.queryClient.ensureQueryData(listTagsQuery(null, deps.search));
+		await context.queryClient.ensureQueryData(listTechQuery(null, deps.search));
 	},
 	component: RouteComponent,
 });
@@ -62,31 +157,39 @@ function RouteComponent() {
 	const sortKey = `${search.sortField ?? ""}:${search.sortDirection ?? ""}`;
 	const previousSortKeyRef = React.useRef(sortKey);
 	const sorting = React.useMemo(
-		() => sortingStateFromSearch<TagSortField>(search),
+		() => sortingStateFromSearch<TechSortField>(search),
 		[search],
 	);
-	const updateTag = useMutation(api.functions.tags.updateTag);
-	const deleteTag = useMutation(api.functions.tags.deleteTag);
+	const updateTechnology = useMutation(
+		api.functions.technologies.updateTechnology,
+	);
+	const deleteTechnology = useMutation(
+		api.functions.technologies.deleteTechnology,
+	);
 	const queryClient = useQueryClient();
 	const nameInputRef = React.useRef<HTMLInputElement>(null);
 	const slugInputRef = React.useRef<HTMLInputElement>(null);
-	const [tagToDelete, setTagToDelete] = React.useState<TagRow | null>(null);
-	const [isDeletingTag, setIsDeletingTag] = React.useState(false);
+	const [techToDelete, setTechToDelete] = React.useState<TechRow | null>(null);
+	const [isDeletingTech, setIsDeletingTech] = React.useState(false);
 
 	const {
 		form,
-		editingId: editingTagId,
+		editingId: editingTechId,
 		isSaving: isSavingEdit,
 		focusField,
 		setFocusField,
 		startEditing,
 		handleInputBlur,
 		handleInputKeyDown,
-	} = useInlineEditForm<Id<"tags">, { name: string; slug: string }>({
-		emptyValues: { name: "", slug: "" },
+	} = useInlineEditForm<
+		Id<"technologies">,
+		{ name: string; slug: string; color: string }
+	>({
+		emptyValues: { name: "", slug: "", color: "blue" },
 		isUnchanged: ({ value, initialValue }) =>
 			value.name.trim() === initialValue.name &&
-			toSlug(value.slug) === initialValue.slug,
+			toSlug(value.slug) === initialValue.slug &&
+			value.color === initialValue.color,
 		onSubmit: async ({ id, value }) => {
 			const name = value.name.trim();
 			const slug = toSlug(value.slug);
@@ -105,13 +208,13 @@ function RouteComponent() {
 				return false;
 			}
 
-			await updateTag({ id, name, slug });
+			await updateTechnology({ id, name, slug, color: value.color });
 		},
 		onError: (mutationError) => {
 			toast.error(
 				mutationError instanceof Error
 					? mutationError.message
-					: "Unable to update tag.",
+					: "Unable to update technology.",
 			);
 		},
 	});
@@ -126,8 +229,8 @@ function RouteComponent() {
 		setCurrentPage(1);
 	}, [sortKey]);
 
-	const { data: result } = useQuery(listTagsQuery(currentCursor, search));
-	const tags = result?.page ?? [];
+	const { data: result } = useQuery(listTechQuery(currentCursor, search));
+	const technologies = result?.page ?? [];
 	const pageCount = cursors.length;
 	const canGoPrevious = currentPage > 1;
 	const canGoNext =
@@ -135,7 +238,7 @@ function RouteComponent() {
 		(currentPage < pageCount || result.isDone === false);
 
 	React.useEffect(() => {
-		if (!editingTagId) return;
+		if (!editingTechId) return;
 
 		if (focusField === "name") {
 			nameInputRef.current?.focus();
@@ -145,32 +248,32 @@ function RouteComponent() {
 
 		slugInputRef.current?.focus();
 		slugInputRef.current?.select();
-	}, [editingTagId, focusField]);
+	}, [editingTechId, focusField]);
 
-	const handleDeleteTag = async () => {
-		if (!tagToDelete) {
+	const handleDeleteTech = async () => {
+		if (!techToDelete) {
 			return;
 		}
 
-		setIsDeletingTag(true);
+		setIsDeletingTech(true);
 
 		try {
-			await deleteTag({ id: tagToDelete._id });
+			await deleteTechnology({ id: techToDelete._id });
 			await queryClient.invalidateQueries({
-				queryKey: listTagsQuery(currentCursor, search).queryKey,
+				queryKey: listTechQuery(currentCursor, search).queryKey,
 			});
-			toast.success("Tag deleted.");
-			setTagToDelete(null);
+			toast.success("Technology deleted.");
+			setTechToDelete(null);
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Unable to delete tag.",
+				error instanceof Error ? error.message : "Unable to delete technology.",
 			);
 		} finally {
-			setIsDeletingTag(false);
+			setIsDeletingTech(false);
 		}
 	};
 
-	const columns = React.useMemo<Array<ColumnDef<TagRow>>>(
+	const columns = React.useMemo<Array<ColumnDef<TechRow>>>(
 		() => [
 			{
 				id: "actions",
@@ -187,30 +290,57 @@ function RouteComponent() {
 						variant="outline"
 						aria-label={`Delete ${row.original.name}`}
 						title="Delete"
-						onClick={() => setTagToDelete(row.original)}
+						onClick={() => setTechToDelete(row.original)}
 					>
 						<IconTrash />
 					</Button>
 				),
 			},
 			{
+				id: "color",
+				enableSorting: false,
+				header: "",
+				meta: {
+					headerClassName: "w-10",
+					cellClassName: "py-2 px-1",
+				},
+				cell: ({ row }) => {
+					const tech = row.original;
+
+					if (editingTechId === tech._id) {
+						return (
+							<form.Field name="color">
+								{(field) => (
+									<ColorSwatchPicker
+										value={field.state.value}
+										onChange={(color) => field.handleChange(color)}
+									/>
+								)}
+							</form.Field>
+						);
+					}
+
+					return <ColorSwatch color={tech.color} />;
+				},
+			},
+			{
 				accessorKey: "name",
 				header: "Name",
 				meta: {
-					headerClassName: "w-[35%]",
+					headerClassName: "w-[30%]",
 					cellClassName: "font-medium",
 				},
 				cell: ({ row }) => {
-					const tag = row.original;
+					const tech = row.original;
 
 					return (
 						<EditableCell
-							isEditing={editingTagId === tag._id}
-							displayValue={tag.name}
+							isEditing={editingTechId === tech._id}
+							displayValue={tech.name}
 							onDoubleClick={() =>
 								startEditing(
-									tag._id,
-									{ name: tag.name, slug: tag.slug },
+									tech._id,
+									{ name: tech.name, slug: tech.slug, color: tech.color },
 									"name",
 								)
 							}
@@ -244,19 +374,19 @@ function RouteComponent() {
 				accessorKey: "slug",
 				header: "Slug",
 				meta: {
-					headerClassName: "w-[35%]",
+					headerClassName: "w-[30%]",
 				},
 				cell: ({ row }) => {
-					const tag = row.original;
+					const tech = row.original;
 
 					return (
 						<EditableCell
-							isEditing={editingTagId === tag._id}
-							displayValue={tag.slug}
+							isEditing={editingTechId === tech._id}
+							displayValue={tech.slug}
 							onDoubleClick={() =>
 								startEditing(
-									tag._id,
-									{ name: tag.name, slug: tag.slug },
+									tech._id,
+									{ name: tech.name, slug: tech.slug, color: tech.color },
 									"slug",
 								)
 							}
@@ -289,7 +419,7 @@ function RouteComponent() {
 			},
 		],
 		[
-			editingTagId,
+			editingTechId,
 			form,
 			handleInputBlur,
 			handleInputKeyDown,
@@ -301,21 +431,24 @@ function RouteComponent() {
 	return (
 		<>
 			<PageCard
-				title="Tags"
-				description="Manage post tags."
+				title="Technologies"
+				description="Manage technologies for project tech stacks."
 				createButton={
-					<Button nativeButton={false} render={<Link to="/admin/tags/new" />}>
+					<Button
+						nativeButton={false}
+						render={<Link to="/admin/technologies/new" />}
+					>
 						<IconPlus />
 						Create new
 					</Button>
 				}
-				loadingLabel="Loading tags..."
-				emptyLabel="No tags found."
+				loadingLabel="Loading technologies..."
+				emptyLabel="No technologies found."
 				columns={columns}
-				data={tags}
+				data={technologies}
 				sorting={sorting}
 				onSortingChange={(nextSorting: SortingState) => {
-					const nextSearch = searchFromSortingState<TagSortField>(nextSorting);
+					const nextSearch = searchFromSortingState<TechSortField>(nextSorting);
 
 					void navigate({
 						search: (prev) => ({
@@ -346,14 +479,16 @@ function RouteComponent() {
 				getRowId={(row) => row._id}
 			/>
 			<ConfirmDeleteDialog
-				open={tagToDelete !== null}
+				open={techToDelete !== null}
 				title={
-					tagToDelete ? `Delete tag "${tagToDelete.name}"?` : "Delete tag?"
+					techToDelete
+						? `Delete technology "${techToDelete.name}"?`
+						: "Delete technology?"
 				}
 				description="This action cannot be undone."
-				isPending={isDeletingTag}
-				onOpenChange={(open) => !open && setTagToDelete(null)}
-				onConfirm={() => void handleDeleteTag()}
+				isPending={isDeletingTech}
+				onOpenChange={(open) => !open && setTechToDelete(null)}
+				onConfirm={() => void handleDeleteTech()}
 			/>
 			<Outlet />
 		</>

@@ -15,10 +15,12 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminTechnologiesRouteRouteImport } from './routes/admin/technologies/route'
 import { Route as AdminTagsRouteRouteImport } from './routes/admin/tags/route'
 import { Route as AdminSeriesRouteRouteImport } from './routes/admin/series/route'
 import { Route as AdminMediaRouteRouteImport } from './routes/admin/media/route'
 import { Route as AdminCategoriesRouteRouteImport } from './routes/admin/categories/route'
+import { Route as AdminTechnologiesIndexRouteImport } from './routes/admin/technologies/index'
 import { Route as AdminTagsIndexRouteImport } from './routes/admin/tags/index'
 import { Route as AdminSeriesIndexRouteImport } from './routes/admin/series/index'
 import { Route as AdminProjectsIndexRouteImport } from './routes/admin/projects/index'
@@ -28,6 +30,7 @@ import { Route as AdminCategoriesIndexRouteImport } from './routes/admin/categor
 import { Route as HomeProjectsIndexRouteImport } from './routes/_home/projects/index'
 import { Route as HomePostsIndexRouteImport } from './routes/_home/posts/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as AdminTechnologiesNewRouteImport } from './routes/admin/technologies/new'
 import { Route as AdminTagsNewRouteImport } from './routes/admin/tags/new'
 import { Route as AdminSeriesNewRouteImport } from './routes/admin/series/new'
 import { Route as AdminProjectsNewRouteImport } from './routes/admin/projects/new'
@@ -68,6 +71,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminTechnologiesRouteRoute = AdminTechnologiesRouteRouteImport.update({
+  id: '/technologies',
+  path: '/technologies',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminTagsRouteRoute = AdminTagsRouteRouteImport.update({
   id: '/tags',
   path: '/tags',
@@ -87,6 +95,11 @@ const AdminCategoriesRouteRoute = AdminCategoriesRouteRouteImport.update({
   id: '/categories',
   path: '/categories',
   getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminTechnologiesIndexRoute = AdminTechnologiesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminTechnologiesRouteRoute,
 } as any)
 const AdminTagsIndexRoute = AdminTagsIndexRouteImport.update({
   id: '/',
@@ -132,6 +145,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTechnologiesNewRoute = AdminTechnologiesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminTechnologiesRouteRoute,
 } as any)
 const AdminTagsNewRoute = AdminTagsNewRouteImport.update({
   id: '/new',
@@ -191,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/admin/media': typeof AdminMediaRouteRouteWithChildren
   '/admin/series': typeof AdminSeriesRouteRouteWithChildren
   '/admin/tags': typeof AdminTagsRouteRouteWithChildren
+  '/admin/technologies': typeof AdminTechnologiesRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
@@ -204,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
+  '/admin/technologies/new': typeof AdminTechnologiesNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/posts/': typeof HomePostsIndexRoute
   '/projects/': typeof HomeProjectsIndexRoute
@@ -213,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/admin/projects/': typeof AdminProjectsIndexRoute
   '/admin/series/': typeof AdminSeriesIndexRoute
   '/admin/tags/': typeof AdminTagsIndexRoute
+  '/admin/technologies/': typeof AdminTechnologiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
@@ -229,6 +250,7 @@ export interface FileRoutesByTo {
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
+  '/admin/technologies/new': typeof AdminTechnologiesNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/posts': typeof HomePostsIndexRoute
   '/projects': typeof HomeProjectsIndexRoute
@@ -238,6 +260,7 @@ export interface FileRoutesByTo {
   '/admin/projects': typeof AdminProjectsIndexRoute
   '/admin/series': typeof AdminSeriesIndexRoute
   '/admin/tags': typeof AdminTagsIndexRoute
+  '/admin/technologies': typeof AdminTechnologiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -247,6 +270,7 @@ export interface FileRoutesById {
   '/admin/media': typeof AdminMediaRouteRouteWithChildren
   '/admin/series': typeof AdminSeriesRouteRouteWithChildren
   '/admin/tags': typeof AdminTagsRouteRouteWithChildren
+  '/admin/technologies': typeof AdminTechnologiesRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/_home/': typeof HomeIndexRoute
@@ -261,6 +285,7 @@ export interface FileRoutesById {
   '/admin/projects/new': typeof AdminProjectsNewRoute
   '/admin/series/new': typeof AdminSeriesNewRoute
   '/admin/tags/new': typeof AdminTagsNewRoute
+  '/admin/technologies/new': typeof AdminTechnologiesNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_home/posts/': typeof HomePostsIndexRoute
   '/_home/projects/': typeof HomeProjectsIndexRoute
@@ -270,6 +295,7 @@ export interface FileRoutesById {
   '/admin/projects/': typeof AdminProjectsIndexRoute
   '/admin/series/': typeof AdminSeriesIndexRoute
   '/admin/tags/': typeof AdminTagsIndexRoute
+  '/admin/technologies/': typeof AdminTechnologiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -280,6 +306,7 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/admin/series'
     | '/admin/tags'
+    | '/admin/technologies'
     | '/admin/login'
     | '/admin/settings'
     | '/admin/'
@@ -293,6 +320,7 @@ export interface FileRouteTypes {
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
+    | '/admin/technologies/new'
     | '/api/auth/$'
     | '/posts/'
     | '/projects/'
@@ -302,6 +330,7 @@ export interface FileRouteTypes {
     | '/admin/projects/'
     | '/admin/series/'
     | '/admin/tags/'
+    | '/admin/technologies/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/admin/login'
@@ -318,6 +347,7 @@ export interface FileRouteTypes {
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
+    | '/admin/technologies/new'
     | '/api/auth/$'
     | '/posts'
     | '/projects'
@@ -327,6 +357,7 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/series'
     | '/admin/tags'
+    | '/admin/technologies'
   id:
     | '__root__'
     | '/admin'
@@ -335,6 +366,7 @@ export interface FileRouteTypes {
     | '/admin/media'
     | '/admin/series'
     | '/admin/tags'
+    | '/admin/technologies'
     | '/admin/login'
     | '/admin/settings'
     | '/_home/'
@@ -349,6 +381,7 @@ export interface FileRouteTypes {
     | '/admin/projects/new'
     | '/admin/series/new'
     | '/admin/tags/new'
+    | '/admin/technologies/new'
     | '/api/auth/$'
     | '/_home/posts/'
     | '/_home/projects/'
@@ -358,6 +391,7 @@ export interface FileRouteTypes {
     | '/admin/projects/'
     | '/admin/series/'
     | '/admin/tags/'
+    | '/admin/technologies/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -410,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/technologies': {
+      id: '/admin/technologies'
+      path: '/technologies'
+      fullPath: '/admin/technologies'
+      preLoaderRoute: typeof AdminTechnologiesRouteRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/tags': {
       id: '/admin/tags'
       path: '/tags'
@@ -437,6 +478,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/categories'
       preLoaderRoute: typeof AdminCategoriesRouteRouteImport
       parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/technologies/': {
+      id: '/admin/technologies/'
+      path: '/'
+      fullPath: '/admin/technologies/'
+      preLoaderRoute: typeof AdminTechnologiesIndexRouteImport
+      parentRoute: typeof AdminTechnologiesRouteRoute
     }
     '/admin/tags/': {
       id: '/admin/tags/'
@@ -500,6 +548,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/technologies/new': {
+      id: '/admin/technologies/new'
+      path: '/new'
+      fullPath: '/admin/technologies/new'
+      preLoaderRoute: typeof AdminTechnologiesNewRouteImport
+      parentRoute: typeof AdminTechnologiesRouteRoute
     }
     '/admin/tags/new': {
       id: '/admin/tags/new'
@@ -628,11 +683,28 @@ const AdminTagsRouteRouteWithChildren = AdminTagsRouteRoute._addFileChildren(
   AdminTagsRouteRouteChildren,
 )
 
+interface AdminTechnologiesRouteRouteChildren {
+  AdminTechnologiesNewRoute: typeof AdminTechnologiesNewRoute
+  AdminTechnologiesIndexRoute: typeof AdminTechnologiesIndexRoute
+}
+
+const AdminTechnologiesRouteRouteChildren: AdminTechnologiesRouteRouteChildren =
+  {
+    AdminTechnologiesNewRoute: AdminTechnologiesNewRoute,
+    AdminTechnologiesIndexRoute: AdminTechnologiesIndexRoute,
+  }
+
+const AdminTechnologiesRouteRouteWithChildren =
+  AdminTechnologiesRouteRoute._addFileChildren(
+    AdminTechnologiesRouteRouteChildren,
+  )
+
 interface AdminRouteRouteChildren {
   AdminCategoriesRouteRoute: typeof AdminCategoriesRouteRouteWithChildren
   AdminMediaRouteRoute: typeof AdminMediaRouteRouteWithChildren
   AdminSeriesRouteRoute: typeof AdminSeriesRouteRouteWithChildren
   AdminTagsRouteRoute: typeof AdminTagsRouteRouteWithChildren
+  AdminTechnologiesRouteRoute: typeof AdminTechnologiesRouteRouteWithChildren
   AdminLoginRoute: typeof AdminLoginRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -649,6 +721,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminMediaRouteRoute: AdminMediaRouteRouteWithChildren,
   AdminSeriesRouteRoute: AdminSeriesRouteRouteWithChildren,
   AdminTagsRouteRoute: AdminTagsRouteRouteWithChildren,
+  AdminTechnologiesRouteRoute: AdminTechnologiesRouteRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,

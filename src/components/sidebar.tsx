@@ -1,6 +1,7 @@
 import { convexQuery } from "@convex-dev/react-query";
 import {
 	IconBriefcase,
+	IconCpu,
 	IconFileText,
 	IconLayoutSidebar,
 	IconPhoto,
@@ -179,6 +180,23 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 								>
 									<IconPlus />
 									<span className="sr-only">Create category</span>
+								</SidebarMenuAction>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									isActive={pathname.startsWith("/admin/technologies")}
+									tooltip="Technologies"
+									render={<Link to="/admin/technologies" />}
+								>
+									<IconCpu />
+									<span>Technologies</span>
+								</SidebarMenuButton>
+								<SidebarMenuAction
+									render={<Link to="/admin/technologies/new" />}
+									title="Create technology"
+								>
+									<IconPlus />
+									<span className="sr-only">Create technology</span>
 								</SidebarMenuAction>
 							</SidebarMenuItem>
 						</SidebarMenu>

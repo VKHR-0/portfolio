@@ -16,6 +16,7 @@ import type * as functions_posts from "../functions/posts.js";
 import type * as functions_projects from "../functions/projects.js";
 import type * as functions_series from "../functions/series.js";
 import type * as functions_tags from "../functions/tags.js";
+import type * as functions_technologies from "../functions/technologies.js";
 import type * as http from "../http.js";
 
 import type {
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   "functions/projects": typeof functions_projects;
   "functions/series": typeof functions_series;
   "functions/tags": typeof functions_tags;
+  "functions/technologies": typeof functions_technologies;
   http: typeof http;
 }>;
 

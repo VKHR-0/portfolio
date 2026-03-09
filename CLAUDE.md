@@ -30,6 +30,7 @@ biome format                     # Format only
 **Routing:** TanStack Router with file-based routing. `routeTree.gen.ts` is auto-generated — never edit it manually. Routes live in `src/routes/`.
 
 **Two main route groups:**
+
 - `_home/` — Public-facing pages (posts, projects)
 - `admin/` — Authenticated admin CRUD (posts, projects, categories, series, tags)
 
@@ -60,6 +61,7 @@ biome format                     # Format only
 ## Environment Setup
 
 Copy `.env.example` to `.env.local` and fill in:
+
 - `CONVEX_DEPLOYMENT` — from Convex dashboard
 - `VITE_CONVEX_URL` — Convex API endpoint
 - `VITE_SITE_URL`

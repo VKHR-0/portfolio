@@ -20,7 +20,7 @@ export default defineSchema({
 		repositoryUrl: v.optional(v.string()),
 		demoUrl: v.optional(v.string()),
 
-		techStack: v.array(v.string()),
+		technologyIds: v.array(v.id("technologies")),
 	})
 		.index("by_slug", ["slug"])
 		.index("by_title", ["title"]),
@@ -73,6 +73,14 @@ export default defineSchema({
 	tags: defineTable({
 		name: v.string(),
 		slug: v.string(),
+	})
+		.index("by_slug", ["slug"])
+		.index("by_name", ["name"]),
+
+	technologies: defineTable({
+		name: v.string(),
+		slug: v.string(),
+		color: v.string(),
 	})
 		.index("by_slug", ["slug"])
 		.index("by_name", ["name"]),

@@ -5,6 +5,10 @@ import {
 } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	TECHNOLOGY_COLORS,
+	type TechnologyColorKey,
+} from "shared/technology-colors";
 import { ContentViewer } from "#/components/content-viewer";
 import { Badge } from "#/components/ui/badge";
 import { getPublicProjectBySlugQuery } from "#/queries";
@@ -126,13 +130,23 @@ function RouteComponent() {
 					)}
 				</div>
 
-				{project.techStack.length > 0 && (
+				{project.technologies.length > 0 && (
 					<div className="mb-4 flex flex-wrap gap-1.5">
-						{project.techStack.map((tech) => (
-							<Badge key={tech} variant="outline">
-								{tech}
-							</Badge>
-						))}
+						{project.technologies.map((tech) => {
+							const palette =
+								TECHNOLOGY_COLORS[tech.color as TechnologyColorKey] ??
+								TECHNOLOGY_COLORS.blue;
+
+							return (
+								<Badge
+									key={tech.name}
+									variant="outline"
+									className={`${palette.bg} ${palette.text} ${palette.border}`}
+								>
+									{tech.name}
+								</Badge>
+							);
+						})}
 					</div>
 				)}
 

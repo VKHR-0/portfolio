@@ -176,7 +176,8 @@ function RouteComponent() {
 				enableSorting: false,
 				header: "",
 				meta: {
-					cellClassName: "w-[1%]",
+					headerClassName: "w-8",
+					cellClassName: "py-2 px-1",
 				},
 				cell: ({ row }) => (
 					<div className="flex items-center gap-2">

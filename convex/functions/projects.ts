@@ -158,7 +158,7 @@ export const getEditableBySlug = query({
 			imageId: project.imageId,
 			repositoryUrl: project.repositoryUrl,
 			demoUrl: project.demoUrl,
-			techStack: project.techStack,
+			technologyIds: project.technologyIds,
 		};
 	},
 });
@@ -179,7 +179,7 @@ export const createDraft = mutation({
 		imageId: v.optional(v.string()),
 		repositoryUrl: v.optional(v.string()),
 		demoUrl: v.optional(v.string()),
-		techStack: v.optional(v.array(v.string())),
+		technologyIds: v.optional(v.array(v.id("technologies"))),
 	},
 	handler: async (ctx, args) => {
 		const authorId = await requireCurrentUserId(ctx);
@@ -204,7 +204,7 @@ export const createDraft = mutation({
 			imageId: args.imageId,
 			repositoryUrl: args.repositoryUrl,
 			demoUrl: args.demoUrl,
-			techStack: args.techStack ?? [],
+			technologyIds: args.technologyIds ?? [],
 			authorId,
 		});
 
@@ -227,7 +227,7 @@ export const updateDraft = mutation({
 		imageId: v.optional(v.string()),
 		repositoryUrl: v.optional(v.string()),
 		demoUrl: v.optional(v.string()),
-		techStack: v.array(v.string()),
+		technologyIds: v.array(v.id("technologies")),
 	},
 	handler: async (ctx, args) => {
 		const authorId = await requireCurrentUserId(ctx);
@@ -258,7 +258,7 @@ export const updateDraft = mutation({
 			imageId: args.imageId,
 			repositoryUrl: args.repositoryUrl,
 			demoUrl: args.demoUrl,
-			techStack: args.techStack,
+			technologyIds: args.technologyIds,
 		});
 
 		return { _id: args.id, title, slug };
@@ -295,6 +295,12 @@ export const getPublicBySlug = query({
 			return null;
 		}
 
+		const technologies = (
+			await Promise.all(project.technologyIds.map((id) => ctx.db.get(id)))
+		)
+			.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
+			.map((tech) => ({ name: tech.name, color: tech.color }));
+
 		return {
 			title: project.title,
 			slug: project.slug,
@@ -304,7 +310,7 @@ export const getPublicBySlug = query({
 			status: project.status,
 			repositoryUrl: project.repositoryUrl,
 			demoUrl: project.demoUrl,
-			techStack: project.techStack,
+			technologies,
 			_creationTime: project._creationTime,
 		};
 	},

@@ -220,13 +220,14 @@ function RouteComponent() {
 				enableSorting: false,
 				header: "",
 				meta: {
-					cellClassName: "w-[1%]",
+					headerClassName: "w-8",
+					cellClassName: "py-2 px-1",
 				},
 				cell: ({ row }) => (
 					<Button
 						type="button"
 						size="icon-xs"
-						variant="ghost"
+						variant="outline"
 						aria-label={`Delete ${row.original.name}`}
 						title="Delete"
 						onClick={() => setCategoryToDelete(row.original)}

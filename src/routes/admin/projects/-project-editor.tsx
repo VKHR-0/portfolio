@@ -17,6 +17,10 @@ import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
+import {
+	TECHNOLOGY_COLORS,
+	type TechnologyColorKey,
+} from "shared/technology-colors";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
 import {
@@ -30,6 +34,14 @@ import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
 import { Card, CardContent } from "#/components/ui/card";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from "#/components/ui/command";
 import { Input } from "#/components/ui/input";
 import {
 	InputGroup,
@@ -68,11 +80,19 @@ type EditableProject = {
 	imageId?: string;
 	repositoryUrl?: string;
 	demoUrl?: string;
-	techStack: Array<string>;
+	technologyIds: Array<Id<"technologies">>;
+};
+
+type TechnologyOption = {
+	_id: Id<"technologies">;
+	name: string;
+	slug: string;
+	color: string;
 };
 
 type ProjectEditorProps = {
 	initialProject?: EditableProject;
+	technologies: Array<TechnologyOption>;
 };
 
 type EditorFormState = {
@@ -84,7 +104,7 @@ type EditorFormState = {
 	imageId?: string;
 	repositoryUrl?: string;
 	demoUrl?: string;
-	techStack: Array<string>;
+	technologyIds: Array<Id<"technologies">>;
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -107,7 +127,7 @@ function createFormState(initialProject?: EditableProject): EditorFormState {
 		imageId: initialProject?.imageId,
 		repositoryUrl: initialProject?.repositoryUrl,
 		demoUrl: initialProject?.demoUrl,
-		techStack: initialProject?.techStack ?? [],
+		technologyIds: initialProject?.technologyIds ?? [],
 	};
 }
 
@@ -158,27 +178,31 @@ function getDraftState(
 	};
 }
 
-function TechStackBadge({
-	label,
+function TechnologyBadge({
+	name,
+	color,
 	onRemove,
 }: {
-	label: string;
+	name: string;
+	color: TechnologyColorKey;
 	onRemove: () => void;
 }) {
+	const palette = TECHNOLOGY_COLORS[color] ?? TECHNOLOGY_COLORS.blue;
+
 	return (
 		<Badge
-			variant="secondary"
-			className="group/tag h-7 gap-0 overflow-hidden rounded-full px-3 text-xs"
+			variant="outline"
+			className={`group/tag h-7 gap-0 overflow-hidden rounded-full border px-3 text-xs ${palette.bg} ${palette.text} ${palette.border}`}
 		>
-			<span>{label}</span>
+			<span>{name}</span>
 			<span className="w-0 overflow-hidden transition-[width,margin] duration-150 group-focus-within/tag:-mr-2 group-focus-within/tag:ml-1 group-focus-within/tag:w-5 group-hover/tag:-mr-2 group-hover/tag:ml-1 group-hover/tag:w-5">
 				<Button
 					variant="ghost"
 					size="icon-xs"
 					className="size-5 rounded-full opacity-0 transition-opacity duration-100 group-focus-within/tag:opacity-100 group-hover/tag:opacity-100"
 					onClick={onRemove}
-					aria-label={`Remove ${label}`}
-					title={`Remove ${label}`}
+					aria-label={`Remove ${name}`}
+					title={`Remove ${name}`}
 				>
 					<IconX />
 				</Button>
@@ -187,63 +211,75 @@ function TechStackBadge({
 	);
 }
 
-function TechStackInput({
-	techStack,
+function TechnologyPicker({
+	technologyIds,
+	technologies,
 	onChange,
 }: {
-	techStack: Array<string>;
-	onChange: (next: Array<string>) => void;
+	technologyIds: Array<Id<"technologies">>;
+	technologies: Array<TechnologyOption>;
+	onChange: (next: Array<Id<"technologies">>) => void;
 }) {
-	const [inputValue, setInputValue] = React.useState("");
-	const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-
-	const handleAdd = () => {
-		const trimmed = inputValue.trim();
-
-		if (
-			!trimmed ||
-			techStack.some((t) => t.toLowerCase() === trimmed.toLowerCase())
-		) {
-			return;
-		}
-
-		onChange([...techStack, trimmed]);
-		setInputValue("");
-	};
+	const availableTechnologies = technologies.filter(
+		(tech) => !technologyIds.includes(tech._id),
+	);
+	const selectedTechnologies = technologyIds
+		.map((id) => technologies.find((tech) => tech._id === id))
+		.filter((tech): tech is TechnologyOption => Boolean(tech));
 
 	return (
 		<div className="flex flex-wrap items-center gap-2">
-			{techStack.length === 0 ? (
+			{selectedTechnologies.length === 0 ? (
 				<Badge variant="outline" className="h-7 rounded-full px-3 text-xs">
-					No Tech Stack
+					No Technologies
 				</Badge>
 			) : (
-				techStack.map((tech) => (
-					<TechStackBadge
-						key={tech}
-						label={tech}
-						onRemove={() => onChange(techStack.filter((t) => t !== tech))}
+				selectedTechnologies.map((tech) => (
+					<TechnologyBadge
+						key={tech._id}
+						name={tech.name}
+						color={tech.color as TechnologyColorKey}
+						onRemove={() =>
+							onChange(technologyIds.filter((id) => id !== tech._id))
+						}
 					/>
 				))
 			)}
 
-			<Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+			<Popover>
 				<PopoverTrigger render={<Button variant="outline" size="icon-xs" />}>
 					<IconPlus />
 				</PopoverTrigger>
-				<PopoverContent align="start" className="w-56 p-2">
-					<Input
-						value={inputValue}
-						placeholder="e.g. React, TypeScript..."
-						onChange={(event) => setInputValue(event.target.value)}
-						onKeyDown={(event) => {
-							if (event.key === "Enter") {
-								event.preventDefault();
-								handleAdd();
-							}
-						}}
-						autoFocus
-					/>
+				<PopoverContent align="start" className="w-72 p-0">
+					<Command>
+						<CommandInput placeholder="Search technologies..." />
+						<CommandList>
+							<CommandEmpty>No technologies available.</CommandEmpty>
+							<CommandGroup>
+								{availableTechnologies.map((tech) => {
+									const palette =
+										TECHNOLOGY_COLORS[tech.color as TechnologyColorKey] ??
+										TECHNOLOGY_COLORS.blue;
+
+									return (
+										<CommandItem
+											key={tech._id}
+											onSelect={() => {
+												onChange([...technologyIds, tech._id]);
+											}}
+										>
+											<div className="flex min-w-0 flex-1 items-center gap-2">
+												<span
+													className={`size-3 shrink-0 rounded-full border ${palette.bg} ${palette.border}`}
+												/>
+												<span className="truncate">{tech.name}</span>
+											</div>
+										</CommandItem>
+									);
+								})}
+							</CommandGroup>
+						</CommandList>
+					</Command>
 				</PopoverContent>
 			</Popover>
 		</div>
@@ -356,7 +392,10 @@ function ProjectEditorSaveButton({
 	);
 }
 
-export function ProjectEditor({ initialProject }: ProjectEditorProps) {
+export function ProjectEditor({
+	initialProject,
+	technologies,
+}: ProjectEditorProps) {
 	const navigate = useNavigate();
 
 	const createDraft = useMutation(api.functions.projects.createDraft);
@@ -832,11 +871,12 @@ export function ProjectEditor({ initialProject }: ProjectEditorProps) {
 						</form.Field>
 					</div>
 
-					<form.Subscribe selector={(state) => state.values.techStack}>
-						{(techStack) => (
-							<TechStackInput
-								techStack={techStack}
-								onChange={(next) => form.setFieldValue("techStack", next)}
+					<form.Subscribe selector={(state) => state.values.technologyIds}>
+						{(technologyIds) => (
+							<TechnologyPicker
+								technologyIds={technologyIds}
+								technologies={technologies}
+								onChange={(next) => form.setFieldValue("technologyIds", next)}
 							/>
 						)}
 					</form.Subscribe>
