@@ -1,6 +1,13 @@
-import { IconLink, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
+import {
+	IconEye,
+	IconEyeOff,
+	IconLink,
+	IconPlus,
+	IconTrash,
+	IconX,
+} from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
@@ -57,6 +64,11 @@ import {
 } from "#/components/ui/select";
 import { Skeleton } from "#/components/ui/skeleton";
 import { Spinner } from "#/components/ui/spinner";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "#/components/ui/tooltip";
 import { useConvexUpload } from "#/hooks/use-convex-upload";
 import { cn } from "#/lib/utils";
 
@@ -605,6 +617,50 @@ export function PostEditor({
 									Delete
 								</Button>
 							)}
+							<form.Subscribe
+								selector={(state) => ({
+									status: state.values.status,
+									slug: state.values.slug,
+								})}
+							>
+								{({ status, slug }) =>
+									status !== "draft" && draftId ? (
+										<Button
+											type="button"
+											size="sm"
+											variant="outline"
+											nativeButton={false}
+											render={
+												<Link
+													to="/posts/$slugId"
+													params={{ slugId: slug }}
+													target="_blank"
+												/>
+											}
+										>
+											<IconEye data-icon="inline-start" />
+											Preview
+										</Button>
+									) : (
+										<Tooltip>
+											<TooltipTrigger
+												render={
+													<Button
+														type="button"
+														size="sm"
+														variant="outline"
+														disabled
+													>
+														<IconEyeOff data-icon="inline-start" />
+														Preview
+													</Button>
+												}
+											/>
+											<TooltipContent>Publish post to preview</TooltipContent>
+										</Tooltip>
+									)
+								}
+							</form.Subscribe>
 							<ButtonGroup className="rounded-lg border border-input bg-background dark:bg-input/30">
 								<form.Field name="status">
 									{(field) => (

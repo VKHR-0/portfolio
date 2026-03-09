@@ -2,6 +2,7 @@ import {
 	IconBrandGithub,
 	IconDice,
 	IconExternalLink,
+	IconEye,
 	IconLink,
 	IconPhoto,
 	IconPlus,
@@ -10,7 +11,7 @@ import {
 	IconX,
 } from "@tabler/icons-react";
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
@@ -712,6 +713,28 @@ export function ProjectEditor({ initialProject }: ProjectEditorProps) {
 									<IconTrash data-icon="inline-start" />
 									Delete
 								</Button>
+							)}
+							{draftId && (
+								<form.Subscribe selector={(state) => state.values.slug}>
+									{(slug) => (
+										<Button
+											type="button"
+											size="sm"
+											variant="outline"
+											nativeButton={false}
+											render={
+												<Link
+													to="/projects/$slugId"
+													params={{ slugId: slug }}
+													target="_blank"
+												/>
+											}
+										>
+											<IconEye data-icon="inline-start" />
+											Preview
+										</Button>
+									)}
+								</form.Subscribe>
 							)}
 						</div>
 
