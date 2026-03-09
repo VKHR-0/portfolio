@@ -42,15 +42,15 @@ const inputGroupAddonVariants = cva(
 function InputGroupAddon({
 	className,
 	align = "inline-start",
-	onKeyDown,
 	onKeyUp,
+	onKeyDown,
 	...props
 }: React.ComponentProps<"fieldset"> &
 	VariantProps<typeof inputGroupAddonVariants>) {
 	return (
 		<fieldset
-			onKeyDown={onKeyDown}
 			onKeyUp={onKeyUp}
+			onKeyDown={onKeyDown}
 			data-slot="input-group-addon"
 			data-align={align}
 			className={cn(inputGroupAddonVariants({ align }), className)}
