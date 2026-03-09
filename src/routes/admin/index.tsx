@@ -2,6 +2,7 @@ import { convexQuery } from "@convex-dev/react-query";
 import {
 	IconDeviceDesktop,
 	IconEye,
+	IconEyeOff,
 	IconMoon,
 	IconPencil,
 	IconPlus,
@@ -23,6 +24,7 @@ import { toSlug } from "shared/slug";
 import { toast } from "sonner";
 import { EditableCell } from "#/components/page-card";
 import { useTheme } from "#/components/theme-provider";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -40,10 +42,14 @@ import {
 	TableHeader,
 	TableRow,
 } from "#/components/ui/table";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "#/components/ui/tooltip";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import { authClient } from "#/lib/auth-client";
 import { isAuthError } from "#/lib/auth-errors";
-import { cn } from "#/lib/utils";
 import { getCurrentUser } from "#/server/auth";
 import type { Theme } from "#/server/theme";
 
@@ -360,18 +366,36 @@ function RouteComponent() {
 				)}
 				renderRowActions={(post) => (
 					<>
-						<Button
-							size="icon-xs"
-							variant="outline"
-							nativeButton={false}
-							render={
-								<Link to="/posts/$slugId" params={{ slugId: post.slug }} />
-							}
-							aria-label="Preview post"
-							title="Preview post"
-						>
-							<IconEye />
-						</Button>
+						{post.status !== "draft" ? (
+							<Button
+								size="icon-xs"
+								variant="outline"
+								nativeButton={false}
+								render={
+									<Link to="/posts/$slugId" params={{ slugId: post.slug }} />
+								}
+								aria-label="Preview post"
+								title="Preview post"
+							>
+								<IconEye />
+							</Button>
+						) : (
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<Button
+											size="icon-xs"
+											variant="outline"
+											disabled
+											aria-label="Preview unavailable"
+										>
+											<IconEyeOff />
+										</Button>
+									}
+								/>
+								<TooltipContent>Publish post to preview</TooltipContent>
+							</Tooltip>
+						)}
 						<Button
 							size="icon-xs"
 							nativeButton={false}
@@ -579,13 +603,24 @@ function RecentItemsCard<TItem extends RecentItem>({
 									<TableCell className="text-muted-foreground">
 										{renderSlugCell(item)}
 									</TableCell>
-									<TableCell
-										className={cn(
-											"text-muted-foreground capitalize",
-											item.status ? undefined : "text-muted-foreground/60",
+									<TableCell>
+										{item.status ? (
+											<Badge
+												variant={
+													item.status === "public" || item.status === "active"
+														? "default"
+														: item.status === "private" ||
+																item.status === "completed"
+															? "secondary"
+															: "outline"
+												}
+												className="capitalize"
+											>
+												{item.status}
+											</Badge>
+										) : (
+											<span className="text-muted-foreground/60">n/a</span>
 										)}
-									>
-										{item.status ?? "n/a"}
 									</TableCell>
 									<TableCell className="text-muted-foreground">
 										{formatCreatedAt(item._creationTime)}

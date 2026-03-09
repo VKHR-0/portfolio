@@ -6,3 +6,9 @@ export function getEditablePostBySlugQuery(slug: string) {
 		slug,
 	});
 }
+
+export function getPublicPostBySlugQuery(slug: string) {
+	return convexQuery(api.functions.posts.getPublicBySlug, {
+		slug,
+	});
+}

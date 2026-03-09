@@ -1,9 +1,91 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { IconArrowLeft } from "@tabler/icons-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ContentViewer } from "#/components/content-viewer";
+import { Badge } from "#/components/ui/badge";
+import { getPublicPostBySlugQuery } from "#/queries";
 
 export const Route = createFileRoute("/_home/posts/$slugId")({
+	loader: async ({ context, params }) => {
+		await context.queryClient.ensureQueryData(
+			getPublicPostBySlugQuery(params.slugId),
+		);
+	},
 	component: RouteComponent,
 });
 
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+	year: "numeric",
+	month: "long",
+	day: "numeric",
+});
+
 function RouteComponent() {
-	return <div>Hello "/_home/posts/$slugId"!</div>;
+	const { slugId } = Route.useParams();
+	const { data: post } = useSuspenseQuery(getPublicPostBySlugQuery(slugId));
+
+	if (!post) {
+		return (
+			<div className="flex flex-col items-center gap-4 py-20">
+				<h1 className="font-bold text-2xl">Post not found</h1>
+				<p className="text-muted-foreground">
+					This post doesn't exist or isn't published yet.
+				</p>
+				<Link
+					to="/posts"
+					className="text-primary text-sm underline underline-offset-4"
+				>
+					Back to posts
+				</Link>
+			</div>
+		);
+	}
+
+	return (
+		<article className="mx-auto w-full max-w-3xl px-4 py-10">
+			<Link
+				to="/posts"
+				className="mb-8 inline-flex items-center gap-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
+			>
+				<IconArrowLeft className="size-4" />
+				Back to posts
+			</Link>
+
+			<h1 className="mb-4 font-bold text-4xl leading-tight tracking-tight">
+				{post.title}
+			</h1>
+
+			<div className="mb-8 flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
+				<time dateTime={new Date(post._creationTime).toISOString()}>
+					{dateFormatter.format(new Date(post._creationTime))}
+				</time>
+
+				{post.category && (
+					<>
+						<span aria-hidden="true">&middot;</span>
+						<Badge variant="secondary">{post.category.name}</Badge>
+					</>
+				)}
+
+				{post.tags.length > 0 && (
+					<>
+						<span aria-hidden="true">&middot;</span>
+						<div className="flex flex-wrap gap-1.5">
+							{post.tags.map((tag) => (
+								<Badge key={tag.slug} variant="outline">
+									{tag.name}
+								</Badge>
+							))}
+						</div>
+					</>
+				)}
+			</div>
+
+			<ContentViewer
+				content={post.content}
+				format="markdown"
+				className="prose prose-amber dark:prose-invert max-w-none"
+			/>
+		</article>
+	);
 }

@@ -252,7 +252,7 @@ function TechStackInput({
 export function ProjectEditorSkeleton() {
 	return (
 		<Card size="sm" className="w-full min-w-0 flex-1">
-			<Skeleton className="min-h-[50vh] w-full rounded-t-lg rounded-b-none" />
+			<Skeleton className="min-h-[35vh] w-full rounded-t-lg rounded-b-none" />
 			<CardContent className="flex min-w-0 flex-col gap-5">
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div className="flex flex-wrap gap-2">
@@ -562,7 +562,7 @@ export function ProjectEditor({ initialProject }: ProjectEditorProps) {
 				{/* Hero Image Area */}
 				<form.Subscribe selector={(state) => state.values.imageId}>
 					{(imageId) => (
-						<div className="relative min-h-[50vh] overflow-hidden rounded-2xl bg-muted/30">
+						<div className="relative min-h-[35vh] overflow-hidden rounded-2xl bg-muted/30">
 							{imageId ? (
 								<>
 									<img
@@ -605,7 +605,7 @@ export function ProjectEditor({ initialProject }: ProjectEditorProps) {
 								</>
 							) : (
 								<>
-									<div className="flex h-full min-h-[50vh] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-muted-foreground/25 border-dashed">
+									<div className="flex h-full min-h-[35vh] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-muted-foreground/25 border-dashed">
 										<Button
 											type="button"
 											variant="ghost"

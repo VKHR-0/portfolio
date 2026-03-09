@@ -15,3 +15,9 @@ export function getEditableProjectBySlugQuery(slug: string) {
 		slug,
 	});
 }
+
+export function getPublicProjectBySlugQuery(slug: string) {
+	return convexQuery(api.functions.projects.getPublicBySlug, {
+		slug,
+	});
+}

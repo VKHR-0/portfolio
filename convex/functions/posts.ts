@@ -500,6 +500,50 @@ export const updatePostSummary = mutation({
 	},
 });
 
+export const getPublicBySlug = query({
+	args: {
+		slug: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const post = await ctx.db
+			.query("posts")
+			.withIndex("by_slug", (q) => q.eq("slug", args.slug))
+			.unique();
+
+		if (!post) {
+			return null;
+		}
+
+		if (post.status === "draft") {
+			return null;
+		}
+
+		if (post.status === "private") {
+			const user = await authComponent.getAuthUser(ctx);
+
+			if (!user || post.authorId !== user._id) {
+				return null;
+			}
+		}
+
+		const [category, tags] = await Promise.all([
+			post.categoryId ? ctx.db.get(post.categoryId) : null,
+			Promise.all(post.tags.map((tagId) => ctx.db.get(tagId))),
+		]);
+
+		return {
+			title: post.title,
+			slug: post.slug,
+			content: post.content,
+			_creationTime: post._creationTime,
+			category: category ? { name: category.name, slug: category.slug } : null,
+			tags: tags
+				.filter((tag): tag is NonNullable<typeof tag> => tag !== null)
+				.map((tag) => ({ name: tag.name, slug: tag.slug })),
+		};
+	},
+});
+
 export const deletePost = mutation({
 	args: {
 		id: v.id("posts"),

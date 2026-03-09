@@ -11,6 +11,7 @@ import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
 import { EditableCell, PageCard } from "#/components/page-card";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
@@ -29,6 +30,7 @@ type ProjectRow = {
 	_id: Id<"projects">;
 	title: string;
 	slug: string;
+	status: "active" | "completed" | "archived";
 };
 
 function listProjectsQuery(
@@ -214,7 +216,7 @@ function RouteComponent() {
 				accessorKey: "title",
 				header: "Title",
 				meta: {
-					headerClassName: "w-[40%]",
+					headerClassName: "w-[30%]",
 					cellClassName: "truncate font-medium",
 				},
 				cell: ({ row }) => {
@@ -255,7 +257,7 @@ function RouteComponent() {
 				accessorKey: "slug",
 				header: "Slug",
 				meta: {
-					headerClassName: "w-[35%]",
+					headerClassName: "w-[28%]",
 					cellClassName: "truncate",
 				},
 				cell: ({ row }) => {
@@ -284,6 +286,29 @@ function RouteComponent() {
 								)}
 							</form.Field>
 						</EditableCell>
+					);
+				},
+			},
+			{
+				accessorKey: "status",
+				enableSorting: false,
+				header: "Status",
+				meta: {
+					headerClassName: "w-[16%]",
+				},
+				cell: ({ row }) => {
+					const status = row.original.status;
+					const variant =
+						status === "active"
+							? "default"
+							: status === "completed"
+								? "secondary"
+								: "outline";
+
+					return (
+						<Badge variant={variant} className="capitalize">
+							{status}
+						</Badge>
 					);
 				},
 			},

@@ -280,3 +280,32 @@ export const deleteProject = mutation({
 		await ctx.db.delete(args.id);
 	},
 });
+
+export const getPublicBySlug = query({
+	args: {
+		slug: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const project = await ctx.db
+			.query("projects")
+			.withIndex("by_slug", (q) => q.eq("slug", args.slug))
+			.unique();
+
+		if (!project || project.status === "archived") {
+			return null;
+		}
+
+		return {
+			title: project.title,
+			slug: project.slug,
+			description: project.description,
+			content: project.content,
+			imageId: project.imageId,
+			status: project.status,
+			repositoryUrl: project.repositoryUrl,
+			demoUrl: project.demoUrl,
+			techStack: project.techStack,
+			_creationTime: project._creationTime,
+		};
+	},
+});

@@ -1,5 +1,5 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { IconEye, IconPencil, IconPlus } from "@tabler/icons-react";
+import { IconEye, IconEyeOff, IconPencil, IconPlus } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
@@ -11,8 +11,14 @@ import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
 import { EditableCell, PageCard } from "#/components/page-card";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "#/components/ui/tooltip";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
 	createAdminTableSearchSchema,
@@ -175,21 +181,39 @@ function RouteComponent() {
 				},
 				cell: ({ row }) => (
 					<div className="flex items-center gap-2">
-						<Button
-							size="icon-xs"
-							variant="outline"
-							nativeButton={false}
-							render={
-								<Link
-									to="/posts/$slugId"
-									params={{ slugId: row.original.slug }}
+						{row.original.status !== "draft" ? (
+							<Button
+								size="icon-xs"
+								variant="outline"
+								nativeButton={false}
+								render={
+									<Link
+										to="/posts/$slugId"
+										params={{ slugId: row.original.slug }}
+									/>
+								}
+								aria-label="Preview"
+								title="Preview"
+							>
+								<IconEye />
+							</Button>
+						) : (
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<Button
+											size="icon-xs"
+											variant="outline"
+											disabled
+											aria-label="Preview unavailable"
+										>
+											<IconEyeOff />
+										</Button>
+									}
 								/>
-							}
-							aria-label="Preview"
-							title="Preview"
-						>
-							<IconEye />
-						</Button>
+								<TooltipContent>Publish post to preview</TooltipContent>
+							</Tooltip>
+						)}
 						<Button
 							size="icon-xs"
 							nativeButton={false}
@@ -289,9 +313,22 @@ function RouteComponent() {
 				header: "Status",
 				meta: {
 					headerClassName: "w-[16%]",
-					cellClassName: "text-muted-foreground capitalize",
 				},
-				cell: ({ row }) => row.original.status,
+				cell: ({ row }) => {
+					const status = row.original.status;
+					const variant =
+						status === "public"
+							? "default"
+							: status === "private"
+								? "secondary"
+								: "outline";
+
+					return (
+						<Badge variant={variant} className="capitalize">
+							{status}
+						</Badge>
+					);
+				},
 			},
 		],
 		[
