@@ -581,18 +581,18 @@ function RecentItemsCard<TItem extends RecentItem>({
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead className="w-[1%]" />
-							<TableHead className="w-[36%]">Title</TableHead>
-							<TableHead className="w-[28%]">Slug</TableHead>
-							<TableHead className="w-[16%]">Status</TableHead>
-							<TableHead className="w-[19%]">Created</TableHead>
+							<TableHead className="w-8" />
+							<TableHead className="w-[35%]">Title</TableHead>
+							<TableHead className="w-[30%]">Slug</TableHead>
+							<TableHead className="w-[15%]">Status</TableHead>
+							<TableHead className="w-[20%]">Created</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{rows.length > 0 ? (
 							rows.map((item) => (
 								<TableRow key={item._id}>
-									<TableCell>
+									<TableCell className="px-1 py-2">
 										<div className="flex items-center gap-2">
 											{renderRowActions(item)}
 										</div>
