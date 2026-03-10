@@ -1,5 +1,6 @@
 import { IconAlertTriangle } from "@tabler/icons-react";
-import { Link } from "@tanstack/react-router";
+import type { ErrorComponentProps } from "@tanstack/react-router";
+import { Link, rootRouteId, useMatch, useRouter } from "@tanstack/react-router";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -8,11 +9,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
-
-type ErrorPageProps = {
-	error: unknown;
-	reset?: () => void;
-};
 
 function getErrorMessage(error: unknown) {
 	if (error instanceof Error) {
@@ -26,11 +22,19 @@ function getErrorMessage(error: unknown) {
 	return "An unexpected error occurred.";
 }
 
-function ErrorPage({ error, reset }: ErrorPageProps) {
+function ErrorPage({ error }: ErrorComponentProps) {
+	const router = useRouter();
+	const isRoot = useMatch({
+		strict: false,
+		select: (state) => state.id === rootRouteId,
+	});
+
+	console.error(error);
+
 	const message = getErrorMessage(error);
 
 	return (
-		<main className="flex min-h-screen items-center justify-center p-4">
+		<main className="flex w-full flex-1 flex-col items-center justify-center p-4 py-12 sm:min-h-[50dvh]">
 			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
@@ -39,13 +43,25 @@ function ErrorPage({ error, reset }: ErrorPageProps) {
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3">
-					<p className="text-muted-foreground">{message}</p>
+					<pre className="overflow-x-auto rounded-md bg-muted p-3 font-mono text-muted-foreground text-sm">
+						<code>{message}</code>
+					</pre>
 				</CardContent>
 				<CardFooter className="justify-end gap-2">
-					<Button variant="outline" render={<Link to="/" />}>
-						Go home
-					</Button>
-					<Button onClick={reset}>Try again</Button>
+					{isRoot ? (
+						<Button
+							variant="outline"
+							nativeButton={false}
+							render={<Link to="/" />}
+						>
+							Home
+						</Button>
+					) : (
+						<Button variant="outline" onClick={() => window.history.back()}>
+							Go Back
+						</Button>
+					)}
+					<Button onClick={() => router.invalidate()}>Try Again</Button>
 				</CardFooter>
 			</Card>
 		</main>

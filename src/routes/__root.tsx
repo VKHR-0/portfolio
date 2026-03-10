@@ -1,29 +1,13 @@
-import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
-import {
-	createRootRouteWithContext,
-	HeadContent,
-	Outlet,
-	Scripts,
-	useRouteContext,
-} from "@tanstack/react-router";
-import * as React from "react";
-import { ThemeProvider } from "#/components/theme-provider";
-import { Toaster } from "#/components/ui/sonner";
-import { TooltipProvider } from "#/components/ui/tooltip";
-import { authClient } from "#/lib/auth-client";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { ErrorPage } from "#/components/error";
+import { LoadingPage } from "#/components/loading";
+import { NotFoundPage } from "#/components/not-found";
+import { RootProviders } from "#/components/providers";
 import { getAuth } from "#/server/auth";
 import { getTheme } from "#/server/theme";
 import appCss from "../styles.css?url";
-
-const Devtools =
-	import.meta.env.DEV &&
-	React.lazy(() =>
-		import("#/components/devtools").then((module) => ({
-			default: module.Devtools,
-		})),
-	);
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
@@ -60,45 +44,27 @@ export const Route = createRootRouteWithContext<{
 		};
 	},
 	loader: () => getTheme(),
-	shellComponent: RootComponent,
+	shellComponent: () => {
+		const theme = Route.useLoaderData();
+		return (
+			<RootProviders theme={theme}>
+				<Outlet />
+			</RootProviders>
+		);
+	},
+	pendingComponent: () => (
+		<RootProviders theme="system">
+			<LoadingPage />
+		</RootProviders>
+	),
+	errorComponent: (props) => (
+		<RootProviders theme="system">
+			<ErrorPage {...props} />
+		</RootProviders>
+	),
+	notFoundComponent: () => (
+		<RootProviders theme="system">
+			<NotFoundPage />
+		</RootProviders>
+	),
 });
-
-function RootComponent() {
-	const context = useRouteContext({ from: Route.id });
-	const theme = Route.useLoaderData();
-	return (
-		<ConvexBetterAuthProvider
-			client={context.convexQueryClient.convexClient}
-			authClient={authClient}
-			initialToken={context.token}
-		>
-			<ThemeProvider theme={theme}>
-				<TooltipProvider>
-					<RootDocument>
-						<Outlet />
-					</RootDocument>
-				</TooltipProvider>
-			</ThemeProvider>
-		</ConvexBetterAuthProvider>
-	);
-}
-
-function RootDocument({ children }: { children: React.ReactNode }) {
-	return (
-		<html lang="en" suppressHydrationWarning>
-			<head>
-				<HeadContent />
-			</head>
-			<body>
-				{children}
-				<Toaster position="top-center" />
-				{Devtools ? (
-					<React.Suspense fallback={null}>
-						<Devtools />
-					</React.Suspense>
-				) : null}
-				<Scripts />
-			</body>
-		</html>
-	);
-}

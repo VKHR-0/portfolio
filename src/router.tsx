@@ -1,8 +1,9 @@
 import { ConvexQueryClient } from "@convex-dev/react-query";
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { createRouteMask, createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
+import { toast } from "sonner";
 import { ErrorPage } from "#/components/error";
 import { LoadingPage } from "#/components/loading";
 import { NotFoundPage } from "#/components/not-found";
@@ -39,7 +40,11 @@ export function getRouter() {
 				queryFn: convexQueryClient.queryFn(),
 			},
 		},
+		mutationCache: new MutationCache({
+			onError: (error) => toast.error(error.message),
+		}),
 	});
+
 	convexQueryClient.connect(queryClient);
 
 	const router = createRouter({

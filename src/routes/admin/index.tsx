@@ -23,7 +23,7 @@ import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
 import { EditableCell } from "#/components/page-card";
-import { useTheme } from "#/components/theme-provider";
+import { useTheme } from "#/components/providers/theme-provider";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
