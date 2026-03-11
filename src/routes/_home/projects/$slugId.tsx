@@ -9,15 +9,20 @@ import {
 	TECHNOLOGY_COLORS,
 	type TechnologyColorKey,
 } from "shared/technology-colors";
-import { ContentViewer } from "#/components/content-viewer";
+import { MarkdownContent } from "#/components/markdown-content";
 import { Badge } from "#/components/ui/badge";
 import { getPublicProjectBySlugQuery } from "#/queries";
+import { renderMarkdown } from "#/server/markdown";
 
 export const Route = createFileRoute("/_home/projects/$slugId")({
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(
+		const project = await context.queryClient.ensureQueryData(
 			getPublicProjectBySlugQuery(params.slugId),
 		);
+		const contentHtml = project?.content
+			? await renderMarkdown({ data: project.content })
+			: "";
+		return { contentHtml };
 	},
 	component: RouteComponent,
 });
@@ -29,6 +34,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 function RouteComponent() {
+	const { contentHtml } = Route.useLoaderData();
 	const { slugId } = Route.useParams();
 	const { data: project } = useSuspenseQuery(
 		getPublicProjectBySlugQuery(slugId),
@@ -156,9 +162,8 @@ function RouteComponent() {
 					</p>
 				)}
 
-				<ContentViewer
-					content={project.content}
-					format="markdown"
+				<MarkdownContent
+					html={contentHtml}
 					className="prose prose-amber dark:prose-invert max-w-none"
 				/>
 			</div>

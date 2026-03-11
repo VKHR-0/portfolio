@@ -1,15 +1,20 @@
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ContentViewer } from "#/components/content-viewer";
+import { MarkdownContent } from "#/components/markdown-content";
 import { Badge } from "#/components/ui/badge";
 import { getPublicPostBySlugQuery } from "#/queries";
+import { renderMarkdown } from "#/server/markdown";
 
 export const Route = createFileRoute("/_home/posts/$slugId")({
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(
+		const post = await context.queryClient.ensureQueryData(
 			getPublicPostBySlugQuery(params.slugId),
 		);
+		const contentHtml = post?.content
+			? await renderMarkdown({ data: post.content })
+			: "";
+		return { contentHtml };
 	},
 	component: RouteComponent,
 });
@@ -21,6 +26,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 function RouteComponent() {
+	const { contentHtml } = Route.useLoaderData();
 	const { slugId } = Route.useParams();
 	const { data: post } = useSuspenseQuery(getPublicPostBySlugQuery(slugId));
 
@@ -81,9 +87,8 @@ function RouteComponent() {
 				)}
 			</div>
 
-			<ContentViewer
-				content={post.content}
-				format="markdown"
+			<MarkdownContent
+				html={contentHtml}
 				className="prose prose-amber dark:prose-invert max-w-none"
 			/>
 		</article>
