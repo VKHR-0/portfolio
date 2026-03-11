@@ -24,6 +24,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Spinner } from "#/components/ui/spinner";
 import { Textarea } from "#/components/ui/textarea";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 
 const createCategorySchema = z.object({
 	name: z.string().trim().min(1, "Name is required."),
@@ -43,6 +44,11 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const createCategory = useMutation(api.functions.categories.createCategory);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
+	const nameInputRef = React.useRef<HTMLInputElement>(null);
+
+	React.useEffect(() => {
+		nameInputRef.current?.focus();
+	}, []);
 
 	const form = useForm({
 		defaultValues: {
@@ -54,21 +60,22 @@ function RouteComponent() {
 			onSubmit: createCategorySchema,
 		},
 		onSubmit: async ({ value }) => {
-			try {
-				await createCategory({
+			const result = await toAsyncResult(
+				createCategory({
 					name: value.name,
 					slug: value.slug || undefined,
 					description: value.description || undefined,
-				});
+				}),
+			);
 
-				void navigate({ to: "/admin/categories" });
-			} catch (mutationError: unknown) {
+			if (!result.ok) {
 				toast.error(
-					mutationError instanceof Error
-						? mutationError.message
-						: "Unable to create category.",
+					getErrorMessage(result.error, "Unable to create category."),
 				);
+				return;
 			}
+
+			void navigate({ to: "/admin/categories" });
 		},
 	});
 
@@ -91,7 +98,6 @@ function RouteComponent() {
 					id="admin-create-category-form"
 					onSubmit={(event) => {
 						event.preventDefault();
-						event.stopPropagation();
 						void form.handleSubmit();
 					}}
 				>
@@ -105,7 +111,7 @@ function RouteComponent() {
 									<Field data-invalid={isInvalid}>
 										<FieldLabel htmlFor={field.name}>Name</FieldLabel>
 										<Input
-											autoFocus
+											ref={nameInputRef}
 											id={field.name}
 											name={field.name}
 											placeholder="Category name"

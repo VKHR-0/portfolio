@@ -30,6 +30,7 @@ import {
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import { Spinner } from "#/components/ui/spinner";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 import { cn } from "#/lib/utils";
 
 const createTechnologySchema = z.object({
@@ -58,6 +59,11 @@ function RouteComponent() {
 		api.functions.technologies.createTechnology,
 	);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
+	const nameInputRef = React.useRef<HTMLInputElement>(null);
+
+	React.useEffect(() => {
+		nameInputRef.current?.focus();
+	}, []);
 
 	const form = useForm({
 		defaultValues: {
@@ -69,21 +75,22 @@ function RouteComponent() {
 			onSubmit: createTechnologySchema,
 		},
 		onSubmit: async ({ value }) => {
-			try {
-				await createTechnology({
+			const result = await toAsyncResult(
+				createTechnology({
 					name: value.name,
 					slug: value.slug || undefined,
 					color: value.color,
-				});
+				}),
+			);
 
-				void navigate({ to: "/admin/technologies" });
-			} catch (mutationError: unknown) {
+			if (!result.ok) {
 				toast.error(
-					mutationError instanceof Error
-						? mutationError.message
-						: "Unable to create technology.",
+					getErrorMessage(result.error, "Unable to create technology."),
 				);
+				return;
 			}
+
+			void navigate({ to: "/admin/technologies" });
 		},
 	});
 
@@ -106,7 +113,6 @@ function RouteComponent() {
 					id="admin-create-technology-form"
 					onSubmit={(event) => {
 						event.preventDefault();
-						event.stopPropagation();
 						void form.handleSubmit();
 					}}
 				>
@@ -120,7 +126,7 @@ function RouteComponent() {
 									<Field data-invalid={isInvalid}>
 										<FieldLabel htmlFor={field.name}>Name</FieldLabel>
 										<Input
-											autoFocus
+											ref={nameInputRef}
 											id={field.name}
 											name={field.name}
 											placeholder="Technology name"
@@ -180,7 +186,7 @@ function RouteComponent() {
 							{(field) => (
 								<Field>
 									<div className="flex items-center justify-between">
-										<FieldLabel>Color</FieldLabel>
+										<FieldLabel id="color-label">Color</FieldLabel>
 										<Button
 											type="button"
 											variant="ghost"

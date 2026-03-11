@@ -19,6 +19,7 @@ import {
 import { Skeleton } from "#/components/ui/skeleton";
 import { Spinner } from "#/components/ui/spinner";
 import { useConvexUpload } from "#/hooks/use-convex-upload";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 
 const PAGE_SIZE = 20;
 
@@ -169,19 +170,20 @@ function UploadButton() {
 		}
 
 		setIsUploading(true);
+		const result = await toAsyncResult(
+			uploadFile(file).then(async () => {
+				await queryClient.invalidateQueries({
+					queryKey: convexQuery(api.functions.media.list, {
+						paginationOpts: { numItems: PAGE_SIZE, cursor: null },
+					}).queryKey,
+				});
+				toast.success("Image uploaded.");
+			}),
+		);
+		setIsUploading(false);
 
-		try {
-			await uploadFile(file);
-			await queryClient.invalidateQueries({
-				queryKey: convexQuery(api.functions.media.list, {
-					paginationOpts: { numItems: PAGE_SIZE, cursor: null },
-				}).queryKey,
-			});
-			toast.success("Image uploaded.");
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "Upload failed.");
-		} finally {
-			setIsUploading(false);
+		if (!result.ok) {
+			toast.error(getErrorMessage(result.error, "Upload failed."));
 		}
 	};
 

@@ -31,6 +31,7 @@ import {
 	searchFromSortingState,
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 import { cn } from "#/lib/utils";
 
 const PAGE_SIZE = 10;
@@ -256,20 +257,21 @@ function RouteComponent() {
 		}
 
 		setIsDeletingTech(true);
+		const result = await toAsyncResult(
+			deleteTechnology({ id: techToDelete._id }).then(async () => {
+				await queryClient.invalidateQueries({
+					queryKey: listTechQuery(currentCursor, search).queryKey,
+				});
+				toast.success("Technology deleted.");
+				setTechToDelete(null);
+			}),
+		);
+		setIsDeletingTech(false);
 
-		try {
-			await deleteTechnology({ id: techToDelete._id });
-			await queryClient.invalidateQueries({
-				queryKey: listTechQuery(currentCursor, search).queryKey,
-			});
-			toast.success("Technology deleted.");
-			setTechToDelete(null);
-		} catch (error) {
+		if (!result.ok) {
 			toast.error(
-				error instanceof Error ? error.message : "Unable to delete technology.",
+				getErrorMessage(result.error, "Unable to delete technology."),
 			);
-		} finally {
-			setIsDeletingTech(false);
 		}
 	};
 

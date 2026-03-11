@@ -20,6 +20,7 @@ import {
 	searchFromSortingState,
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 
 const PAGE_SIZE = 10;
 const CATEGORY_SORT_FIELDS = [
@@ -196,20 +197,19 @@ function RouteComponent() {
 		}
 
 		setIsDeletingCategory(true);
+		const result = await toAsyncResult(
+			deleteCategory({ id: categoryToDelete._id }).then(async () => {
+				await queryClient.invalidateQueries({
+					queryKey: listCategoriesQuery(currentCursor, search).queryKey,
+				});
+				toast.success("Category deleted.");
+				setCategoryToDelete(null);
+			}),
+		);
+		setIsDeletingCategory(false);
 
-		try {
-			await deleteCategory({ id: categoryToDelete._id });
-			await queryClient.invalidateQueries({
-				queryKey: listCategoriesQuery(currentCursor, search).queryKey,
-			});
-			toast.success("Category deleted.");
-			setCategoryToDelete(null);
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Unable to delete category.",
-			);
-		} finally {
-			setIsDeletingCategory(false);
+		if (!result.ok) {
+			toast.error(getErrorMessage(result.error, "Unable to delete category."));
 		}
 	};
 

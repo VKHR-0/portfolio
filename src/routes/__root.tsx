@@ -44,27 +44,41 @@ export const Route = createRootRouteWithContext<{
 		};
 	},
 	loader: () => getTheme(),
-	shellComponent: () => {
-		const theme = Route.useLoaderData();
-		return (
-			<RootProviders theme={theme}>
-				<Outlet />
-			</RootProviders>
-		);
-	},
-	pendingComponent: () => (
+	shellComponent: ShellComponent,
+	pendingComponent: RootPendingComponent,
+	errorComponent: RootErrorComponent,
+	notFoundComponent: RootNotFoundComponent,
+});
+
+function ShellComponent() {
+	const theme = Route.useLoaderData();
+	return (
+		<RootProviders theme={theme}>
+			<Outlet />
+		</RootProviders>
+	);
+}
+
+function RootPendingComponent() {
+	return (
 		<RootProviders theme="system">
 			<LoadingPage />
 		</RootProviders>
-	),
-	errorComponent: (props) => (
+	);
+}
+
+function RootErrorComponent(props: Parameters<typeof ErrorPage>[0]) {
+	return (
 		<RootProviders theme="system">
 			<ErrorPage {...props} />
 		</RootProviders>
-	),
-	notFoundComponent: () => (
+	);
+}
+
+function RootNotFoundComponent() {
+	return (
 		<RootProviders theme="system">
 			<NotFoundPage />
 		</RootProviders>
-	),
-});
+	);
+}

@@ -16,7 +16,6 @@ import { useBubbleMenu } from "./use-bubble-menu";
 import { useImageUpload } from "./use-image-upload";
 
 export type {
-	EditorFormat,
 	EditorProps,
 	ImageFallbackMode,
 	ImagePickerContext,
@@ -58,17 +57,23 @@ export function Editor({
 	editorClassName,
 	...props
 }: EditorProps) {
+	type InsertLocalImageFile = (
+		file: File,
+		source: "paste" | "drop" | "slash",
+		initialAttrs?: { alt?: string; title?: string },
+	) => Promise<void>;
+
 	const [menuBoundary, setMenuBoundary] = React.useState<HTMLDivElement | null>(
 		null,
 	);
 
-	const insertLocalImageFileRef = React.useRef<
-		(
-			file: File,
-			source: "paste" | "drop" | "slash",
-			initialAttrs?: { alt?: string; title?: string },
-		) => Promise<void>
-	>(async () => undefined);
+	const insertLocalImageFileRef = React.useRef<InsertLocalImageFile>(
+		async () => undefined,
+	);
+	const handleInsertLocalImageFile = React.useEffectEvent<InsertLocalImageFile>(
+		(file, source, initialAttrs) =>
+			insertLocalImageFileRef.current(file, source, initialAttrs),
+	);
 
 	const lastEmittedValueRef = React.useRef<string>(value);
 
@@ -87,8 +92,7 @@ export function Editor({
 			enableImages,
 			onRequestImage,
 			imageFallback,
-			insertLocalImageFile: (file, source, initialAttrs) =>
-				insertLocalImageFileRef.current(file, source, initialAttrs),
+			insertLocalImageFile: handleInsertLocalImageFile,
 		}),
 		content: value || (format === "markdown" ? "" : "<p></p>"),
 		contentType: format,
@@ -234,7 +238,9 @@ export function Editor({
 		},
 	);
 
-	insertLocalImageFileRef.current = insertLocalImageFile;
+	React.useEffect(() => {
+		insertLocalImageFileRef.current = insertLocalImageFile;
+	}, [insertLocalImageFile]);
 
 	const menu = useBubbleMenu(editor, { enableImages, disabled });
 	const blockOptions = getBlockOptions(headingLevels);

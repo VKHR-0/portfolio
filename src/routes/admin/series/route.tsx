@@ -20,6 +20,7 @@ import {
 	searchFromSortingState,
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 
 const PAGE_SIZE = 10;
 const SERIES_SORT_FIELDS = [
@@ -182,20 +183,19 @@ function RouteComponent() {
 		}
 
 		setIsDeletingSeries(true);
+		const result = await toAsyncResult(
+			deleteSeries({ id: seriesToDelete._id }).then(async () => {
+				await queryClient.invalidateQueries({
+					queryKey: listSeriesQuery(currentCursor, search).queryKey,
+				});
+				toast.success("Series deleted.");
+				setSeriesToDelete(null);
+			}),
+		);
+		setIsDeletingSeries(false);
 
-		try {
-			await deleteSeries({ id: seriesToDelete._id });
-			await queryClient.invalidateQueries({
-				queryKey: listSeriesQuery(currentCursor, search).queryKey,
-			});
-			toast.success("Series deleted.");
-			setSeriesToDelete(null);
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Unable to delete series.",
-			);
-		} finally {
-			setIsDeletingSeries(false);
+		if (!result.ok) {
+			toast.error(getErrorMessage(result.error, "Unable to delete series."));
 		}
 	};
 

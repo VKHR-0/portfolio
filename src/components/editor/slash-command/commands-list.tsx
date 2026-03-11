@@ -25,14 +25,12 @@ export type CommandsListHandle = {
 
 function CommandsList({ items, command, ref }: CommandsListProps) {
 	const [selectedIndex, setSelectedIndex] = React.useState(0);
-	const selectedIndexRef = React.useRef(selectedIndex);
-	selectedIndexRef.current = selectedIndex;
+	const selectedIndexRef = React.useRef(0);
+	const activeIndex = selectedIndex < items.length ? selectedIndex : 0;
 
-	const [prevItems, setPrevItems] = React.useState(items);
-	if (prevItems !== items) {
-		setPrevItems(items);
-		setSelectedIndex(0);
-	}
+	React.useEffect(() => {
+		selectedIndexRef.current = activeIndex;
+	}, [activeIndex]);
 
 	const selectItem = (index: number) => {
 		const item = items[index];
@@ -75,7 +73,7 @@ function CommandsList({ items, command, ref }: CommandsListProps) {
 						<CommandItem
 							key={item.title}
 							value={item.title}
-							data-selected={index === selectedIndex ? true : undefined}
+							data-selected={index === activeIndex ? true : undefined}
 							onSelect={() => selectItem(index)}
 							onMouseEnter={() => setSelectedIndex(index)}
 						>

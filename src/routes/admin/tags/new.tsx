@@ -23,6 +23,7 @@ import {
 } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import { Spinner } from "#/components/ui/spinner";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 
 const createTagSchema = z.object({
 	name: z.string().trim().min(1, "Name is required."),
@@ -41,6 +42,11 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const createTag = useMutation(api.functions.tags.createTag);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
+	const nameInputRef = React.useRef<HTMLInputElement>(null);
+
+	React.useEffect(() => {
+		nameInputRef.current?.focus();
+	}, []);
 
 	const form = useForm({
 		defaultValues: {
@@ -51,20 +57,19 @@ function RouteComponent() {
 			onSubmit: createTagSchema,
 		},
 		onSubmit: async ({ value }) => {
-			try {
-				await createTag({
+			const result = await toAsyncResult(
+				createTag({
 					name: value.name,
 					slug: value.slug || undefined,
-				});
+				}),
+			);
 
-				void navigate({ to: "/admin/tags" });
-			} catch (mutationError: unknown) {
-				toast.error(
-					mutationError instanceof Error
-						? mutationError.message
-						: "Unable to create tag.",
-				);
+			if (!result.ok) {
+				toast.error(getErrorMessage(result.error, "Unable to create tag."));
+				return;
 			}
+
+			void navigate({ to: "/admin/tags" });
 		},
 	});
 
@@ -85,7 +90,6 @@ function RouteComponent() {
 					id="admin-create-tag-form"
 					onSubmit={(event) => {
 						event.preventDefault();
-						event.stopPropagation();
 						void form.handleSubmit();
 					}}
 				>
@@ -99,7 +103,7 @@ function RouteComponent() {
 									<Field data-invalid={isInvalid}>
 										<FieldLabel htmlFor={field.name}>Name</FieldLabel>
 										<Input
-											autoFocus
+											ref={nameInputRef}
 											id={field.name}
 											name={field.name}
 											placeholder="Tag name"

@@ -64,6 +64,31 @@ function getNextSortingState(
 	return [];
 }
 
+function useAdminReactTable<TData>({
+	columns,
+	data,
+	sorting,
+	getRowId,
+}: Pick<
+	AdminDataTableProps<TData>,
+	"columns" | "data" | "sorting" | "getRowId"
+>) {
+	"use no memo";
+
+	/* eslint-disable-next-line react-hooks-js/incompatible-library -- TanStack Table is intentionally opted out of React Compiler memoization */
+	return useReactTable({
+		data,
+		columns,
+		getCoreRowModel: getCoreRowModel(),
+		manualSorting: true,
+		enableMultiSort: false,
+		state: {
+			sorting,
+		},
+		getRowId,
+	});
+}
+
 export function AdminDataTable<TData>({
 	columns,
 	data,
@@ -75,16 +100,11 @@ export function AdminDataTable<TData>({
 	getRowId,
 	className,
 }: AdminDataTableProps<TData>) {
-	const table = useReactTable({
+	const table = useAdminReactTable({
 		data,
 		columns,
-		getCoreRowModel: getCoreRowModel(),
-		manualSorting: true,
-		enableMultiSort: false,
-		state: {
-			sorting,
-		},
 		getRowId,
+		sorting,
 	});
 
 	return (

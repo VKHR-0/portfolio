@@ -24,6 +24,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Spinner } from "#/components/ui/spinner";
 import { Textarea } from "#/components/ui/textarea";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 
 const createSeriesSchema = z.object({
 	name: z.string().trim().min(1, "Name is required."),
@@ -43,6 +44,11 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const createSeries = useMutation(api.functions.series.createSeries);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
+	const nameInputRef = React.useRef<HTMLInputElement>(null);
+
+	React.useEffect(() => {
+		nameInputRef.current?.focus();
+	}, []);
 
 	const form = useForm({
 		defaultValues: {
@@ -54,21 +60,20 @@ function RouteComponent() {
 			onSubmit: createSeriesSchema,
 		},
 		onSubmit: async ({ value }) => {
-			try {
-				await createSeries({
+			const result = await toAsyncResult(
+				createSeries({
 					name: value.name,
 					slug: value.slug || undefined,
 					description: value.description || undefined,
-				});
+				}),
+			);
 
-				void navigate({ to: "/admin/series" });
-			} catch (mutationError: unknown) {
-				toast.error(
-					mutationError instanceof Error
-						? mutationError.message
-						: "Unable to create series.",
-				);
+			if (!result.ok) {
+				toast.error(getErrorMessage(result.error, "Unable to create series."));
+				return;
 			}
+
+			void navigate({ to: "/admin/series" });
 		},
 	});
 
@@ -91,7 +96,6 @@ function RouteComponent() {
 					id="admin-create-series-form"
 					onSubmit={(event) => {
 						event.preventDefault();
-						event.stopPropagation();
 						void form.handleSubmit();
 					}}
 				>
@@ -105,7 +109,7 @@ function RouteComponent() {
 									<Field data-invalid={isInvalid}>
 										<FieldLabel htmlFor={field.name}>Name</FieldLabel>
 										<Input
-											autoFocus
+											ref={nameInputRef}
 											id={field.name}
 											name={field.name}
 											placeholder="Series name"

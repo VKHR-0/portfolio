@@ -81,17 +81,6 @@ function getNextTheme(theme: Theme): Theme {
 	return THEME_ORDER[nextIndex] ?? "system";
 }
 
-function getThemeIcon(theme: Theme) {
-	switch (theme) {
-		case "light":
-			return IconSun;
-		case "dark":
-			return IconMoon;
-		default:
-			return IconDeviceDesktop;
-	}
-}
-
 export const Route = createFileRoute("/admin/")({
 	component: RouteComponent,
 	loader: async ({ context, location }) => {
@@ -220,7 +209,6 @@ function RouteComponent() {
 		},
 	});
 	const nextTheme = getNextTheme(theme);
-	const ThemeIcon = getThemeIcon(theme);
 
 	React.useEffect(() => {
 		if (!editingPostId) {
@@ -270,7 +258,13 @@ function RouteComponent() {
 								setTheme(nextTheme);
 							}}
 						>
-							<ThemeIcon />
+							{theme === "light" ? (
+								<IconSun />
+							) : theme === "dark" ? (
+								<IconMoon />
+							) : (
+								<IconDeviceDesktop />
+							)}
 						</Button>
 						<Button
 							onClick={() => {
@@ -296,265 +290,283 @@ function RouteComponent() {
 				title="Latest posts"
 				description="The 10 most recently created posts."
 				emptyLabel="No posts yet."
-				rows={recentPosts}
+				rows={recentPosts.map((post) => ({
+					id: post._id,
+					status: post.status,
+					createdAt: post._creationTime,
+					titleCell: (
+						<EditableCell
+							isEditing={editingPostId === post._id}
+							displayValue={post.title}
+							onDoubleClick={() =>
+								startEditingPost(
+									post._id,
+									{ title: post.title, slug: post.slug },
+									"title",
+								)
+							}
+							className="font-medium"
+						>
+							<postForm.Field name="title">
+								{(field) => (
+									<Input
+										ref={postTitleInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingPost}
+										onChange={(event) => {
+											const nextTitle = event.target.value;
+											field.handleChange(nextTitle);
+											postForm.setFieldValue("slug", toSlug(nextTitle));
+										}}
+										onBlur={(event) => {
+											field.handleBlur();
+											handlePostInputBlur(event);
+										}}
+										onKeyDown={handlePostInputKeyDown}
+									/>
+								)}
+							</postForm.Field>
+						</EditableCell>
+					),
+					slugCell: (
+						<EditableCell
+							isEditing={editingPostId === post._id}
+							displayValue={post.slug}
+							onDoubleClick={() =>
+								startEditingPost(
+									post._id,
+									{ title: post.title, slug: post.slug },
+									"slug",
+								)
+							}
+						>
+							<postForm.Field name="slug">
+								{(field) => (
+									<Input
+										ref={postSlugInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingPost}
+										onChange={(event) => field.handleChange(event.target.value)}
+										onBlur={(event) => {
+											field.handleBlur();
+											handlePostInputBlur(event);
+										}}
+										onKeyDown={handlePostInputKeyDown}
+									/>
+								)}
+							</postForm.Field>
+						</EditableCell>
+					),
+					actions:
+						post.status !== "draft" ? (
+							<>
+								<Button
+									size="icon-xs"
+									variant="outline"
+									nativeButton={false}
+									render={
+										<Link to="/posts/$slugId" params={{ slugId: post.slug }} />
+									}
+									aria-label="Preview post"
+									title="Preview post"
+								>
+									<IconEye />
+								</Button>
+								<Button
+									size="icon-xs"
+									nativeButton={false}
+									render={
+										<Link
+											to="/admin/posts/$slugId"
+											params={{ slugId: post.slug }}
+										/>
+									}
+									aria-label="Edit post"
+									title="Edit post"
+								>
+									<IconPencil />
+								</Button>
+							</>
+						) : (
+							<>
+								<Tooltip>
+									<TooltipTrigger
+										render={
+											<Button
+												size="icon-xs"
+												variant="outline"
+												disabled
+												aria-label="Preview unavailable"
+											>
+												<IconEyeOff />
+											</Button>
+										}
+									/>
+									<TooltipContent>Publish post to preview</TooltipContent>
+								</Tooltip>
+								<Button
+									size="icon-xs"
+									nativeButton={false}
+									render={
+										<Link
+											to="/admin/posts/$slugId"
+											params={{ slugId: post.slug }}
+										/>
+									}
+									aria-label="Edit post"
+									title="Edit post"
+								>
+									<IconPencil />
+								</Button>
+							</>
+						),
+				}))}
 				viewAllLink="/admin/posts"
 				createLink="/admin/posts/new"
-				renderTitleCell={(post) => (
-					<EditableCell
-						isEditing={editingPostId === post._id}
-						displayValue={post.title}
-						onDoubleClick={() =>
-							startEditingPost(
-								post._id,
-								{ title: post.title, slug: post.slug },
-								"title",
-							)
-						}
-						className="font-medium"
-					>
-						<postForm.Field name="title">
-							{(field) => (
-								<Input
-									ref={postTitleInputRef}
-									data-editable-cell="true"
-									value={field.state.value}
-									disabled={isSavingPost}
-									onChange={(event) => {
-										const nextTitle = event.target.value;
-										field.handleChange(nextTitle);
-										postForm.setFieldValue("slug", toSlug(nextTitle));
-									}}
-									onBlur={(event) => {
-										field.handleBlur();
-										handlePostInputBlur(event);
-									}}
-									onKeyDown={handlePostInputKeyDown}
-								/>
-							)}
-						</postForm.Field>
-					</EditableCell>
-				)}
-				renderSlugCell={(post) => (
-					<EditableCell
-						isEditing={editingPostId === post._id}
-						displayValue={post.slug}
-						onDoubleClick={() =>
-							startEditingPost(
-								post._id,
-								{ title: post.title, slug: post.slug },
-								"slug",
-							)
-						}
-					>
-						<postForm.Field name="slug">
-							{(field) => (
-								<Input
-									ref={postSlugInputRef}
-									data-editable-cell="true"
-									value={field.state.value}
-									disabled={isSavingPost}
-									onChange={(event) => field.handleChange(event.target.value)}
-									onBlur={(event) => {
-										field.handleBlur();
-										handlePostInputBlur(event);
-									}}
-									onKeyDown={handlePostInputKeyDown}
-								/>
-							)}
-						</postForm.Field>
-					</EditableCell>
-				)}
-				renderRowActions={(post) => (
-					<>
-						{post.status !== "draft" ? (
-							<Button
-								size="icon-xs"
-								variant="outline"
-								nativeButton={false}
-								render={
-									<Link to="/posts/$slugId" params={{ slugId: post.slug }} />
-								}
-								aria-label="Preview post"
-								title="Preview post"
-							>
-								<IconEye />
-							</Button>
-						) : (
-							<Tooltip>
-								<TooltipTrigger
-									render={
-										<Button
-											size="icon-xs"
-											variant="outline"
-											disabled
-											aria-label="Preview unavailable"
-										>
-											<IconEyeOff />
-										</Button>
-									}
-								/>
-								<TooltipContent>Publish post to preview</TooltipContent>
-							</Tooltip>
-						)}
-						<Button
-							size="icon-xs"
-							nativeButton={false}
-							render={
-								<Link
-									to="/admin/posts/$slugId"
-									params={{ slugId: post.slug }}
-								/>
-							}
-							aria-label="Edit post"
-							title="Edit post"
-						>
-							<IconPencil />
-						</Button>
-					</>
-				)}
 			/>
 
 			<RecentItemsCard
 				title="Latest projects"
 				description="The 10 most recently created projects."
 				emptyLabel="No projects yet."
-				rows={recentProjects}
+				rows={recentProjects.map((project) => ({
+					id: project._id,
+					status: project.status,
+					createdAt: project._creationTime,
+					titleCell: (
+						<EditableCell
+							isEditing={editingProjectId === project._id}
+							displayValue={project.title}
+							onDoubleClick={() =>
+								startEditingProject(
+									project._id,
+									{ title: project.title, slug: project.slug },
+									"title",
+								)
+							}
+							className="font-medium"
+						>
+							<projectForm.Field name="title">
+								{(field) => (
+									<Input
+										ref={projectTitleInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingProject}
+										onChange={(event) => {
+											const nextTitle = event.target.value;
+											field.handleChange(nextTitle);
+											projectForm.setFieldValue("slug", toSlug(nextTitle));
+										}}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleProjectInputBlur(event);
+										}}
+										onKeyDown={handleProjectInputKeyDown}
+									/>
+								)}
+							</projectForm.Field>
+						</EditableCell>
+					),
+					slugCell: (
+						<EditableCell
+							isEditing={editingProjectId === project._id}
+							displayValue={project.slug}
+							onDoubleClick={() =>
+								startEditingProject(
+									project._id,
+									{ title: project.title, slug: project.slug },
+									"slug",
+								)
+							}
+						>
+							<projectForm.Field name="slug">
+								{(field) => (
+									<Input
+										ref={projectSlugInputRef}
+										data-editable-cell="true"
+										value={field.state.value}
+										disabled={isSavingProject}
+										onChange={(event) => field.handleChange(event.target.value)}
+										onBlur={(event) => {
+											field.handleBlur();
+											handleProjectInputBlur(event);
+										}}
+										onKeyDown={handleProjectInputKeyDown}
+									/>
+								)}
+							</projectForm.Field>
+						</EditableCell>
+					),
+					actions: (
+						<>
+							<Button
+								size="icon-xs"
+								variant="outline"
+								nativeButton={false}
+								render={
+									<Link
+										to="/projects/$slugId"
+										params={{ slugId: project.slug }}
+									/>
+								}
+								aria-label="Preview project"
+								title="Preview project"
+							>
+								<IconEye />
+							</Button>
+							<Button
+								size="icon-xs"
+								nativeButton={false}
+								render={
+									<Link
+										to="/admin/projects/$slugId"
+										params={{ slugId: project.slug }}
+									/>
+								}
+								aria-label="Edit project"
+								title="Edit project"
+							>
+								<IconPencil />
+							</Button>
+						</>
+					),
+				}))}
 				viewAllLink="/admin/projects"
 				createLink="/admin/projects/new"
-				renderTitleCell={(project) => (
-					<EditableCell
-						isEditing={editingProjectId === project._id}
-						displayValue={project.title}
-						onDoubleClick={() =>
-							startEditingProject(
-								project._id,
-								{ title: project.title, slug: project.slug },
-								"title",
-							)
-						}
-						className="font-medium"
-					>
-						<projectForm.Field name="title">
-							{(field) => (
-								<Input
-									ref={projectTitleInputRef}
-									data-editable-cell="true"
-									value={field.state.value}
-									disabled={isSavingProject}
-									onChange={(event) => {
-										const nextTitle = event.target.value;
-										field.handleChange(nextTitle);
-										projectForm.setFieldValue("slug", toSlug(nextTitle));
-									}}
-									onBlur={(event) => {
-										field.handleBlur();
-										handleProjectInputBlur(event);
-									}}
-									onKeyDown={handleProjectInputKeyDown}
-								/>
-							)}
-						</projectForm.Field>
-					</EditableCell>
-				)}
-				renderSlugCell={(project) => (
-					<EditableCell
-						isEditing={editingProjectId === project._id}
-						displayValue={project.slug}
-						onDoubleClick={() =>
-							startEditingProject(
-								project._id,
-								{ title: project.title, slug: project.slug },
-								"slug",
-							)
-						}
-					>
-						<projectForm.Field name="slug">
-							{(field) => (
-								<Input
-									ref={projectSlugInputRef}
-									data-editable-cell="true"
-									value={field.state.value}
-									disabled={isSavingProject}
-									onChange={(event) => field.handleChange(event.target.value)}
-									onBlur={(event) => {
-										field.handleBlur();
-										handleProjectInputBlur(event);
-									}}
-									onKeyDown={handleProjectInputKeyDown}
-								/>
-							)}
-						</projectForm.Field>
-					</EditableCell>
-				)}
-				renderRowActions={(project) => (
-					<>
-						<Button
-							size="icon-xs"
-							variant="outline"
-							nativeButton={false}
-							render={
-								<Link
-									to="/projects/$slugId"
-									params={{ slugId: project.slug }}
-								/>
-							}
-							aria-label="Preview project"
-							title="Preview project"
-						>
-							<IconEye />
-						</Button>
-						<Button
-							size="icon-xs"
-							nativeButton={false}
-							render={
-								<Link
-									to="/admin/projects/$slugId"
-									params={{ slugId: project.slug }}
-								/>
-							}
-							aria-label="Edit project"
-							title="Edit project"
-						>
-							<IconPencil />
-						</Button>
-					</>
-				)}
 			/>
 		</section>
 	);
 }
 
-type RecentItem = {
-	_id: Id<"posts"> | Id<"projects">;
-	title: string;
-	slug: string;
+type RecentItemRow = {
+	id: Id<"posts"> | Id<"projects">;
+	titleCell: React.ReactNode;
+	slugCell: React.ReactNode;
+	actions: React.ReactNode;
 	status?: string;
-	_creationTime: number;
+	createdAt: number;
 };
 
-type RecentItemsCardProps<TItem extends RecentItem> = {
+type RecentItemsCardProps = {
 	title: string;
 	description: string;
 	emptyLabel: string;
-	rows: Array<TItem>;
+	rows: Array<RecentItemRow>;
 	viewAllLink: "/admin/posts" | "/admin/projects";
 	createLink: "/admin/posts/new" | "/admin/projects/new";
-	renderTitleCell: (item: TItem) => React.ReactNode;
-	renderSlugCell: (item: TItem) => React.ReactNode;
-	renderRowActions: (item: TItem) => React.ReactNode;
 };
 
-function RecentItemsCard<TItem extends RecentItem>({
+function RecentItemsCard({
 	title,
 	description,
 	emptyLabel,
 	rows,
 	viewAllLink,
 	createLink,
-	renderTitleCell,
-	renderSlugCell,
-	renderRowActions,
-}: RecentItemsCardProps<TItem>) {
+}: RecentItemsCardProps) {
 	return (
 		<Card className="flex min-h-0 flex-1 flex-col">
 			<CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -590,40 +602,36 @@ function RecentItemsCard<TItem extends RecentItem>({
 					</TableHeader>
 					<TableBody>
 						{rows.length > 0 ? (
-							rows.map((item) => (
-								<TableRow key={item._id}>
+							rows.map((row) => (
+								<TableRow key={row.id}>
 									<TableCell className="px-1 py-2">
-										<div className="flex items-center gap-2">
-											{renderRowActions(item)}
-										</div>
+										<div className="flex items-center gap-2">{row.actions}</div>
 									</TableCell>
-									<TableCell className="font-medium">
-										{renderTitleCell(item)}
-									</TableCell>
+									<TableCell className="font-medium">{row.titleCell}</TableCell>
 									<TableCell className="text-muted-foreground">
-										{renderSlugCell(item)}
+										{row.slugCell}
 									</TableCell>
 									<TableCell>
-										{item.status ? (
+										{row.status ? (
 											<Badge
 												variant={
-													item.status === "public" || item.status === "active"
+													row.status === "public" || row.status === "active"
 														? "default"
-														: item.status === "private" ||
-																item.status === "completed"
+														: row.status === "private" ||
+																row.status === "completed"
 															? "secondary"
 															: "outline"
 												}
 												className="capitalize"
 											>
-												{item.status}
+												{row.status}
 											</Badge>
 										) : (
 											<span className="text-muted-foreground/60">n/a</span>
 										)}
 									</TableCell>
 									<TableCell className="text-muted-foreground">
-										{formatCreatedAt(item._creationTime)}
+										{formatCreatedAt(row.createdAt)}
 									</TableCell>
 								</TableRow>
 							))

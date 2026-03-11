@@ -66,6 +66,7 @@ import { Skeleton } from "#/components/ui/skeleton";
 import { Spinner } from "#/components/ui/spinner";
 import { Textarea } from "#/components/ui/textarea";
 import { useConvexUpload } from "#/hooks/use-convex-upload";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 import { generateGradientImage } from "#/lib/generate-gradient";
 
 type ProjectStatus = "active" | "completed" | "archived";
@@ -445,14 +446,16 @@ export function ProjectEditor({
 
 	const handleGenerateGradient = React.useCallback(async () => {
 		setIsGeneratingGradient(true);
-		try {
-			const file = await generateGradientImage();
-			const result = await uploadFile(file);
-			form.setFieldValue("imageId", result.url);
-		} catch {
+		const result = await toAsyncResult(
+			generateGradientImage().then(async (file) => {
+				const uploadResult = await uploadFile(file);
+				form.setFieldValue("imageId", uploadResult.url);
+			}),
+		);
+		setIsGeneratingGradient(false);
+
+		if (!result.ok) {
 			toast.error("Failed to generate gradient");
-		} finally {
-			setIsGeneratingGradient(false);
 		}
 	}, [form, uploadFile]);
 
@@ -463,6 +466,14 @@ export function ProjectEditor({
 	const hydratedProjectIdRef = React.useRef<Id<"projects"> | undefined>(
 		initialProject?._id,
 	);
+	const clearAutosaveTimer = React.useEffectEvent(() => {
+		if (autosaveTimerRef.current === null) return;
+		window.clearTimeout(autosaveTimerRef.current);
+		autosaveTimerRef.current = null;
+	});
+	const submitDraft = React.useEffectEvent(() => {
+		void form.handleSubmit();
+	});
 
 	React.useEffect(() => {
 		if (hydratedProjectIdRef.current === initialProject?._id) return;
@@ -478,16 +489,6 @@ export function ProjectEditor({
 		lastPersistedSnapshotRef.current = serializeDraft(nextState);
 	}, [form, initialProject]);
 
-	const clearAutosaveTimer = React.useEffectEvent(() => {
-		if (autosaveTimerRef.current === null) return;
-		window.clearTimeout(autosaveTimerRef.current);
-		autosaveTimerRef.current = null;
-	});
-
-	const submitDraft = React.useEffectEvent(() => {
-		void form.handleSubmit();
-	});
-
 	const persistDraft = React.useEffectEvent(
 		async (snapshotState: EditorFormState) => {
 			const nextDraft = getNormalizedDraft(snapshotState);
@@ -496,60 +497,61 @@ export function ProjectEditor({
 			if (!canSave || saveState === "saving") return;
 
 			setSaveState("saving");
+			const result = await toAsyncResult(
+				(async () => {
+					if (!draftId) {
+						const createdDraft = await createDraft(nextDraft);
 
-			try {
-				if (!draftId) {
-					const createdDraft = await createDraft(nextDraft);
+						setDraftId(createdDraft._id);
+						hydratedProjectIdRef.current = createdDraft._id;
 
-					setDraftId(createdDraft._id);
-					hydratedProjectIdRef.current = createdDraft._id;
-
-					if (nextDraft.slug) {
-						void navigate({
-							to: "/admin/projects/$slugId",
-							params: { slugId: nextDraft.slug },
-							replace: true,
+						if (nextDraft.slug) {
+							void navigate({
+								to: "/admin/projects/$slugId",
+								params: { slugId: nextDraft.slug },
+								replace: true,
+							});
+						}
+					} else {
+						await updateDraft({
+							id: draftId,
+							...nextDraft,
 						});
+
+						if (initialProject && nextDraft.slug !== initialProject.slug) {
+							void navigate({
+								to: "/admin/projects/$slugId",
+								params: { slugId: nextDraft.slug },
+								replace: true,
+							});
+						}
 					}
-				} else {
-					await updateDraft({
-						id: draftId,
-						...nextDraft,
-					});
 
-					if (initialProject && nextDraft.slug !== initialProject.slug) {
-						void navigate({
-							to: "/admin/projects/$slugId",
-							params: { slugId: nextDraft.slug },
-							replace: true,
-						});
+					const currentTitle = form.getFieldValue("title");
+					const currentSlug = form.getFieldValue("slug");
+
+					if (
+						currentTitle === snapshotState.title &&
+						currentTitle !== nextDraft.title
+					) {
+						form.setFieldValue("title", nextDraft.title);
 					}
-				}
 
-				const currentTitle = form.getFieldValue("title");
-				const currentSlug = form.getFieldValue("slug");
+					if (
+						currentSlug === snapshotState.slug &&
+						currentSlug !== nextDraft.slug
+					) {
+						form.setFieldValue("slug", nextDraft.slug);
+					}
 
-				if (
-					currentTitle === snapshotState.title &&
-					currentTitle !== nextDraft.title
-				) {
-					form.setFieldValue("title", nextDraft.title);
-				}
+					lastPersistedSnapshotRef.current = JSON.stringify(nextDraft);
+					setSaveState("saved");
+				})(),
+			);
 
-				if (
-					currentSlug === snapshotState.slug &&
-					currentSlug !== nextDraft.slug
-				) {
-					form.setFieldValue("slug", nextDraft.slug);
-				}
-
-				lastPersistedSnapshotRef.current = JSON.stringify(nextDraft);
-				setSaveState("saved");
-			} catch (error) {
+			if (!result.ok) {
 				setSaveState("error");
-				toast.error(
-					error instanceof Error ? error.message : "Unable to save project.",
-				);
+				toast.error(getErrorMessage(result.error, "Unable to save project."));
 			}
 		},
 	);
@@ -559,18 +561,17 @@ export function ProjectEditor({
 
 		clearAutosaveTimer();
 		setIsDeletingProject(true);
+		const result = await toAsyncResult(
+			deleteProjectMutation({ id: draftId }).then(() => {
+				toast.success("Project deleted.");
+				setIsDeleteDialogOpen(false);
+				void navigate({ to: "/admin/projects" });
+			}),
+		);
+		setIsDeletingProject(false);
 
-		try {
-			await deleteProjectMutation({ id: draftId });
-			toast.success("Project deleted.");
-			setIsDeleteDialogOpen(false);
-			void navigate({ to: "/admin/projects" });
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Unable to delete project.",
-			);
-		} finally {
-			setIsDeletingProject(false);
+		if (!result.ok) {
+			toast.error(getErrorMessage(result.error, "Unable to delete project."));
 		}
 	});
 

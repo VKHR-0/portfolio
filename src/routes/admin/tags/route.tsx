@@ -20,6 +20,7 @@ import {
 	searchFromSortingState,
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
+import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 
 const PAGE_SIZE = 10;
 const TAG_SORT_FIELDS = ["name", "slug", "_creationTime"] as const;
@@ -153,20 +154,19 @@ function RouteComponent() {
 		}
 
 		setIsDeletingTag(true);
+		const result = await toAsyncResult(
+			deleteTag({ id: tagToDelete._id }).then(async () => {
+				await queryClient.invalidateQueries({
+					queryKey: listTagsQuery(currentCursor, search).queryKey,
+				});
+				toast.success("Tag deleted.");
+				setTagToDelete(null);
+			}),
+		);
+		setIsDeletingTag(false);
 
-		try {
-			await deleteTag({ id: tagToDelete._id });
-			await queryClient.invalidateQueries({
-				queryKey: listTagsQuery(currentCursor, search).queryKey,
-			});
-			toast.success("Tag deleted.");
-			setTagToDelete(null);
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Unable to delete tag.",
-			);
-		} finally {
-			setIsDeletingTag(false);
+		if (!result.ok) {
+			toast.error(getErrorMessage(result.error, "Unable to delete tag."));
 		}
 	};
 
