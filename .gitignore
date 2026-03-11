@@ -6,7 +6,7 @@
 # testing
 /coverage
 
-# builds 
+# builds
 build
 dist
 dist-ssr
