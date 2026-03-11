@@ -738,7 +738,7 @@ export function ProjectEditor({
 					)}
 				</form.Subscribe>
 
-				<CardContent className="flex min-w-0 flex-col gap-5">
+				<CardContent className="flex min-w-0 flex-1 flex-col gap-5">
 					{/* Top toolbar: delete, status, save */}
 					<div className="flex flex-wrap items-start justify-between gap-3">
 						<div className="flex flex-wrap items-center gap-2">
@@ -895,14 +895,14 @@ export function ProjectEditor({
 					</form.Field>
 
 					{/* Feature Content (Rich Text) */}
-					<div className="min-h-0 flex-1">
+					<div className="h-full min-h-0 flex-1">
 						<form.Field name="content">
 							{(field) => (
 								<Editor
 									value={field.state.value}
 									onChange={field.handleChange}
 									className="prose prose-amber dark:prose-invert h-full w-full max-w-none!"
-									editorClassName="h-full min-h-[40vh] !max-w-none"
+									editorClassName="h-full !max-w-none"
 									format="markdown"
 									headingLevels={[2, 3]}
 									enableImagePasteDrop

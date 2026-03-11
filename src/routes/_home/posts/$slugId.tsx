@@ -4,7 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarkdownContent } from "#/components/markdown-content";
 import { Badge } from "#/components/ui/badge";
 import { getPublicPostBySlugQuery } from "#/queries";
-import { renderMarkdown } from "#/server/markdown";
+import { renderContent } from "#/server/render-content";
 
 export const Route = createFileRoute("/_home/posts/$slugId")({
 	loader: async ({ context, params }) => {
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_home/posts/$slugId")({
 			getPublicPostBySlugQuery(params.slugId),
 		);
 		const contentHtml = post?.content
-			? await renderMarkdown({ data: post.content })
+			? await renderContent({ data: post.content })
 			: "";
 		return { contentHtml };
 	},

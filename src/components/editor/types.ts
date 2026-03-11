@@ -11,7 +11,7 @@ import type {
 
 // ── Public types ────────────────────────────────────────────────────
 
-export type EditorFormat = "html" | "markdown";
+export type EditorFormat = "html" | "markdown" | "json";
 export type ImageFallbackMode = "data-url" | "prompt-url" | "none";
 
 export type ImageUploadContext = {

@@ -34,7 +34,7 @@ function ErrorPage({ error }: ErrorComponentProps) {
 	const message = getErrorMessage(error);
 
 	return (
-		<main className="flex w-full flex-1 flex-col items-center justify-center p-4 py-12 sm:min-h-[50dvh]">
+		<div className="flex w-full items-center justify-center p-4">
 			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
@@ -64,7 +64,7 @@ function ErrorPage({ error }: ErrorComponentProps) {
 					<Button onClick={() => router.invalidate()}>Try Again</Button>
 				</CardFooter>
 			</Card>
-		</main>
+		</div>
 	);
 }
 

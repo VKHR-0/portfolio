@@ -10,10 +10,6 @@ import {
 } from "../_generated/server";
 import { authComponent } from "../auth";
 
-const MARKDOWN_IMAGE_REGEX =
-	/!\[[^\]]*]\((?:<([^>]+)>|([^) \t]+))(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\)/g;
-const HTML_IMAGE_REGEX = /<img\b[^>]*\bsrc=(['"])(.*?)\1[^>]*>/gi;
-
 async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
 	const user = await authComponent.getAuthUser(ctx);
 
@@ -44,26 +40,41 @@ function normalizeSlug(value: string) {
 	return slug;
 }
 
-function extractImageUrls(content: string): string[] {
+type JsonNode = {
+	type?: string;
+	attrs?: Record<string, unknown>;
+	content?: JsonNode[];
+};
+
+function extractImageUrlsFromJson(content: string): string[] {
 	const urls = new Set<string>();
+	let doc: JsonNode;
+	try {
+		doc = JSON.parse(content);
+	} catch {
+		return [];
+	}
 
-	for (const match of content.matchAll(MARKDOWN_IMAGE_REGEX)) {
-		const url = match[1] ?? match[2];
-
-		if (url && !url.startsWith("blob:") && !url.startsWith("data:")) {
-			urls.add(url);
+	function walk(node: JsonNode) {
+		if (node.type === "image" && typeof node.attrs?.src === "string") {
+			const url = node.attrs.src;
+			if (!url.startsWith("blob:") && !url.startsWith("data:")) {
+				urls.add(url);
+			}
+		}
+		if (Array.isArray(node.content)) {
+			for (const child of node.content) {
+				walk(child);
+			}
 		}
 	}
 
-	for (const match of content.matchAll(HTML_IMAGE_REGEX)) {
-		const url = match[2];
-
-		if (url && !url.startsWith("blob:") && !url.startsWith("data:")) {
-			urls.add(url);
-		}
-	}
-
+	walk(doc);
 	return [...urls];
+}
+
+function extractImageUrls(content: string): string[] {
+	return extractImageUrlsFromJson(content);
 }
 
 function normalizeResolvableUrl(url: string): Array<string> {

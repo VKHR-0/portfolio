@@ -12,7 +12,7 @@ import {
 import { MarkdownContent } from "#/components/markdown-content";
 import { Badge } from "#/components/ui/badge";
 import { getPublicProjectBySlugQuery } from "#/queries";
-import { renderMarkdown } from "#/server/markdown";
+import { renderContent } from "#/server/render-content";
 
 export const Route = createFileRoute("/_home/projects/$slugId")({
 	loader: async ({ context, params }) => {
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_home/projects/$slugId")({
 			getPublicProjectBySlugQuery(params.slugId),
 		);
 		const contentHtml = project?.content
-			? await renderMarkdown({ data: project.content })
+			? await renderContent({ data: project.content })
 			: "";
 		return { contentHtml };
 	},

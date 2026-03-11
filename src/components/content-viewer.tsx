@@ -1,37 +1,10 @@
-import Image from "@tiptap/extension-image";
-import Link from "@tiptap/extension-link";
-import { Table } from "@tiptap/extension-table";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import TableRow from "@tiptap/extension-table-row";
-import Underline from "@tiptap/extension-underline";
 import { Markdown } from "@tiptap/markdown";
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import * as React from "react";
+import { renderContentExtensions } from "#/lib/tiptap-extensions";
 import { cn } from "#/lib/utils";
 
-const viewerExtensions = [
-	StarterKit.configure({
-		heading: { levels: [1, 2, 3] },
-		link: false,
-		underline: false,
-	}),
-	Underline,
-	Link.configure({
-		openOnClick: true,
-		HTMLAttributes: {
-			rel: "noopener noreferrer",
-			target: "_blank",
-		},
-	}),
-	Image,
-	Table,
-	TableRow,
-	TableHeader,
-	TableCell,
-	Markdown,
-];
+const viewerExtensions = [...renderContentExtensions, Markdown];
 
 type ContentViewerProps = {
 	content: string;

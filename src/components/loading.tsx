@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 
 function LoadingPage() {
 	return (
-		<main className="flex min-h-screen items-center justify-center p-4">
+		<div className="flex w-full items-center justify-center p-4">
 			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
@@ -17,7 +17,7 @@ function LoadingPage() {
 					</p>
 				</CardContent>
 			</Card>
-		</main>
+		</div>
 	);
 }
 

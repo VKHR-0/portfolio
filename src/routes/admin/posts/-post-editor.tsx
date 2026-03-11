@@ -845,7 +845,7 @@ export function PostEditor({
 									onChange={field.handleChange}
 									className="prose prose-amber dark:prose-invert h-full w-full max-w-none!"
 									editorClassName="h-full min-h-[65vh] !max-w-none"
-									format="markdown"
+									format="json"
 									headingLevels={[2, 3]}
 									enableImagePasteDrop
 									onRequestImage={handleRequestImage}

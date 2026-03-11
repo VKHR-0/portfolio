@@ -29,6 +29,32 @@ export type {
 	SlashImageFallback,
 } from "./types";
 
+type JsonNode = {
+	type: string;
+	attrs?: Record<string, unknown>;
+	content?: JsonNode[];
+	marks?: Array<{ type: string; attrs?: Record<string, unknown> }>;
+	text?: string;
+};
+
+function stripUploadAttrs(doc: JsonNode): JsonNode {
+	const { attrs, content, ...rest } = doc;
+	const cleaned: JsonNode = { ...rest };
+
+	if (attrs) {
+		const { uploadId, uploading, uploadError, ...safeAttrs } = attrs;
+		if (Object.keys(safeAttrs).length > 0) {
+			cleaned.attrs = safeAttrs;
+		}
+	}
+
+	if (content) {
+		cleaned.content = content.map(stripUploadAttrs);
+	}
+
+	return cleaned;
+}
+
 const getActiveBlockType = (editor: TiptapEditor): BlockType => {
 	if (editor.isActive("heading", { level: 1 })) return "heading1";
 	if (editor.isActive("heading", { level: 2 })) return "heading2";
@@ -94,8 +120,13 @@ export function Editor({
 			imageFallback,
 			insertLocalImageFile: handleInsertLocalImageFile,
 		}),
-		content: value || (format === "markdown" ? "" : "<p></p>"),
-		contentType: format,
+		content:
+			format === "json"
+				? value
+					? JSON.parse(value)
+					: { type: "doc", content: [] }
+				: value || (format === "markdown" ? "" : "<p></p>"),
+		...(format !== "json" && { contentType: format }),
 		editorProps: {
 			attributes: {
 				class: tiptapSurfaceClass,
@@ -166,14 +197,18 @@ export function Editor({
 		editable: !disabled,
 		immediatelyRender: false,
 		onUpdate: ({ editor: nextEditor }) => {
-			const nextValue =
-				format === "markdown"
-					? nextEditor.getMarkdown()
-					: nextEditor
-							.getHTML()
-							.replace(/\sdata-upload-id="[^"]*"/g, "")
-							.replace(/\sdata-uploading="[^"]*"/g, "")
-							.replace(/\sdata-upload-error="[^"]*"/g, "");
+			let nextValue: string;
+			if (format === "json") {
+				nextValue = JSON.stringify(stripUploadAttrs(nextEditor.getJSON()));
+			} else if (format === "markdown") {
+				nextValue = nextEditor.getMarkdown();
+			} else {
+				nextValue = nextEditor
+					.getHTML()
+					.replace(/\sdata-upload-id="[^"]*"/g, "")
+					.replace(/\sdata-uploading="[^"]*"/g, "")
+					.replace(/\sdata-upload-error="[^"]*"/g, "");
+			}
 			lastEmittedValueRef.current = nextValue;
 			onChange(nextValue);
 		},
@@ -200,18 +235,31 @@ export function Editor({
 		if (!editor) return;
 		if (value === lastEmittedValueRef.current) return;
 
-		const current =
-			format === "markdown" ? editor.getMarkdown() : editor.getHTML();
+		let current: string;
+		if (format === "json") {
+			current = JSON.stringify(editor.getJSON());
+		} else if (format === "markdown") {
+			current = editor.getMarkdown();
+		} else {
+			current = editor.getHTML();
+		}
+
 		const hasChanged =
 			format === "markdown"
 				? value.trimEnd() !== current.trimEnd()
 				: value !== current;
 
 		if (hasChanged) {
-			editor.commands.setContent(
-				value || (format === "markdown" ? "" : "<p></p>"),
-				{ emitUpdate: false, contentType: format },
-			);
+			const newContent =
+				format === "json"
+					? value
+						? JSON.parse(value)
+						: { type: "doc", content: [] }
+					: value || (format === "markdown" ? "" : "<p></p>");
+			editor.commands.setContent(newContent, {
+				emitUpdate: false,
+				...(format !== "json" && { contentType: format }),
+			});
 			lastEmittedValueRef.current = value;
 		}
 	}, [editor, value, format]);
