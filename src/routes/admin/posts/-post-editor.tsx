@@ -604,18 +604,16 @@ export function PostEditor({
 						</div>
 
 						<div className="flex flex-wrap items-center gap-2">
-							{draftId && (
-								<Button
-									type="button"
-									size="sm"
-									variant="destructive"
-									disabled={saveState === "saving" || isDeletingPost}
-									onClick={() => setIsDeleteDialogOpen(true)}
-								>
-									<IconTrash data-icon="inline-start" />
-									Delete
-								</Button>
-							)}
+							<Button
+								type="button"
+								size="sm"
+								variant="destructive"
+								disabled={!draftId || saveState === "saving" || isDeletingPost}
+								onClick={() => setIsDeleteDialogOpen(true)}
+							>
+								<IconTrash data-icon="inline-start" />
+								Delete
+							</Button>
 							<form.Subscribe
 								selector={(state) => ({
 									status: state.values.status,

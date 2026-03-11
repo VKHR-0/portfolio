@@ -742,40 +742,41 @@ export function ProjectEditor({
 					{/* Top toolbar: delete, status, save */}
 					<div className="flex flex-wrap items-start justify-between gap-3">
 						<div className="flex flex-wrap items-center gap-2">
-							{draftId && (
-								<Button
-									type="button"
-									size="sm"
-									variant="destructive"
-									disabled={saveState === "saving" || isDeletingProject}
-									onClick={() => setIsDeleteDialogOpen(true)}
-								>
-									<IconTrash data-icon="inline-start" />
-									Delete
-								</Button>
-							)}
-							{draftId && (
-								<form.Subscribe selector={(state) => state.values.slug}>
-									{(slug) => (
-										<Button
-											type="button"
-											size="sm"
-											variant="outline"
-											nativeButton={false}
-											render={
+							<Button
+								type="button"
+								size="sm"
+								variant="destructive"
+								disabled={
+									!draftId || saveState === "saving" || isDeletingProject
+								}
+								onClick={() => setIsDeleteDialogOpen(true)}
+							>
+								<IconTrash data-icon="inline-start" />
+								Delete
+							</Button>
+							<form.Subscribe selector={(state) => state.values.slug}>
+								{(slug) => (
+									<Button
+										type="button"
+										size="sm"
+										variant="outline"
+										disabled={!draftId}
+										nativeButton={!draftId ? true : false}
+										render={
+											draftId ? (
 												<Link
 													to="/projects/$slugId"
 													params={{ slugId: slug }}
 													target="_blank"
 												/>
-											}
-										>
-											<IconEye data-icon="inline-start" />
-											Preview
-										</Button>
-									)}
-								</form.Subscribe>
-							)}
+											) : undefined
+										}
+									>
+										<IconEye data-icon="inline-start" />
+										Preview
+									</Button>
+								)}
+							</form.Subscribe>
 						</div>
 
 						<ButtonGroup className="rounded-lg border border-input bg-background dark:bg-input/30">
