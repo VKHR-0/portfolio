@@ -1,8 +1,9 @@
 import {
-	IconChevronDown,
-	IconChevronUp,
-	IconSelector,
-} from "@tabler/icons-react";
+	ArrowUpDown,
+	ChevronDown,
+	ChevronUp,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
 	type ColumnDef,
 	flexRender,
@@ -136,11 +137,21 @@ export function AdminDataTable<TData>({
 												header.getContext(),
 											)}
 											{currentSort === "desc" ? (
-												<IconChevronDown data-icon="inline-end" />
+												<HugeiconsIcon
+													icon={ChevronDown}
+													strokeWidth={2}
+													data-icon="inline-end"
+												/>
 											) : currentSort === "asc" ? (
-												<IconChevronUp data-icon="inline-end" />
+												<HugeiconsIcon
+													icon={ChevronUp}
+													strokeWidth={2}
+													data-icon="inline-end"
+												/>
 											) : (
-												<IconSelector
+												<HugeiconsIcon
+													icon={ArrowUpDown}
+													strokeWidth={2}
 													data-icon="inline-end"
 													className="text-muted-foreground"
 												/>

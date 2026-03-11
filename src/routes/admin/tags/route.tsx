@@ -1,5 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { Plus, Trash } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
@@ -189,7 +190,7 @@ function RouteComponent() {
 						title="Delete"
 						onClick={() => setTagToDelete(row.original)}
 					>
-						<IconTrash />
+						<HugeiconsIcon icon={Trash} strokeWidth={2} />
 					</Button>
 				),
 			},
@@ -305,7 +306,7 @@ function RouteComponent() {
 				description="Manage post tags."
 				createButton={
 					<Button nativeButton={false} render={<Link to="/admin/tags/new" />}>
-						<IconPlus />
+						<HugeiconsIcon icon={Plus} strokeWidth={2} />
 						Create new
 					</Button>
 				}

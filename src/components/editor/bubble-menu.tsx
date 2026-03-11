@@ -1,17 +1,18 @@
 import {
-	IconBold,
-	IconCheck,
-	IconClearFormatting,
-	IconCode,
-	IconItalic,
-	IconLink,
-	IconMinus,
-	IconPlus,
-	IconStrikethrough,
-	IconTable,
-	IconUnderline,
-	IconX,
-} from "@tabler/icons-react";
+	Bold,
+	Check,
+	Code,
+	Italic,
+	Link,
+	Minus,
+	Plus,
+	RemoveFormatting,
+	Strikethrough,
+	Table,
+	Underline,
+	X,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { BubbleMenu as TiptapBubbleMenu } from "@tiptap/react/menus";
@@ -156,7 +157,7 @@ export function EditorBubbleMenu({
 						aria-pressed={activeState.bold}
 						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 					>
-						<IconBold className="size-4" />
+						<HugeiconsIcon icon={Bold} strokeWidth={2} className="size-4" />
 					</Button>
 					<Button
 						variant="ghost"
@@ -168,7 +169,7 @@ export function EditorBubbleMenu({
 						aria-pressed={activeState.italic}
 						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 					>
-						<IconItalic className="size-4" />
+						<HugeiconsIcon icon={Italic} strokeWidth={2} className="size-4" />
 					</Button>
 					<Button
 						variant="ghost"
@@ -180,7 +181,11 @@ export function EditorBubbleMenu({
 						aria-pressed={activeState.underline}
 						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 					>
-						<IconUnderline className="size-4" />
+						<HugeiconsIcon
+							icon={Underline}
+							strokeWidth={2}
+							className="size-4"
+						/>
 					</Button>
 					<Button
 						variant="ghost"
@@ -192,7 +197,11 @@ export function EditorBubbleMenu({
 						aria-pressed={activeState.strike}
 						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 					>
-						<IconStrikethrough className="size-4" />
+						<HugeiconsIcon
+							icon={Strikethrough}
+							strokeWidth={2}
+							className="size-4"
+						/>
 					</Button>
 					<Button
 						variant="ghost"
@@ -204,7 +213,7 @@ export function EditorBubbleMenu({
 						aria-pressed={activeState.code}
 						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 					>
-						<IconCode className="size-4" />
+						<HugeiconsIcon icon={Code} strokeWidth={2} className="size-4" />
 					</Button>
 					<Button
 						variant="ghost"
@@ -216,7 +225,11 @@ export function EditorBubbleMenu({
 						}
 						disabled={disabled}
 					>
-						<IconClearFormatting className="size-4" />
+						<HugeiconsIcon
+							icon={RemoveFormatting}
+							strokeWidth={2}
+							className="size-4"
+						/>
 					</Button>
 
 					<Button
@@ -229,7 +242,7 @@ export function EditorBubbleMenu({
 						aria-pressed={showLinkInput || activeState.link}
 						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 					>
-						<IconLink className="size-4" />
+						<HugeiconsIcon icon={Link} strokeWidth={2} className="size-4" />
 					</Button>
 
 					{isOnImage ? (
@@ -258,7 +271,7 @@ export function EditorBubbleMenu({
 							aria-pressed={showTableActions}
 							className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
 						>
-							<IconTable className="size-4" />
+							<HugeiconsIcon icon={Table} strokeWidth={2} className="size-4" />
 						</Button>
 					) : null}
 				</div>
@@ -293,7 +306,7 @@ export function EditorBubbleMenu({
 							onClick={applyLink}
 							disabled={disabled || !linkUrl.trim()}
 						>
-							<IconCheck className="size-4" />
+							<HugeiconsIcon icon={Check} strokeWidth={2} className="size-4" />
 						</Button>
 						<Button
 							variant="ghost"
@@ -304,7 +317,7 @@ export function EditorBubbleMenu({
 							disabled={disabled}
 							className="ml-auto"
 						>
-							<IconX className="size-4" />
+							<HugeiconsIcon icon={X} strokeWidth={2} className="size-4" />
 						</Button>
 					</div>
 				) : null}
@@ -332,7 +345,7 @@ export function EditorBubbleMenu({
 							onClick={applyImageAlt}
 							disabled={disabled}
 						>
-							<IconCheck className="size-4" />
+							<HugeiconsIcon icon={Check} strokeWidth={2} className="size-4" />
 						</Button>
 						<Button
 							variant="ghost"
@@ -343,7 +356,7 @@ export function EditorBubbleMenu({
 							disabled={disabled}
 							className="ml-auto"
 						>
-							<IconX className="size-4" />
+							<HugeiconsIcon icon={X} strokeWidth={2} className="size-4" />
 						</Button>
 					</div>
 				) : null}
@@ -363,7 +376,7 @@ export function EditorBubbleMenu({
 							onClick={addRow}
 							disabled={disabled}
 						>
-							<IconPlus className="size-4" />
+							<HugeiconsIcon icon={Plus} strokeWidth={2} className="size-4" />
 						</Button>
 						<Button
 							variant="ghost"
@@ -373,7 +386,7 @@ export function EditorBubbleMenu({
 							onClick={removeRow}
 							disabled={disabled}
 						>
-							<IconMinus className="size-4" />
+							<HugeiconsIcon icon={Minus} strokeWidth={2} className="size-4" />
 						</Button>
 						<span className="mx-0.5 h-4 w-px bg-border" aria-hidden="true" />
 						<span className="text-muted-foreground text-sm">Columns:</span>
@@ -385,7 +398,7 @@ export function EditorBubbleMenu({
 							onClick={addColumn}
 							disabled={disabled}
 						>
-							<IconPlus className="size-4" />
+							<HugeiconsIcon icon={Plus} strokeWidth={2} className="size-4" />
 						</Button>
 						<Button
 							variant="ghost"
@@ -395,7 +408,7 @@ export function EditorBubbleMenu({
 							onClick={removeColumn}
 							disabled={disabled}
 						>
-							<IconMinus className="size-4" />
+							<HugeiconsIcon icon={Minus} strokeWidth={2} className="size-4" />
 						</Button>
 					</div>
 				) : null}

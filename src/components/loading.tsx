@@ -1,13 +1,13 @@
-import { IconLoader2 } from "@tabler/icons-react";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
+import { Spinner } from "./ui/spinner";
 
 function LoadingPage() {
 	return (
-		<div className="flex w-full items-center justify-center p-4">
+		<div className="flex min-h-screen w-full items-center justify-center p-4">
 			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<IconLoader2 className="size-4 animate-spin text-muted-foreground" />
+						<Spinner />
 						Loading
 					</CardTitle>
 				</CardHeader>

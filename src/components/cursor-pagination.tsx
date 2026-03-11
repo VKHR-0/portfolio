@@ -1,4 +1,5 @@
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { ChevronLeft, ChevronRight } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "#/components/ui/button";
 
 type CursorPaginationProps = {
@@ -44,7 +45,7 @@ export function CursorPagination({
 				disabled={!canGoPrevious}
 				aria-label="Go to previous page"
 			>
-				<IconChevronLeft className="size-4" />
+				<HugeiconsIcon icon={ChevronLeft} strokeWidth={2} className="size-4" />
 			</Button>
 
 			<div className="flex min-w-0 flex-1 items-center justify-center">
@@ -82,7 +83,7 @@ export function CursorPagination({
 				disabled={!canGoNext}
 				aria-label="Go to next page"
 			>
-				<IconChevronRight className="size-4" />
+				<HugeiconsIcon icon={ChevronRight} strokeWidth={2} className="size-4" />
 			</Button>
 		</div>
 	);

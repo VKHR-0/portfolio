@@ -1,4 +1,5 @@
-import { IconArrowLeft } from "@tabler/icons-react";
+import { ArrowLeft } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarkdownContent } from "#/components/markdown-content";
@@ -53,7 +54,7 @@ function RouteComponent() {
 				to="/posts"
 				className="mb-8 inline-flex items-center gap-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
 			>
-				<IconArrowLeft className="size-4" />
+				<HugeiconsIcon icon={ArrowLeft} strokeWidth={2} className="size-4" />
 				Back to posts
 			</Link>
 

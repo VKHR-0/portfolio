@@ -1,11 +1,12 @@
 import {
-	IconEye,
-	IconEyeOff,
-	IconLink,
-	IconPlus,
-	IconTrash,
-	IconX,
-} from "@tabler/icons-react";
+	Eye,
+	EyeOff,
+	Link as LinkIcon,
+	Plus,
+	Trash,
+	X,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
@@ -259,7 +260,7 @@ function PostTagBadge({
 					aria-label={`Remove ${label}`}
 					title={`Remove ${label}`}
 				>
-					<IconX />
+					<HugeiconsIcon icon={X} strokeWidth={2} />
 				</Button>
 			</span>
 		</Badge>
@@ -611,7 +612,11 @@ export function PostEditor({
 								disabled={!draftId || saveState === "saving" || isDeletingPost}
 								onClick={() => setIsDeleteDialogOpen(true)}
 							>
-								<IconTrash data-icon="inline-start" />
+								<HugeiconsIcon
+									icon={Trash}
+									strokeWidth={2}
+									data-icon="inline-start"
+								/>
 								Delete
 							</Button>
 							<form.Subscribe
@@ -635,7 +640,11 @@ export function PostEditor({
 												/>
 											}
 										>
-											<IconEye data-icon="inline-start" />
+											<HugeiconsIcon
+												icon={Eye}
+												strokeWidth={2}
+												data-icon="inline-start"
+											/>
 											Preview
 										</Button>
 									) : (
@@ -648,7 +657,11 @@ export function PostEditor({
 														variant="outline"
 														disabled
 													>
-														<IconEyeOff data-icon="inline-start" />
+														<HugeiconsIcon
+															icon={EyeOff}
+															strokeWidth={2}
+															data-icon="inline-start"
+														/>
 														Preview
 													</Button>
 												}
@@ -734,7 +747,7 @@ export function PostEditor({
 											variant="outline"
 											className="rounded-full"
 										>
-											<IconLink />
+											<HugeiconsIcon icon={LinkIcon} strokeWidth={2} />
 										</InputGroupButton>
 									</InputGroupAddon>
 									<InputGroupInput
@@ -798,7 +811,7 @@ export function PostEditor({
 										<PopoverTrigger
 											render={<Button variant="outline" size="icon-xs" />}
 										>
-											<IconPlus />
+											<HugeiconsIcon icon={Plus} strokeWidth={2} />
 										</PopoverTrigger>
 										<PopoverContent align="start" className="w-72 p-0">
 											<Command>

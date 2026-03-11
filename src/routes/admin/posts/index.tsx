@@ -1,5 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { IconEye, IconEyeOff, IconPencil, IconPlus } from "@tabler/icons-react";
+import { Eye, EyeOff, Pencil, Plus } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
@@ -196,7 +197,7 @@ function RouteComponent() {
 								aria-label="Preview"
 								title="Preview"
 							>
-								<IconEye />
+								<HugeiconsIcon icon={Eye} strokeWidth={2} />
 							</Button>
 						) : (
 							<Tooltip>
@@ -208,7 +209,7 @@ function RouteComponent() {
 											disabled
 											aria-label="Preview unavailable"
 										>
-											<IconEyeOff />
+											<HugeiconsIcon icon={EyeOff} strokeWidth={2} />
 										</Button>
 									}
 								/>
@@ -227,7 +228,7 @@ function RouteComponent() {
 							aria-label="Edit"
 							title="Edit"
 						>
-							<IconPencil />
+							<HugeiconsIcon icon={Pencil} strokeWidth={2} />
 						</Button>
 					</div>
 				),
@@ -348,7 +349,7 @@ function RouteComponent() {
 			description="Manage blog posts."
 			createButton={
 				<Button nativeButton={false} render={<Link to="/admin/posts/new" />}>
-					<IconPlus />
+					<HugeiconsIcon icon={Plus} strokeWidth={2} />
 					Create new
 				</Button>
 			}

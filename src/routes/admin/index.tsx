@@ -1,14 +1,15 @@
 import { convexQuery } from "@convex-dev/react-query";
 import {
-	IconDeviceDesktop,
-	IconEye,
-	IconEyeOff,
-	IconMoon,
-	IconPencil,
-	IconPlus,
-	IconStack2,
-	IconSun,
-} from "@tabler/icons-react";
+	Desktop,
+	Eye,
+	EyeOff,
+	Layers,
+	Moon,
+	Pencil,
+	Plus,
+	Sun,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -245,7 +246,7 @@ function RouteComponent() {
 			<Card className="shrink-0" size="sm">
 				<CardHeader className="flex flex-row items-center justify-between gap-4">
 					<CardTitle className="flex items-center gap-2">
-						<IconStack2 />
+						<HugeiconsIcon icon={Layers} strokeWidth={2} />
 						Admin Overview
 					</CardTitle>
 					<div className="flex flex-wrap gap-2">
@@ -259,11 +260,11 @@ function RouteComponent() {
 							}}
 						>
 							{theme === "light" ? (
-								<IconSun />
+								<HugeiconsIcon icon={Sun} strokeWidth={2} />
 							) : theme === "dark" ? (
-								<IconMoon />
+								<HugeiconsIcon icon={Moon} strokeWidth={2} />
 							) : (
-								<IconDeviceDesktop />
+								<HugeiconsIcon icon={Desktop} strokeWidth={2} />
 							)}
 						</Button>
 						<Button
@@ -372,7 +373,7 @@ function RouteComponent() {
 									aria-label="Preview post"
 									title="Preview post"
 								>
-									<IconEye />
+									<HugeiconsIcon icon={Eye} strokeWidth={2} />
 								</Button>
 								<Button
 									size="icon-xs"
@@ -386,7 +387,7 @@ function RouteComponent() {
 									aria-label="Edit post"
 									title="Edit post"
 								>
-									<IconPencil />
+									<HugeiconsIcon icon={Pencil} strokeWidth={2} />
 								</Button>
 							</>
 						) : (
@@ -400,7 +401,7 @@ function RouteComponent() {
 												disabled
 												aria-label="Preview unavailable"
 											>
-												<IconEyeOff />
+												<HugeiconsIcon icon={EyeOff} strokeWidth={2} />
 											</Button>
 										}
 									/>
@@ -418,7 +419,7 @@ function RouteComponent() {
 									aria-label="Edit post"
 									title="Edit post"
 								>
-									<IconPencil />
+									<HugeiconsIcon icon={Pencil} strokeWidth={2} />
 								</Button>
 							</>
 						),
@@ -515,7 +516,7 @@ function RouteComponent() {
 								aria-label="Preview project"
 								title="Preview project"
 							>
-								<IconEye />
+								<HugeiconsIcon icon={Eye} strokeWidth={2} />
 							</Button>
 							<Button
 								size="icon-xs"
@@ -529,7 +530,7 @@ function RouteComponent() {
 								aria-label="Edit project"
 								title="Edit project"
 							>
-								<IconPencil />
+								<HugeiconsIcon icon={Pencil} strokeWidth={2} />
 							</Button>
 						</>
 					),
@@ -583,7 +584,7 @@ function RecentItemsCard({
 						View all
 					</Button>
 					<Button nativeButton={false} render={<Link to={createLink} />}>
-						<IconPlus />
+						<HugeiconsIcon icon={Plus} strokeWidth={2} />
 						Create new
 					</Button>
 				</div>

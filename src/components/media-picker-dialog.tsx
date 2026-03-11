@@ -1,5 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { IconPhoto, IconUpload } from "@tabler/icons-react";
+import { Photo, Upload } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "convex/_generated/api";
 import * as React from "react";
@@ -118,7 +119,11 @@ export function MediaPickerDialog({
 						</>
 					) : (
 						<>
-							<IconUpload className="size-6 text-muted-foreground" />
+							<HugeiconsIcon
+								icon={Upload}
+								strokeWidth={2}
+								className="size-6 text-muted-foreground"
+							/>
 							<p className="text-muted-foreground text-sm">
 								Drag and drop an image, or{" "}
 								<span className="font-medium text-foreground underline underline-offset-2">
@@ -152,7 +157,11 @@ export function MediaPickerDialog({
 						</div>
 					) : !mediaItems || mediaItems.length === 0 ? (
 						<div className="flex flex-col items-center gap-1 py-6 text-center">
-							<IconPhoto className="size-8 text-muted-foreground/50" />
+							<HugeiconsIcon
+								icon={Photo}
+								strokeWidth={2}
+								className="size-8 text-muted-foreground/50"
+							/>
 							<p className="text-muted-foreground text-sm">
 								No images uploaded yet.
 							</p>

@@ -1,4 +1,5 @@
-import { IconAlertTriangle } from "@tabler/icons-react";
+import { AlertTriangle } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link, rootRouteId, useMatch, useRouter } from "@tanstack/react-router";
 import { Button } from "#/components/ui/button";
@@ -38,7 +39,11 @@ function ErrorPage({ error }: ErrorComponentProps) {
 			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<IconAlertTriangle className="size-4 text-destructive" />
+						<HugeiconsIcon
+							icon={AlertTriangle}
+							strokeWidth={2}
+							className="size-4 text-destructive"
+						/>
 						Something went wrong
 					</CardTitle>
 				</CardHeader>

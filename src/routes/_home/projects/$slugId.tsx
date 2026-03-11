@@ -1,8 +1,5 @@
-import {
-	IconArrowLeft,
-	IconBrandGithub,
-	IconExternalLink,
-} from "@tabler/icons-react";
+import { ArrowLeft, ExternalLink, Github } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -73,7 +70,11 @@ function RouteComponent() {
 						to="/projects"
 						className="absolute top-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-background/60 px-3 py-1.5 text-sm backdrop-blur-md transition-colors hover:bg-background/80"
 					>
-						<IconArrowLeft className="size-4" />
+						<HugeiconsIcon
+							icon={ArrowLeft}
+							strokeWidth={2}
+							className="size-4"
+						/>
 						Back
 					</Link>
 				</div>
@@ -85,7 +86,11 @@ function RouteComponent() {
 						to="/projects"
 						className="mt-10 mb-8 inline-flex items-center gap-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
 					>
-						<IconArrowLeft className="size-4" />
+						<HugeiconsIcon
+							icon={ArrowLeft}
+							strokeWidth={2}
+							className="size-4"
+						/>
 						Back to projects
 					</Link>
 				)}
@@ -117,7 +122,11 @@ function RouteComponent() {
 									rel="noopener noreferrer"
 									className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
 								>
-									<IconBrandGithub className="size-4" />
+									<HugeiconsIcon
+										icon={Github}
+										strokeWidth={2}
+										className="size-4"
+									/>
 									Repository
 								</a>
 							)}
@@ -128,7 +137,11 @@ function RouteComponent() {
 									rel="noopener noreferrer"
 									className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
 								>
-									<IconExternalLink className="size-4" />
+									<HugeiconsIcon
+										icon={ExternalLink}
+										strokeWidth={2}
+										className="size-4"
+									/>
 									Live Demo
 								</a>
 							)}

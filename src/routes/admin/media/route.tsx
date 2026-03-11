@@ -1,5 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { IconPhoto, IconUpload } from "@tabler/icons-react";
+import { Photo, Upload } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
@@ -80,7 +81,11 @@ function RouteComponent() {
 						</div>
 					) : media.length === 0 ? (
 						<div className="flex flex-col items-center gap-2 py-12 text-center">
-							<IconPhoto className="size-10 text-muted-foreground/40" />
+							<HugeiconsIcon
+								icon={Photo}
+								strokeWidth={2}
+								className="size-10 text-muted-foreground/40"
+							/>
 							<p className="text-muted-foreground text-sm">
 								No images uploaded yet.
 							</p>
@@ -103,7 +108,11 @@ function RouteComponent() {
 											/>
 										) : (
 											<div className="flex aspect-square items-center justify-center">
-												<IconPhoto className="size-8 text-muted-foreground/40" />
+												<HugeiconsIcon
+													icon={Photo}
+													strokeWidth={2}
+													className="size-8 text-muted-foreground/40"
+												/>
 											</div>
 										)}
 									</div>
@@ -193,7 +202,11 @@ function UploadButton() {
 				disabled={isUploading}
 				onClick={() => fileInputRef.current?.click()}
 			>
-				{isUploading ? <Spinner /> : <IconUpload />}
+				{isUploading ? (
+					<Spinner />
+				) : (
+					<HugeiconsIcon icon={Upload} strokeWidth={2} />
+				)}
 				{isUploading ? "Uploading..." : "Upload"}
 			</Button>
 			<input

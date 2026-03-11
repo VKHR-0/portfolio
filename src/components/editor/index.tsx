@@ -1,4 +1,5 @@
-import { IconGripVertical } from "@tabler/icons-react";
+import { GripVertical } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { Editor as TiptapEditor } from "@tiptap/core";
 import { DragHandle } from "@tiptap/extension-drag-handle-react";
 import { DOMSerializer } from "@tiptap/pm/model";
@@ -358,7 +359,7 @@ export function Editor({
 					nested
 				>
 					<Button variant="outline" size="icon-xs">
-						<IconGripVertical size={16} />
+						<HugeiconsIcon icon={GripVertical} size={16} strokeWidth={2} />
 					</Button>
 				</DragHandle>
 			)}

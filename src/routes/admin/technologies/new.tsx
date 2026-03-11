@@ -1,4 +1,5 @@
-import { IconDice } from "@tabler/icons-react";
+import { Dice } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
@@ -194,7 +195,11 @@ function RouteComponent() {
 											className="-mr-1 h-auto px-2 py-1 text-muted-foreground"
 											onClick={() => field.handleChange(getRandomColorKey())}
 										>
-											<IconDice data-icon="inline-start" />
+											<HugeiconsIcon
+												icon={Dice}
+												strokeWidth={2}
+												data-icon="inline-start"
+											/>
 											Random
 										</Button>
 									</div>

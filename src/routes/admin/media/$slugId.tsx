@@ -1,10 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query";
-import {
-	IconArrowsMaximize,
-	IconEye,
-	IconTrash,
-	IconX,
-} from "@tabler/icons-react";
+import { Eye, Maximize, Trash, X } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
@@ -115,7 +111,7 @@ function RouteComponent() {
 								title="Expand image"
 								aria-label="Expand image"
 							>
-								<IconArrowsMaximize />
+								<HugeiconsIcon icon={Maximize} strokeWidth={2} />
 							</Button>
 							<img
 								src={media.url}
@@ -200,7 +196,9 @@ function RouteComponent() {
 															className="pointer-events-none shrink-0 text-muted-foreground transition-colors group-hover/usage:text-foreground"
 															aria-hidden="true"
 														>
-															<IconEye
+															<HugeiconsIcon
+																icon={Eye}
+																strokeWidth={2}
 																className="size-3.5"
 																aria-hidden="true"
 															/>
@@ -223,7 +221,11 @@ function RouteComponent() {
 							onClick={() => void handleDelete()}
 							title={isInUse ? "Cannot delete while in use" : "Delete image"}
 						>
-							{isDeleting ? <Spinner /> : <IconTrash />}
+							{isDeleting ? (
+								<Spinner />
+							) : (
+								<HugeiconsIcon icon={Trash} strokeWidth={2} />
+							)}
 							{isDeleting ? "Deleting..." : "Delete"}
 						</Button>
 					</DialogFooter>
@@ -246,7 +248,7 @@ function RouteComponent() {
 								/>
 							}
 						>
-							<IconX />
+							<HugeiconsIcon icon={X} strokeWidth={2} />
 							<span className="sr-only">Close expanded image</span>
 						</DialogClose>
 						<div className="flex h-full w-full items-center justify-center p-6 sm:p-8">

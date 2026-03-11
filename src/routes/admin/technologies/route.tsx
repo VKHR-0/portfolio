@@ -1,5 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query";
-import { IconDice, IconPlus, IconTrash } from "@tabler/icons-react";
+import { Dice, Plus, Trash } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
@@ -132,7 +133,7 @@ function ColorSwatchPicker({
 						setOpen(false);
 					}}
 				>
-					<IconDice data-icon="inline-start" />
+					<HugeiconsIcon icon={Dice} strokeWidth={2} data-icon="inline-start" />
 					Random
 				</Button>
 			</PopoverContent>
@@ -294,7 +295,7 @@ function RouteComponent() {
 						title="Delete"
 						onClick={() => setTechToDelete(row.original)}
 					>
-						<IconTrash />
+						<HugeiconsIcon icon={Trash} strokeWidth={2} />
 					</Button>
 				),
 			},
@@ -440,7 +441,7 @@ function RouteComponent() {
 						nativeButton={false}
 						render={<Link to="/admin/technologies/new" />}
 					>
-						<IconPlus />
+						<HugeiconsIcon icon={Plus} strokeWidth={2} />
 						Create new
 					</Button>
 				}

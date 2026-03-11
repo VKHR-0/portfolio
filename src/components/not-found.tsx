@@ -1,4 +1,5 @@
-import { IconSearchOff } from "@tabler/icons-react";
+import { SearchRemoveIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "#/components/ui/button";
 import {
@@ -18,7 +19,11 @@ function NotFoundPage() {
 			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<IconSearchOff className="size-4 text-muted-foreground" />
+						<HugeiconsIcon
+							icon={SearchRemoveIcon}
+							strokeWidth={2}
+							className="size-4 text-muted-foreground"
+						/>
 						Page not found
 					</CardTitle>
 				</CardHeader>

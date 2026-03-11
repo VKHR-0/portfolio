@@ -1,15 +1,16 @@
 import {
-	IconBrandGithub,
-	IconDice,
-	IconExternalLink,
-	IconEye,
-	IconLink,
-	IconPhoto,
-	IconPlus,
-	IconTrash,
-	IconUpload,
-	IconX,
-} from "@tabler/icons-react";
+	Dice,
+	ExternalLink,
+	Eye,
+	Github,
+	Link as LinkIcon,
+	Photo,
+	Plus,
+	Trash,
+	Upload,
+	X,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useForm } from "@tanstack/react-form";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
@@ -206,7 +207,7 @@ function TechnologyBadge({
 					aria-label={`Remove ${name}`}
 					title={`Remove ${name}`}
 				>
-					<IconX />
+					<HugeiconsIcon icon={X} strokeWidth={2} />
 				</Button>
 			</span>
 		</Badge>
@@ -250,7 +251,7 @@ function TechnologyPicker({
 
 			<Popover>
 				<PopoverTrigger render={<Button variant="outline" size="icon-xs" />}>
-					<IconPlus />
+					<HugeiconsIcon icon={Plus} strokeWidth={2} />
 				</PopoverTrigger>
 				<PopoverContent align="start" className="w-72 p-0">
 					<Command>
@@ -627,7 +628,11 @@ export function ProjectEditor({
 											aria-label="Random gradient"
 											title="Random gradient"
 										>
-											{isGeneratingGradient ? <Spinner /> : <IconDice />}
+											{isGeneratingGradient ? (
+												<Spinner />
+											) : (
+												<HugeiconsIcon icon={Dice} strokeWidth={2} />
+											)}
 										</Button>
 										<Button
 											type="button"
@@ -635,7 +640,11 @@ export function ProjectEditor({
 											size="sm"
 											onClick={() => setIsImagePickerOpen(true)}
 										>
-											<IconPhoto data-icon="inline-start" />
+											<HugeiconsIcon
+												icon={Photo}
+												strokeWidth={2}
+												data-icon="inline-start"
+											/>
 											Change
 										</Button>
 										<Button
@@ -649,7 +658,7 @@ export function ProjectEditor({
 											aria-label="Remove image"
 											title="Remove image"
 										>
-											<IconX />
+											<HugeiconsIcon icon={X} strokeWidth={2} />
 										</Button>
 									</div>
 								</>
@@ -662,7 +671,11 @@ export function ProjectEditor({
 											className="flex flex-col gap-2 p-6"
 											onClick={() => setIsImagePickerOpen(true)}
 										>
-											<IconUpload className="size-8 text-muted-foreground" />
+											<HugeiconsIcon
+												icon={Upload}
+												strokeWidth={2}
+												className="size-8 text-muted-foreground"
+											/>
 											<span className="text-muted-foreground text-sm">
 												Upload hero image
 											</span>
@@ -678,7 +691,11 @@ export function ProjectEditor({
 											aria-label="Random gradient"
 											title="Random gradient"
 										>
-											{isGeneratingGradient ? <Spinner /> : <IconDice />}
+											{isGeneratingGradient ? (
+												<Spinner />
+											) : (
+												<HugeiconsIcon icon={Dice} strokeWidth={2} />
+											)}
 										</Button>
 									</div>
 								</>
@@ -715,7 +732,7 @@ export function ProjectEditor({
 														variant="outline"
 														className="rounded-full"
 													>
-														<IconLink />
+														<HugeiconsIcon icon={LinkIcon} strokeWidth={2} />
 													</InputGroupButton>
 												</InputGroupAddon>
 												<InputGroupInput
@@ -760,7 +777,11 @@ export function ProjectEditor({
 								}
 								onClick={() => setIsDeleteDialogOpen(true)}
 							>
-								<IconTrash data-icon="inline-start" />
+								<HugeiconsIcon
+									icon={Trash}
+									strokeWidth={2}
+									data-icon="inline-start"
+								/>
 								Delete
 							</Button>
 							<form.Subscribe selector={(state) => state.values.slug}>
@@ -781,7 +802,11 @@ export function ProjectEditor({
 											) : undefined
 										}
 									>
-										<IconEye data-icon="inline-start" />
+										<HugeiconsIcon
+											icon={Eye}
+											strokeWidth={2}
+											data-icon="inline-start"
+										/>
 										Preview
 									</Button>
 								)}
@@ -844,7 +869,7 @@ export function ProjectEditor({
 											variant="outline"
 											className="rounded-full"
 										>
-											<IconBrandGithub />
+											<HugeiconsIcon icon={Github} strokeWidth={2} />
 										</InputGroupButton>
 									</InputGroupAddon>
 									<InputGroupInput
@@ -867,7 +892,7 @@ export function ProjectEditor({
 											variant="outline"
 											className="rounded-full"
 										>
-											<IconExternalLink />
+											<HugeiconsIcon icon={ExternalLink} strokeWidth={2} />
 										</InputGroupButton>
 									</InputGroupAddon>
 									<InputGroupInput

@@ -1,15 +1,15 @@
 import {
-	IconCode,
-	IconH1,
-	IconH2,
-	IconH3,
-	IconList,
-	IconListNumbers,
-	IconPhoto,
-	IconPilcrow,
-	IconQuote,
-	IconTable,
-} from "@tabler/icons-react";
+	Code,
+	Heading1,
+	Heading2,
+	Heading3,
+	LeftToRightListNumberIcon,
+	List,
+	Photo,
+	Pilcrow,
+	Quote,
+	Table,
+} from "@hugeicons/core-free-icons";
 import type { Editor } from "@tiptap/core";
 import { ReactRenderer } from "@tiptap/react";
 import type { SuggestionOptions as TiptapSuggestionOptions } from "@tiptap/suggestion";
@@ -113,43 +113,43 @@ const requestImageAndInsert = async ({
 const getAllItems = (options: SuggestionOptions): SlashItem[] => [
 	{
 		title: "Text",
-		icon: IconPilcrow,
+		icon: Pilcrow,
 		command: ({ editor, range }) =>
 			editor.chain().focus().deleteRange(range).setParagraph().run(),
 	},
 	{
 		title: "Heading 1",
-		icon: IconH1,
+		icon: Heading1,
 		command: ({ editor, range }) =>
 			editor.chain().focus().deleteRange(range).setHeading({ level: 1 }).run(),
 	},
 	{
 		title: "Heading 2",
-		icon: IconH2,
+		icon: Heading2,
 		command: ({ editor, range }) =>
 			editor.chain().focus().deleteRange(range).setHeading({ level: 2 }).run(),
 	},
 	{
 		title: "Heading 3",
-		icon: IconH3,
+		icon: Heading3,
 		command: ({ editor, range }) =>
 			editor.chain().focus().deleteRange(range).setHeading({ level: 3 }).run(),
 	},
 	{
 		title: "Bulleted list",
-		icon: IconList,
+		icon: List,
 		command: ({ editor, range }) =>
 			editor.chain().focus().deleteRange(range).toggleBulletList().run(),
 	},
 	{
 		title: "Numbered list",
-		icon: IconListNumbers,
+		icon: LeftToRightListNumberIcon,
 		command: ({ editor, range }) =>
 			editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
 	},
 	{
 		title: "Image",
-		icon: IconPhoto,
+		icon: Photo,
 		command: ({ editor, range }) => {
 			void requestImageAndInsert({
 				editor,
@@ -162,7 +162,7 @@ const getAllItems = (options: SuggestionOptions): SlashItem[] => [
 	},
 	{
 		title: "Table",
-		icon: IconTable,
+		icon: Table,
 		command: ({ editor, range }) =>
 			editor
 				.chain()
@@ -173,13 +173,13 @@ const getAllItems = (options: SuggestionOptions): SlashItem[] => [
 	},
 	{
 		title: "Quote",
-		icon: IconQuote,
+		icon: Quote,
 		command: ({ editor, range }) =>
 			editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
 	},
 	{
 		title: "Code block",
-		icon: IconCode,
+		icon: Code,
 		command: ({ editor, range }) =>
 			editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
 	},

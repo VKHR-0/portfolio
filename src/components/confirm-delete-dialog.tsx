@@ -1,6 +1,7 @@
 "use client";
 
-import { IconTrash } from "@tabler/icons-react";
+import { Trash } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "#/components/ui/button";
 import {
 	Dialog,
@@ -45,7 +46,15 @@ export function ConfirmDeleteDialog({
 						disabled={isPending}
 						onClick={onConfirm}
 					>
-						{isPending ? <Spinner /> : <IconTrash data-icon="inline-start" />}
+						{isPending ? (
+							<Spinner />
+						) : (
+							<HugeiconsIcon
+								icon={Trash}
+								strokeWidth={2}
+								data-icon="inline-start"
+							/>
+						)}
 						{isPending ? "Deleting..." : confirmLabel}
 					</Button>
 				</DialogFooter>

@@ -1,12 +1,12 @@
-import type { Icon } from "@tabler/icons-react";
-import { IconBan } from "@tabler/icons-react";
+import { UnavailableIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { Editor } from "@tiptap/core";
 import * as React from "react";
 import { Command, CommandItem, CommandList } from "#/components/ui/command";
 
 export type SlashItem = {
 	title: string;
-	icon: Icon;
+	icon: IconSvgElement;
 	command: (params: {
 		editor: Editor;
 		range: { from: number; to: number };
@@ -77,13 +77,21 @@ function CommandsList({ items, command, ref }: CommandsListProps) {
 							onSelect={() => selectItem(index)}
 							onMouseEnter={() => setSelectedIndex(index)}
 						>
-							<item.icon />
+							<HugeiconsIcon
+								icon={item.icon}
+								strokeWidth={2}
+								className="size-4"
+							/>
 							{item.title}
 						</CommandItem>
 					))
 				) : (
 					<div className="flex items-center px-2 py-1.5 text-muted-foreground text-sm">
-						<IconBan className="mr-2 size-4" />
+						<HugeiconsIcon
+							icon={UnavailableIcon}
+							strokeWidth={2}
+							className="mr-2 size-4"
+						/>
 						No results
 					</div>
 				)}
