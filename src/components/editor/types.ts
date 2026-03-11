@@ -1,4 +1,5 @@
 import type { Editor as TiptapEditor } from "@tiptap/core";
+import type { Id } from "convex/_generated/dataModel";
 import type { HTMLAttributes } from "react";
 import type {
 	ImagePickerContext,
@@ -21,6 +22,7 @@ export type ImageUploadContext = {
 
 export type ImageUploadResult = {
 	src: string;
+	mediaId?: Id<"media">;
 	alt?: string;
 	title?: string;
 };
@@ -81,6 +83,7 @@ export type ActiveState = {
 
 export type UploadableImageAttrs = {
 	src?: unknown;
+	mediaId?: unknown;
 	alt?: unknown;
 	title?: unknown;
 	uploadId?: unknown;

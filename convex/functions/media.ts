@@ -8,6 +8,11 @@ import {
 	query,
 } from "../_generated/server";
 import { authComponent } from "../auth";
+import {
+	getUsedInPosts,
+	getUsedInProjects,
+	hasMediaUsage,
+} from "./mediaAttachments";
 
 async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
 	const user = await authComponent.getAuthUser(ctx);
@@ -125,34 +130,10 @@ export const getBySlug = query({
 		}
 
 		const url = await ctx.storage.getUrl(media.storageId);
-		const postRelations = await ctx.db
-			.query("postMedia")
-			.withIndex("by_media", (q) => q.eq("mediaId", media._id))
-			.collect();
-		const relatedPosts = await Promise.all(
-			postRelations.map((relation) => ctx.db.get(relation.postId)),
-		);
-		const usedInPosts = relatedPosts.flatMap((post) =>
-			post
-				? [
-						{
-							_id: post._id,
-							title: post.title,
-							slug: post.slug,
-						},
-					]
-				: [],
-		);
-
-		// Usage tracking: projects that reference this media via imageId
-		const allProjects = await ctx.db.query("projects").collect();
-		const usedInProjects = allProjects
-			.filter((project) => project.imageId === url)
-			.map((project) => ({
-				_id: project._id,
-				title: project.title,
-				slug: project.slug,
-			}));
+		const [usedInPosts, usedInProjects] = await Promise.all([
+			getUsedInPosts(ctx, media._id),
+			getUsedInProjects(ctx, media._id),
+		]);
 
 		return {
 			...media,
@@ -176,21 +157,7 @@ export const deleteMedia = mutation({
 			throw new Error("Media not found.");
 		}
 
-		const url = await ctx.storage.getUrl(media.storageId);
-
-		const usedInPost =
-			(await ctx.db
-				.query("postMedia")
-				.withIndex("by_media", (q) => q.eq("mediaId", args.id))
-				.first()) !== null;
-
-		// Check usage in projects
-		const allProjects = await ctx.db.query("projects").collect();
-		const usedInProject = allProjects.some(
-			(project) => project.imageId === url,
-		);
-
-		if (usedInPost || usedInProject) {
+		if (await hasMediaUsage(ctx, args.id)) {
 			throw new Error(
 				"Cannot delete media while it is in use by posts or projects.",
 			);

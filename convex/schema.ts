@@ -7,7 +7,8 @@ export default defineSchema({
 		slug: v.string(),
 		description: v.string(),
 		content: v.string(),
-		imageId: v.optional(v.string()),
+		imageId: v.optional(v.union(v.id("media"), v.string())),
+		attachments: v.optional(v.array(v.id("media"))),
 
 		status: v.union(
 			v.literal("active"),
@@ -104,6 +105,14 @@ export default defineSchema({
 		.index("by_post", ["postId"])
 		.index("by_media", ["mediaId"])
 		.index("by_post_and_media", ["postId", "mediaId"]),
+
+	projectMedia: defineTable({
+		projectId: v.id("projects"),
+		mediaId: v.id("media"),
+	})
+		.index("by_project", ["projectId"])
+		.index("by_media", ["mediaId"])
+		.index("by_project_and_media", ["projectId", "mediaId"]),
 
 	postTag: defineTable({
 		postId: v.id("posts"),

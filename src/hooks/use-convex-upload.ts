@@ -3,6 +3,7 @@ import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 
 type UploadResult = {
+	mediaId: Id<"media">;
 	url: string;
 	storageId: Id<"_storage">;
 	slug: string;
@@ -41,6 +42,7 @@ export function useConvexUpload() {
 		}
 
 		return {
+			mediaId: result._id,
 			url: result.url,
 			storageId,
 			slug: result.slug,

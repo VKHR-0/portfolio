@@ -13,6 +13,7 @@ import {
 import type { Editor } from "@tiptap/core";
 import { ReactRenderer } from "@tiptap/react";
 import type { SuggestionOptions as TiptapSuggestionOptions } from "@tiptap/suggestion";
+import type { Id } from "convex/_generated/dataModel";
 import CommandsList, {
 	type CommandsListHandle,
 	type SlashItem,
@@ -21,6 +22,7 @@ import CommandsList, {
 export type ImagePickerUrlResult = {
 	kind: "url";
 	src: string;
+	mediaId?: Id<"media">;
 	alt?: string;
 	title?: string;
 };
@@ -100,6 +102,7 @@ const requestImageAndInsert = async ({
 
 	const imageAttrs = {
 		src: result.src,
+		...(result.mediaId ? { mediaId: result.mediaId } : {}),
 		...(result.alt ? { alt: result.alt } : {}),
 		...(result.title ? { title: result.title } : {}),
 	};

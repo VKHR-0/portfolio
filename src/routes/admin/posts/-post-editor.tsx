@@ -421,7 +421,7 @@ export function PostEditor({
 	const handleUploadImage: ImageUploadHandler = React.useCallback(
 		async (file) => {
 			const result = await uploadFile(file);
-			return { src: result.url };
+			return { src: result.url, mediaId: result.mediaId };
 		},
 		[uploadFile],
 	);

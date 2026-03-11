@@ -45,7 +45,7 @@ export function MediaPickerDialog({
 
 		try {
 			const result = await uploadFile(file);
-			onSelect({ kind: "url", src: result.url });
+			onSelect({ kind: "url", src: result.url, mediaId: result.mediaId });
 		} catch {
 			setIsUploading(false);
 		}
@@ -171,6 +171,7 @@ export function MediaPickerDialog({
 												onSelect({
 													kind: "url",
 													src: item.url as string,
+													mediaId: item._id,
 													alt: item.alt,
 												})
 											}

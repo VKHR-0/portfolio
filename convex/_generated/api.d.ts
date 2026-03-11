@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as functions_categories from "../functions/categories.js";
 import type * as functions_general from "../functions/general.js";
 import type * as functions_media from "../functions/media.js";
+import type * as functions_mediaAttachments from "../functions/mediaAttachments.js";
 import type * as functions_posts from "../functions/posts.js";
 import type * as functions_projects from "../functions/projects.js";
 import type * as functions_series from "../functions/series.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   "functions/categories": typeof functions_categories;
   "functions/general": typeof functions_general;
   "functions/media": typeof functions_media;
+  "functions/mediaAttachments": typeof functions_mediaAttachments;
   "functions/posts": typeof functions_posts;
   "functions/projects": typeof functions_projects;
   "functions/series": typeof functions_series;

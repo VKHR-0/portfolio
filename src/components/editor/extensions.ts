@@ -23,6 +23,13 @@ export const UploadableImage = Image.extend({
 				renderHTML: (attributes: { uploadId?: string | null }) =>
 					attributes.uploadId ? { "data-upload-id": attributes.uploadId } : {},
 			},
+			mediaId: {
+				default: null,
+				parseHTML: (element: HTMLElement) =>
+					element.getAttribute("data-media-id"),
+				renderHTML: (attributes: { mediaId?: string | null }) =>
+					attributes.mediaId ? { "data-media-id": attributes.mediaId } : {},
+			},
 			uploading: {
 				default: false,
 				parseHTML: (element: HTMLElement) =>

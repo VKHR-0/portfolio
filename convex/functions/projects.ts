@@ -1,6 +1,7 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toSlug } from "../../shared/slug";
+import type { Id } from "../_generated/dataModel";
 import {
 	type MutationCtx,
 	mutation,
@@ -8,6 +9,54 @@ import {
 	query,
 } from "../_generated/server";
 import { authComponent } from "../auth";
+import {
+	deriveAttachmentIds,
+	syncProjectMediaRelations,
+} from "./mediaAttachments";
+
+async function resolveMediaUrl(
+	ctx: QueryCtx | MutationCtx,
+	mediaId: Id<"media"> | undefined,
+) {
+	if (!mediaId) {
+		return undefined;
+	}
+
+	const media = await ctx.db.get(mediaId);
+
+	if (!media) {
+		return undefined;
+	}
+
+	return (await ctx.storage.getUrl(media.storageId)) ?? undefined;
+}
+
+function normalizeProjectImageId(
+	imageId: Id<"media"> | string | undefined,
+): Id<"media"> | undefined {
+	if (!imageId || imageId.startsWith("http")) {
+		return undefined;
+	}
+
+	return imageId as Id<"media">;
+}
+
+async function getProjectImageUrl(
+	ctx: QueryCtx | MutationCtx,
+	imageId: Id<"media"> | string | undefined,
+) {
+	const normalizedImageId = normalizeProjectImageId(imageId);
+
+	if (normalizedImageId) {
+		return await resolveMediaUrl(ctx, normalizedImageId);
+	}
+
+	if (imageId?.startsWith("http")) {
+		return imageId;
+	}
+
+	return undefined;
+}
 
 async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
 	const user = await authComponent.getAuthUser(ctx);
@@ -148,6 +197,8 @@ export const getEditableBySlug = query({
 			throw new Error("Project not found.");
 		}
 
+		const normalizedImageId = normalizeProjectImageId(project.imageId);
+
 		return {
 			_id: project._id,
 			title: project.title,
@@ -155,7 +206,8 @@ export const getEditableBySlug = query({
 			description: project.description,
 			content: project.content,
 			status: project.status,
-			imageId: project.imageId,
+			imageId: normalizedImageId,
+			imageUrl: await getProjectImageUrl(ctx, project.imageId),
 			repositoryUrl: project.repositoryUrl,
 			demoUrl: project.demoUrl,
 			technologyIds: project.technologyIds,
@@ -176,7 +228,7 @@ export const createDraft = mutation({
 				v.literal("archived"),
 			),
 		),
-		imageId: v.optional(v.string()),
+		imageId: v.optional(v.id("media")),
 		repositoryUrl: v.optional(v.string()),
 		demoUrl: v.optional(v.string()),
 		technologyIds: v.optional(v.array(v.id("technologies"))),
@@ -195,18 +247,26 @@ export const createDraft = mutation({
 			throw new Error("Project with this slug already exists.");
 		}
 
+		const content = args.content?.trim() ?? "";
+		const attachments = deriveAttachmentIds({
+			content,
+			extraMediaIds: args.imageId ? [args.imageId] : [],
+		});
 		const projectId = await ctx.db.insert("projects", {
 			title,
 			slug,
 			description: args.description?.trim() ?? "",
-			content: args.content?.trim() ?? "",
+			content,
 			status: args.status ?? "active",
 			imageId: args.imageId,
+			attachments,
 			repositoryUrl: args.repositoryUrl,
 			demoUrl: args.demoUrl,
 			technologyIds: args.technologyIds ?? [],
 			authorId,
 		});
+
+		await syncProjectMediaRelations(ctx, projectId, attachments);
 
 		return { _id: projectId, title, slug };
 	},
@@ -224,7 +284,7 @@ export const updateDraft = mutation({
 			v.literal("completed"),
 			v.literal("archived"),
 		),
-		imageId: v.optional(v.string()),
+		imageId: v.optional(v.id("media")),
 		repositoryUrl: v.optional(v.string()),
 		demoUrl: v.optional(v.string()),
 		technologyIds: v.array(v.id("technologies")),
@@ -249,17 +309,26 @@ export const updateDraft = mutation({
 			throw new Error("Project with this slug already exists.");
 		}
 
+		const content = args.content.trim();
+		const attachments = deriveAttachmentIds({
+			content,
+			extraMediaIds: args.imageId ? [args.imageId] : [],
+		});
+
 		await ctx.db.patch(args.id, {
 			title,
 			slug,
 			description: args.description.trim(),
-			content: args.content.trim(),
+			content,
 			status: args.status,
 			imageId: args.imageId,
+			attachments,
 			repositoryUrl: args.repositoryUrl,
 			demoUrl: args.demoUrl,
 			technologyIds: args.technologyIds,
 		});
+
+		await syncProjectMediaRelations(ctx, args.id, attachments);
 
 		return { _id: args.id, title, slug };
 	},
@@ -275,6 +344,15 @@ export const deleteProject = mutation({
 
 		if (!project || project.authorId !== authorId) {
 			throw new Error("Project not found.");
+		}
+
+		const projectMediaRows = await ctx.db
+			.query("projectMedia")
+			.withIndex("by_project", (q) => q.eq("projectId", args.id))
+			.collect();
+
+		for (const row of projectMediaRows) {
+			await ctx.db.delete(row._id);
 		}
 
 		await ctx.db.delete(args.id);
@@ -295,6 +373,8 @@ export const getPublicBySlug = query({
 			return null;
 		}
 
+		const normalizedImageId = normalizeProjectImageId(project.imageId);
+
 		const technologies = (
 			await Promise.all(project.technologyIds.map((id) => ctx.db.get(id)))
 		)
@@ -306,7 +386,8 @@ export const getPublicBySlug = query({
 			slug: project.slug,
 			description: project.description,
 			content: project.content,
-			imageId: project.imageId,
+			imageId: normalizedImageId,
+			imageUrl: await getProjectImageUrl(ctx, project.imageId),
 			status: project.status,
 			repositoryUrl: project.repositoryUrl,
 			demoUrl: project.demoUrl,

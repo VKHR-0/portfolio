@@ -78,7 +78,8 @@ type EditableProject = {
 	description: string;
 	content: string;
 	status: ProjectStatus;
-	imageId?: string;
+	imageId?: Id<"media">;
+	imageUrl?: string;
 	repositoryUrl?: string;
 	demoUrl?: string;
 	technologyIds: Array<Id<"technologies">>;
@@ -102,7 +103,7 @@ type EditorFormState = {
 	description: string;
 	content: string;
 	status: ProjectStatus;
-	imageId?: string;
+	imageId?: Id<"media">;
 	repositoryUrl?: string;
 	demoUrl?: string;
 	technologyIds: Array<Id<"technologies">>;
@@ -416,6 +417,9 @@ export function ProjectEditor({
 	const [isDeletingProject, setIsDeletingProject] = React.useState(false);
 	const [isImagePickerOpen, setIsImagePickerOpen] = React.useState(false);
 	const [isGeneratingGradient, setIsGeneratingGradient] = React.useState(false);
+	const [heroImageUrl, setHeroImageUrl] = React.useState(
+		initialProject?.imageUrl,
+	);
 
 	const [pickerResolver, setPickerResolver] = React.useState<{
 		resolve: (result: ImagePickerResult | null) => void;
@@ -439,7 +443,7 @@ export function ProjectEditor({
 	const handleUploadImage: ImageUploadHandler = React.useCallback(
 		async (file) => {
 			const result = await uploadFile(file);
-			return { src: result.url };
+			return { src: result.url, mediaId: result.mediaId };
 		},
 		[uploadFile],
 	);
@@ -449,7 +453,8 @@ export function ProjectEditor({
 		const result = await toAsyncResult(
 			generateGradientImage().then(async (file) => {
 				const uploadResult = await uploadFile(file);
-				form.setFieldValue("imageId", uploadResult.url);
+				form.setFieldValue("imageId", uploadResult.mediaId);
+				setHeroImageUrl(uploadResult.url);
 			}),
 		);
 		setIsGeneratingGradient(false);
@@ -484,6 +489,7 @@ export function ProjectEditor({
 		hydratedProjectIdRef.current = initialProject?._id;
 		form.reset(nextState);
 		setDraftId(initialProject?._id);
+		setHeroImageUrl(initialProject?.imageUrl);
 		setIsSlugManuallyEdited(false);
 		setSaveState(initialProject ? "saved" : "idle");
 		lastPersistedSnapshotRef.current = serializeDraft(nextState);
@@ -604,10 +610,10 @@ export function ProjectEditor({
 				<form.Subscribe selector={(state) => state.values.imageId}>
 					{(imageId) => (
 						<div className="relative min-h-[35vh] overflow-hidden rounded-2xl bg-muted/30">
-							{imageId ? (
+							{imageId && heroImageUrl ? (
 								<>
 									<img
-										src={imageId}
+										src={heroImageUrl}
 										alt=""
 										className="absolute inset-0 h-full w-full object-cover"
 									/>
@@ -636,7 +642,10 @@ export function ProjectEditor({
 											type="button"
 											variant="secondary"
 											size="icon-sm"
-											onClick={() => form.setFieldValue("imageId", undefined)}
+											onClick={() => {
+												form.setFieldValue("imageId", undefined);
+												setHeroImageUrl(undefined);
+											}}
 											aria-label="Remove image"
 											title="Remove image"
 										>
@@ -761,7 +770,7 @@ export function ProjectEditor({
 										size="sm"
 										variant="outline"
 										disabled={!draftId}
-										nativeButton={!draftId ? true : false}
+										nativeButton={!draftId}
 										render={
 											draftId ? (
 												<Link
@@ -904,7 +913,7 @@ export function ProjectEditor({
 									onChange={field.handleChange}
 									className="prose prose-amber dark:prose-invert h-full w-full max-w-none!"
 									editorClassName="h-full !max-w-none"
-									format="markdown"
+									format="json"
 									headingLevels={[2, 3]}
 									enableImagePasteDrop
 									onRequestImage={handleRequestImage}
@@ -935,8 +944,9 @@ export function ProjectEditor({
 				<MediaPickerDialog
 					open
 					onSelect={(result) => {
-						if (result.kind === "url") {
-							form.setFieldValue("imageId", result.src);
+						if (result.kind === "url" && result.mediaId) {
+							form.setFieldValue("imageId", result.mediaId);
+							setHeroImageUrl(result.src);
 						}
 						setIsImagePickerOpen(false);
 					}}

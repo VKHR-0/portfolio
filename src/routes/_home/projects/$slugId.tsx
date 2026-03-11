@@ -60,10 +60,10 @@ function RouteComponent() {
 	return (
 		<article>
 			{/* Full-bleed hero with back button overlay */}
-			{project.imageId && (
+			{project.imageUrl && (
 				<div className="relative">
 					<img
-						src={project.imageId}
+						src={project.imageUrl}
 						alt=""
 						className="h-[35vh] w-full object-cover"
 					/>
@@ -80,7 +80,7 @@ function RouteComponent() {
 			)}
 
 			<div className="mx-auto w-full max-w-3xl px-4 pb-10">
-				{!project.imageId && (
+				{!project.imageUrl && (
 					<Link
 						to="/projects"
 						className="mt-10 mb-8 inline-flex items-center gap-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
@@ -91,7 +91,7 @@ function RouteComponent() {
 				)}
 
 				<div
-					className={`${project.imageId ? "mt-4" : ""} mb-4 flex flex-wrap items-end gap-3`}
+					className={`${project.imageUrl ? "mt-4" : ""} mb-4 flex flex-wrap items-end gap-3`}
 				>
 					<h1 className="font-bold text-4xl leading-tight tracking-tight">
 						{project.title}

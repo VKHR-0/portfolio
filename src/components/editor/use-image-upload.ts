@@ -244,6 +244,9 @@ export function useImageUpload(
 					return {
 						...attrs,
 						src: resolved.src,
+						mediaId:
+							resolved.mediaId ??
+							(typeof attrs.mediaId === "string" ? attrs.mediaId : undefined),
 						alt:
 							resolved.alt ??
 							(typeof attrs.alt === "string" ? attrs.alt : undefined),
