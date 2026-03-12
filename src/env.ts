@@ -12,7 +12,6 @@ export const env = createEnv({
 
 	client: {
 		VITE_CONVEX_URL: z.url(),
-		VITE_SITE_URL: z.url(),
 		VITE_CONVEX_SITE_URL: z.url(),
 	},
 

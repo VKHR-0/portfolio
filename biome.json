@@ -10,7 +10,9 @@
 		"includes": [
 			"**/src/**/*",
 			"**/convex/**/*",
+			"**/*.json",
 			"!**/convex/_generated/**/*",
+			"**/*.config.ts",
 			"**/index.html",
 			"!**/src/routeTree.gen.ts",
 			"!**/tmp/**/*"

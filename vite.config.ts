@@ -8,18 +8,18 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
 	plugins: [
-    devtools({
-      editor: {
-        name: 'Zed',
-        open: async (path, lineNumber, columnNumber) => {
-          const { exec } = await import('node:child_process')
-          exec(
-            `zed "${(path).replaceAll('$', '\\$')}${lineNumber ? `:${lineNumber}` : ''}${columnNumber ? `:${columnNumber}` : ''}"`,
-          )
-        }
-      }
+		devtools({
+			editor: {
+				name: "Zed",
+				open: async (path, lineNumber, columnNumber) => {
+					const { exec } = await import("node:child_process");
+					exec(
+						`zed "${(path).replaceAll("$", "\\$")}${lineNumber ? `:${lineNumber}` : ""}${columnNumber ? `:${columnNumber}` : ""}"`,
+					);
+				},
+			},
 		}),
-		nitro({ rollupConfig: { external: [/^@sentry\//] } }),
+		nitro({ preset: "bun", rollupConfig: { external: [/^@sentry\//] } }),
 		tsconfigPaths({ projects: ["./tsconfig.json"] }),
 		tailwindcss(),
 		tanstackStart(),
