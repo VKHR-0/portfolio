@@ -39,11 +39,11 @@ export function RootProviders({ children, theme }: RootProvidersProps) {
 						<body>
 							{children}
 							<Toaster position="top-center" />
-							{Devtools ? (
+							{Devtools && (
 								<React.Suspense fallback={null}>
 									<Devtools />
 								</React.Suspense>
-							) : null}
+							)}
 							<Scripts />
 						</body>
 					</html>

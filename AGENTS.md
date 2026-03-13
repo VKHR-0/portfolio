@@ -18,31 +18,49 @@ vitest run                       # Run all tests
 vitest run src/path/to/file      # Run single test file
 
 # Code quality
-biome check                      # Check formatting + linting
-biome lint                       # Lint only
-biome format                     # Format only
+biome check --write .            # Fix formatting + linting
+biome check                      # Check only (no writes)
 ```
+
+Always use `bun` — never npm/yarn/pnpm.
 
 ## Architecture
 
-**Stack:** React 19 + TanStack Start (SSR) + Convex (backend) + Better Auth + Tailwind CSS + shadcn UI
+**Stack:** React 19 + TanStack Start (SSR via Nitro) + Convex (backend) + Better Auth + Tailwind CSS 4 + shadcn UI
 
-**Routing:** TanStack Router with file-based routing. `routeTree.gen.ts` is auto-generated — never edit it manually. Routes live in `src/routes/`.
+**Build:** Vite is aliased to `rolldown-vite`. React Compiler (`babel-plugin-react-compiler`) is active — no manual `useMemo`/`useCallback` needed.
 
-**Two main route groups:**
+### Routing
 
-- `_home/` — Public-facing pages (posts, projects)
+TanStack Router with file-based routing in `src/routes/`. `src/routeTree.gen.ts` is auto-generated — never edit it.
+
+Two route groups:
+
+- `_home/` — Public pages (posts, projects)
 - `admin/` — Authenticated admin CRUD (posts, projects, categories, series, tags)
 
-**Backend:** All database access goes through Convex. Backend functions live in `convex/functions/`. Schema defined in `convex/schema.ts`. Convex separates reads (`query`) from writes (`mutation`).
+Route masks are used to keep modals at clean URLs (e.g., `/admin/tags/new` masked as `/admin/tags`).
 
-**Auth:** Better Auth with Convex adapter (`@convex-dev/better-auth`). Auth client in `src/lib/auth-client.ts`, server helpers in `src/lib/auth-server.ts`. Auth check happens in the root route (`src/routes/__root.tsx`).
+### Data Flow
 
-**Data fetching:** TanStack React Query via `@convex-dev/react-query` adapter. Loaders in route files prefetch data; components use `useSuspenseQuery`.
+1. Convex functions in `convex/functions/` — queries (reads) and mutations (writes)
+2. `@convex-dev/react-query` adapter bridges Convex to TanStack Query
+3. Route loaders prefetch data; components consume with `useSuspenseQuery`
+4. Mutations called on form submit, cache updates automatically
 
-**Forms:** TanStack Form + Zod for validation. Convex mutations called on submit.
+Schema in `convex/schema.ts`. `convex/_generated/` is auto-generated — never edit it.
 
-**Rich text editor:** TipTap with many extensions (code blocks, tables, math/KaTeX, drag handle). Editor component in `src/components/editor.tsx`.
+### Auth
+
+Better Auth with Convex adapter. Auth client: `src/lib/auth-client.ts`, server: `src/lib/auth-server.ts`. Auth check runs in root route `beforeLoad`. Email/password only, no signup flow.
+
+### Forms & Validation
+
+TanStack Form + Zod (v4). Convex mutations on submit.
+
+### Rich Text Editor
+
+TipTap with 20+ extensions (code blocks, tables, math/KaTeX, drag handle, slash commands, bubble menu). Editor component in `src/components/editor.tsx`, static renderer for display.
 
 ## Path Aliases
 
@@ -50,13 +68,15 @@ biome format                     # Format only
 - `convex/*` → `convex/*`
 - `shared/*` → `shared/*`
 
-## Key Conventions
+## Conventions
 
-- Package manager: **bun** (always use `bun`, not npm/yarn/pnpm)
-- Linter/formatter: **Biome** (not ESLint/Prettier)
-- Biome lints `src/**/*` and `convex/**/*`; excludes `convex/_generated/**/*` and `routeTree.gen.ts`
-- UI components use shadcn (style: base-nova, icons: Tabler)
-- Environment variables validated via T3 Env in `src/env.ts`
+- **Formatting:** Biome — tab indentation, double quotes, organized imports
+- **Tailwind classes:** Auto-sorted by Biome in `clsx`, `cva`, `cn`, `tw` calls
+- **Exports:** Named exports only (no default exports)
+- **UI components:** shadcn (style: `base-nova`, icons: `hugeicons`, color: `mist`)
+- **Icons:** `@hugeicons/react` + `@hugeicons/core-free-icons`
+- **Environment variables:** Validated via T3 Env in `src/env.ts`
+- **Biome scope:** Lints `src/**/*` and `convex/**/*`; excludes `convex/_generated`, `routeTree.gen.ts`, `tmp/`
 
 ## Environment Setup
 
