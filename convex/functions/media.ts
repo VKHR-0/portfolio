@@ -12,7 +12,7 @@ import {
 	getUsedInPosts,
 	getUsedInProjects,
 	hasMediaUsage,
-} from "./mediaAttachments";
+} from "./attachments";
 
 async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
 	const user = await authComponent.getAuthUser(ctx);

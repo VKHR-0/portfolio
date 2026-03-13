@@ -9,10 +9,7 @@ import {
 	query,
 } from "../_generated/server";
 import { authComponent } from "../auth";
-import {
-	deriveAttachmentIds,
-	syncPostMediaRelations,
-} from "./mediaAttachments";
+import { deriveAttachmentIds, syncPostMediaRelations } from "./attachments";
 
 async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
 	const user = await authComponent.getAuthUser(ctx);

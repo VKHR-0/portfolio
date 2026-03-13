@@ -9,10 +9,7 @@ import {
 	query,
 } from "../_generated/server";
 import { authComponent } from "../auth";
-import {
-	deriveAttachmentIds,
-	syncProjectMediaRelations,
-} from "./mediaAttachments";
+import { deriveAttachmentIds, syncProjectMediaRelations } from "./attachments";
 
 async function resolveMediaUrl(
 	ctx: QueryCtx | MutationCtx,
