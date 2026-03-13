@@ -1,12 +1,10 @@
 import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { ErrorPage } from "#/components/error";
-import { LoadingPage } from "#/components/loading";
-import { NotFoundPage } from "#/components/not-found";
 import { RootProviders } from "#/components/providers";
-import { getAuth } from "#/server/auth";
-import { getTheme } from "#/server/theme";
+import { ErrorPage, LoadingPage, NotFoundPage } from "#/components/shell";
+import { getAuth } from "#/features/auth";
+import { getTheme } from "#/features/theme";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRouteWithContext<{
@@ -45,9 +43,9 @@ export const Route = createRootRouteWithContext<{
 	},
 	loader: () => getTheme(),
 	shellComponent: ShellComponent,
-	pendingComponent: RootPendingComponent,
-	errorComponent: RootErrorComponent,
-	notFoundComponent: RootNotFoundComponent,
+	pendingComponent: LoadingPage,
+	errorComponent: ErrorPage,
+	notFoundComponent: NotFoundPage,
 });
 
 function ShellComponent() {
@@ -55,30 +53,6 @@ function ShellComponent() {
 	return (
 		<RootProviders theme={theme}>
 			<Outlet />
-		</RootProviders>
-	);
-}
-
-function RootPendingComponent() {
-	return (
-		<RootProviders theme="system">
-			<LoadingPage />
-		</RootProviders>
-	);
-}
-
-function RootErrorComponent(props: Parameters<typeof ErrorPage>[0]) {
-	return (
-		<RootProviders theme="system">
-			<ErrorPage {...props} />
-		</RootProviders>
-	);
-}
-
-function RootNotFoundComponent() {
-	return (
-		<RootProviders theme="system">
-			<NotFoundPage />
 		</RootProviders>
 	);
 }

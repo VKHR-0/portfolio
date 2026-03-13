@@ -4,9 +4,7 @@ import { createRouteMask, createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { ConvexProvider } from "convex/react";
 import { toast } from "sonner";
-import { ErrorPage } from "#/components/error";
-import { LoadingPage } from "#/components/loading";
-import { NotFoundPage } from "#/components/not-found";
+import { ErrorPage, LoadingPage, NotFoundPage } from "#/components/shell";
 import { env } from "#/env";
 import { routeTree } from "./routeTree.gen";
 
