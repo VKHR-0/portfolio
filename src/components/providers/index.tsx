@@ -1,19 +1,12 @@
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
 import { HeadContent, Scripts, useRouteContext } from "@tanstack/react-router";
-import * as React from "react";
+import type * as React from "react";
 import { ThemeProvider } from "#/components/providers/theme-provider";
+import { Devtools } from "#/components/shell";
 import { Toaster } from "#/components/ui/sonner";
 import { TooltipProvider } from "#/components/ui/tooltip";
 import { authClient } from "#/lib/auth-client";
-import { Route as RootRoute } from "#/routes/__root";
-
-const Devtools =
-	import.meta.env.DEV &&
-	React.lazy(() =>
-		import("#/components/devtools").then((module) => ({
-			default: module.Devtools,
-		})),
-	);
+import { Route } from "#/routes/__root";
 
 type RootProvidersProps = {
 	children: React.ReactNode;
@@ -21,7 +14,7 @@ type RootProvidersProps = {
 };
 
 export function RootProviders({ children, theme }: RootProvidersProps) {
-	const context = useRouteContext({ from: RootRoute.id });
+	const context = useRouteContext({ from: Route.id });
 	const initialTheme = theme ?? "system";
 
 	return (
@@ -39,11 +32,7 @@ export function RootProviders({ children, theme }: RootProvidersProps) {
 						<body>
 							{children}
 							<Toaster position="top-center" />
-							{Devtools && (
-								<React.Suspense fallback={null}>
-									<Devtools />
-								</React.Suspense>
-							)}
+							<Devtools />
 							<Scripts />
 						</body>
 					</html>

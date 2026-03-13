@@ -1,0 +1,46 @@
+import { SearchRemoveIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Link } from "@tanstack/react-router";
+import { Button } from "#/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "#/components/ui/card";
+import { Route } from "#/routes/__root";
+
+export function NotFoundPage() {
+	const { isAuthenticated } = Route.useRouteContext();
+
+	return (
+		<main className="flex min-h-screen items-center justify-center p-4">
+			<Card className="w-full max-w-md">
+				<CardHeader>
+					<CardTitle className="flex items-center gap-2">
+						<HugeiconsIcon
+							icon={SearchRemoveIcon}
+							strokeWidth={2}
+							className="size-4 text-muted-foreground"
+						/>
+						Page not found
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<p className="text-muted-foreground">
+						The page you requested does not exist or has been moved.
+					</p>
+				</CardContent>
+				<CardFooter className="justify-end gap-2">
+					{isAuthenticated ? (
+						<Button variant="outline" render={<Link to="/admin" />}>
+							Admin
+						</Button>
+					) : null}
+					<Button render={<Link to="/" />}>Go home</Button>
+				</CardFooter>
+			</Card>
+		</main>
+	);
+}
