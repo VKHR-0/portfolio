@@ -1,22 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { api } from "convex/_generated/api";
+import { convexAuthQuery, getToken } from "#/lib/auth-server";
 
 export const getAuth = createServerFn({ method: "GET" }).handler(async () => {
-	const { getToken } = await import("#/lib/auth-server");
 	return await getToken();
 });
 
 export const getCurrentUser = createServerFn({ method: "GET" }).handler(
 	async () => {
-		const { convexAuthQuery } = await import("#/lib/auth-server");
-		return await convexAuthQuery(api.auth.getCurrentUser, {});
+		return await convexAuthQuery(api.auth.getAuthUser, {});
 	},
 );
 
 export const getCurrentUserId = createServerFn({ method: "GET" }).handler(
 	async () => {
-		const { convexAuthQuery } = await import("#/lib/auth-server");
-		const user = await convexAuthQuery(api.auth.getCurrentUser, {});
+		const user = await convexAuthQuery(api.auth.getAuthUser, {});
 		return user?._id ?? null;
 	},
 );

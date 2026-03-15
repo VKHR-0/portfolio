@@ -42,7 +42,7 @@ export const Route = createFileRoute("/admin/categories/new")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const createCategory = useMutation(api.functions.categories.createCategory);
+	const createCategory = useMutation(api.functions.categories.create);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
 	const nameInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -63,7 +63,7 @@ function RouteComponent() {
 			const result = await toAsyncResult(
 				createCategory({
 					name: value.name,
-					slug: value.slug || undefined,
+					slug: value.slug,
 					description: value.description || undefined,
 				}),
 			);

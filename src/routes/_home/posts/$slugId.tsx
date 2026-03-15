@@ -4,16 +4,16 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarkdownContent } from "#/components/markdown-content";
 import { Badge } from "#/components/ui/badge";
-import { getPublicPostBySlugQuery } from "#/queries";
-import { renderContent } from "#/server/render-content";
+import { getPostBySlug } from "#/queries/public";
+import { getRendered } from "#/functions/renderer";
 
 export const Route = createFileRoute("/_home/posts/$slugId")({
 	loader: async ({ context, params }) => {
 		const post = await context.queryClient.ensureQueryData(
-			getPublicPostBySlugQuery(params.slugId),
+			getPostBySlug(params.slugId),
 		);
 		const contentHtml = post?.content
-			? await renderContent({ data: post.content })
+			? await getRendered({ data: post.content })
 			: "";
 		return { contentHtml };
 	},
@@ -29,7 +29,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 function RouteComponent() {
 	const { contentHtml } = Route.useLoaderData();
 	const { slugId } = Route.useParams();
-	const { data: post } = useSuspenseQuery(getPublicPostBySlugQuery(slugId));
+	const { data: post } = useSuspenseQuery(getPostBySlug(slugId));
 
 	if (!post) {
 		return (

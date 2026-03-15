@@ -17,11 +17,8 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import * as React from "react";
+import { TECHNOLOGY_COLORS, type TechnologyColorKey } from "shared/colors";
 import { toSlug } from "shared/slug";
-import {
-	TECHNOLOGY_COLORS,
-	type TechnologyColorKey,
-} from "shared/technology-colors";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
 import {

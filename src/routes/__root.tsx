@@ -3,8 +3,8 @@ import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { RootProviders } from "#/components/providers";
 import { ErrorPage, LoadingPage, NotFoundPage } from "#/components/shell";
-import { getAuth } from "#/features/auth";
-import { getTheme } from "#/features/theme";
+import { getAuth } from "#/functions/auth";
+import { getTheme } from "#/functions/theme";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRouteWithContext<{

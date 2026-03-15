@@ -2,22 +2,19 @@ import { ArrowLeft, ExternalLink, Github } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-	TECHNOLOGY_COLORS,
-	type TechnologyColorKey,
-} from "shared/technology-colors";
 import { MarkdownContent } from "#/components/markdown-content";
 import { Badge } from "#/components/ui/badge";
-import { getPublicProjectBySlugQuery } from "#/queries";
-import { renderContent } from "#/server/render-content";
+import { getProjectBySlug } from "#/queries/public";
+import { getRendered } from "#/functions/renderer";
+import { COLORS, type ColorKey } from "shared/colors";
 
 export const Route = createFileRoute("/_home/projects/$slugId")({
 	loader: async ({ context, params }) => {
 		const project = await context.queryClient.ensureQueryData(
-			getPublicProjectBySlugQuery(params.slugId),
+			getProjectBySlug(params.slugId),
 		);
 		const contentHtml = project?.content
-			? await renderContent({ data: project.content })
+			? await getRendered({ data: project.content })
 			: "";
 		return { contentHtml };
 	},
@@ -33,9 +30,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 function RouteComponent() {
 	const { contentHtml } = Route.useLoaderData();
 	const { slugId } = Route.useParams();
-	const { data: project } = useSuspenseQuery(
-		getPublicProjectBySlugQuery(slugId),
-	);
+	const { data: project } = useSuspenseQuery(getProjectBySlug(slugId));
 
 	if (!project) {
 		return (
@@ -153,8 +148,8 @@ function RouteComponent() {
 					<div className="mb-4 flex flex-wrap gap-1.5">
 						{project.technologies.map((tech) => {
 							const palette =
-								TECHNOLOGY_COLORS[tech.color as TechnologyColorKey] ??
-								TECHNOLOGY_COLORS.blue;
+								COLORS[tech.color as ColorKey] ??
+								COLORS.blue;
 
 							return (
 								<Badge

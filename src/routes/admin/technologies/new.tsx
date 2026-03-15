@@ -5,13 +5,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { useMutation } from "convex/react";
 import * as React from "react";
-import { SLUG_PATTERN, toSlug } from "shared/slug";
 import {
 	getRandomColorKey,
 	TECHNOLOGY_COLOR_KEYS,
 	TECHNOLOGY_COLORS,
 	type TechnologyColorKey,
-} from "shared/technology-colors";
+} from "shared/colors";
+import { SLUG_PATTERN, toSlug } from "shared/slug";
 import { toast } from "sonner";
 import z from "zod";
 import { Button } from "#/components/ui/button";

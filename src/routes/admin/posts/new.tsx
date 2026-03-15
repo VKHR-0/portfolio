@@ -1,30 +1,30 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	listCategoriesQuery,
-	listProjectsQuery,
-	listSeriesQuery,
-	listTagsQuery,
-} from "#/queries";
+	listCategories,
+	listProjects,
+	listSeries,
+	listTags,
+} from "#/queries/admin";
 import { PostEditor, PostEditorSkeleton } from "./-post-editor";
 
 export const Route = createFileRoute("/admin/posts/new")({
 	loader: async ({ context }) => {
 		await Promise.all([
-			context.queryClient.ensureQueryData(listProjectsQuery()),
-			context.queryClient.ensureQueryData(listCategoriesQuery()),
-			context.queryClient.ensureQueryData(listSeriesQuery()),
-			context.queryClient.ensureQueryData(listTagsQuery()),
+			context.queryClient.ensureQueryData(listProjects()),
+			context.queryClient.ensureQueryData(listCategories()),
+			context.queryClient.ensureQueryData(listSeries()),
+			context.queryClient.ensureQueryData(listTags()),
 		]);
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { data: projectsResult } = useQuery(listProjectsQuery());
-	const { data: categoriesResult } = useQuery(listCategoriesQuery());
-	const { data: seriesResult } = useQuery(listSeriesQuery());
-	const { data: tagsResult } = useQuery(listTagsQuery());
+	const { data: projectsResult } = useQuery(listProjects());
+	const { data: categoriesResult } = useQuery(listCategories());
+	const { data: seriesResult } = useQuery(listSeries());
+	const { data: tagsResult } = useQuery(listTags());
 
 	if (
 		projectsResult === undefined ||

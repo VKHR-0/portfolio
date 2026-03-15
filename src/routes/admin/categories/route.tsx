@@ -11,7 +11,7 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
+import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
 import { EditableCell, PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";

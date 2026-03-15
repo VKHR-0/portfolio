@@ -3,8 +3,8 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import { Sidebar } from "#/components/sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
-import { getCurrentUserId } from "#/server/auth";
-import { getSidebarOpenState } from "#/server/sidebar";
+import { getCurrentUserId } from "#/functions/auth";
+import { getSidebarOpenState } from "#/functions/sidebar";
 
 export const Route = createFileRoute("/admin")({
 	beforeLoad: async ({ context, location }) => {
