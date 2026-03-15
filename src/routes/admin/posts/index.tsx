@@ -2,7 +2,7 @@ import { Eye, EyeOff, Pencil, Plus } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
@@ -10,7 +10,8 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { EditableCell, PageCard } from "#/components/page-card";
+import { DataTable } from "#/components/data-table";
+import { Page } from "#/components/page";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -21,9 +22,9 @@ import {
 } from "#/components/ui/tooltip";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
+	type AdminTableSearch,
 	createAdminTableSearchSchema,
-	searchFromSortingState,
-	sortingStateFromSearch,
+	getCursorFromSearch,
 } from "#/lib/admin-table-sorting";
 import { listPosts } from "#/queries/admin";
 
@@ -39,12 +40,12 @@ type PostRow = {
 	status: "draft" | "private" | "public";
 };
 
-function listPostsQuery(
-	cursor: string | null,
-	search: { sortField?: PostSortField; sortDirection?: "asc" | "desc" },
-) {
+function listPostsQuery(search: AdminTableSearch<PostSortField>) {
 	return listPosts({
-		paginationOpts: { numItems: PAGE_SIZE, cursor },
+		paginationOpts: {
+			numItems: PAGE_SIZE,
+			cursor: getCursorFromSearch(search),
+		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
 	});
@@ -54,25 +55,14 @@ export const Route = createFileRoute("/admin/posts/")({
 	validateSearch: zodValidator(createAdminTableSearchSchema(POST_SORT_FIELDS)),
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context, deps }) => {
-		await context.queryClient.ensureQueryData(
-			listPostsQuery(null, deps.search),
-		);
+		await context.queryClient.ensureQueryData(listPostsQuery(deps.search));
 	},
-	component: RouteComponent,
+	component: PostsRouteComponent,
 });
 
-function RouteComponent() {
+export function PostsRouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const [cursors, setCursors] = React.useState<Array<string | null>>([null]);
-	const [currentPage, setCurrentPage] = React.useState(1);
-	const currentCursor = cursors[currentPage - 1] ?? null;
-	const sortKey = `${search.sortField ?? ""}:${search.sortDirection ?? ""}`;
-	const previousSortKeyRef = React.useRef(sortKey);
-	const sorting = React.useMemo(
-		() => sortingStateFromSearch<PostSortField>(search),
-		[search],
-	);
 	const updatePost = useMutation(api.functions.posts.updateSummary);
 	const titleInputRef = React.useRef<HTMLInputElement>(null);
 	const slugInputRef = React.useRef<HTMLInputElement>(null);
@@ -122,25 +112,9 @@ function RouteComponent() {
 			);
 		},
 	});
-
-	React.useEffect(() => {
-		if (previousSortKeyRef.current === sortKey) {
-			return;
-		}
-
-		previousSortKeyRef.current = sortKey;
-		setCursors([null]);
-		setCurrentPage(1);
-	}, [sortKey]);
-
-	const { data: result } = useQuery(listPostsQuery(currentCursor, search));
+	const { data: result } = useQuery(listPostsQuery(search));
 
 	const posts = result?.page ?? [];
-	const pageCount = cursors.length;
-	const canGoPrevious = currentPage > 1;
-	const canGoNext =
-		result !== undefined &&
-		(currentPage < pageCount || result.isDone === false);
 
 	React.useEffect(() => {
 		if (!editingPostId) {
@@ -184,9 +158,7 @@ function RouteComponent() {
 				cell: ({ row }) => (
 					<div className="flex items-center gap-2">
 						{row.original.status !== "draft" ? (
-							<Button
-								size="icon-xs"
-								variant="outline"
+							<DataTable.ActionButton
 								nativeButton={false}
 								render={
 									<Link
@@ -198,26 +170,23 @@ function RouteComponent() {
 								title="Preview"
 							>
 								<HugeiconsIcon icon={Eye} strokeWidth={2} />
-							</Button>
+							</DataTable.ActionButton>
 						) : (
 							<Tooltip>
 								<TooltipTrigger
 									render={
-										<Button
-											size="icon-xs"
-											variant="outline"
+										<DataTable.ActionButton
 											disabled
 											aria-label="Preview unavailable"
 										>
 											<HugeiconsIcon icon={EyeOff} strokeWidth={2} />
-										</Button>
+										</DataTable.ActionButton>
 									}
 								/>
 								<TooltipContent>Publish post to preview</TooltipContent>
 							</Tooltip>
 						)}
-						<Button
-							size="icon-xs"
+						<DataTable.ActionButton
 							nativeButton={false}
 							render={
 								<Link
@@ -229,7 +198,7 @@ function RouteComponent() {
 							title="Edit"
 						>
 							<HugeiconsIcon icon={Pencil} strokeWidth={2} />
-						</Button>
+						</DataTable.ActionButton>
 					</div>
 				),
 			},
@@ -244,7 +213,7 @@ function RouteComponent() {
 					const post = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingPostId === post._id}
 							displayValue={post.title}
 							onDoubleClick={() => startEditingPost(post, "title")}
@@ -270,7 +239,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -285,7 +254,7 @@ function RouteComponent() {
 					const post = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingPostId === post._id}
 							displayValue={post.slug}
 							onDoubleClick={() => startEditingPost(post, "slug")}
@@ -306,7 +275,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -344,56 +313,45 @@ function RouteComponent() {
 	);
 
 	return (
-		<PageCard
-			title="Posts"
-			description="Manage blog posts."
-			createButton={
-				<Button nativeButton={false} render={<Link to="/admin/posts/new" />}>
-					<HugeiconsIcon icon={Plus} strokeWidth={2} />
-					Create new
-				</Button>
-			}
-			loadingLabel="Loading posts..."
-			emptyLabel="No posts found."
+		<DataTable.Root
 			columns={columns}
 			data={posts}
-			sorting={sorting}
-			onSortingChange={(nextSorting: SortingState) => {
-				const nextSearch = searchFromSortingState<PostSortField>(nextSorting);
-
+			loadingLabel="Loading posts..."
+			emptyLabel="No posts found."
+			isLoading={result === undefined}
+			search={search}
+			onSearchChange={(updater) => {
 				void navigate({
-					search: (prev) => ({
-						...prev,
-						sortField: nextSearch.sortField,
-						sortDirection: nextSearch.sortDirection,
-					}),
+					search: (previousSearch) => updater(previousSearch),
 				});
 			}}
-			isLoading={result === undefined}
-			currentPage={currentPage}
-			pageCount={pageCount}
-			canGoPrevious={canGoPrevious}
-			canGoNext={canGoNext}
-			onPrevious={() => {
-				setCurrentPage((prev) => Math.max(1, prev - 1));
-			}}
-			onSelectPage={(page) => {
-				setCurrentPage(page);
-			}}
-			onNext={() => {
-				if (currentPage < pageCount) {
-					setCurrentPage((prev) => prev + 1);
-					return;
-				}
-
-				if (!result?.continueCursor) {
-					return;
-				}
-
-				setCursors((prev) => [...prev, result.continueCursor]);
-				setCurrentPage((prev) => prev + 1);
+			pagination={{
+				continueCursor: result?.continueCursor ?? null,
+				isDone: result?.isDone ?? true,
 			}}
 			getRowId={(row) => row._id}
-		/>
+		>
+			<Page.Root>
+				<Page.Header>
+					<Page.Title>Posts</Page.Title>
+					<Page.Description>Manage blog posts.</Page.Description>
+					<Page.Action>
+						<Button
+							nativeButton={false}
+							render={<Link to="/admin/posts/new" />}
+						>
+							<HugeiconsIcon icon={Plus} strokeWidth={2} />
+							Create new
+						</Button>
+					</Page.Action>
+				</Page.Header>
+				<Page.Content>
+					<DataTable.Table />
+				</Page.Content>
+				<Page.Footer>
+					<DataTable.Pagination />
+				</Page.Footer>
+			</Page.Root>
+		</DataTable.Root>
 	);
 }

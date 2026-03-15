@@ -2,7 +2,7 @@ import { Eye, Pencil, Plus } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
@@ -10,15 +10,16 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { EditableCell, PageCard } from "#/components/page-card";
+import { DataTable } from "#/components/data-table";
+import { Page } from "#/components/page";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
+	type AdminTableSearch,
 	createAdminTableSearchSchema,
-	searchFromSortingState,
-	sortingStateFromSearch,
+	getCursorFromSearch,
 } from "#/lib/admin-table-sorting";
 import { listProjects } from "#/queries/admin";
 
@@ -34,12 +35,12 @@ type ProjectRow = {
 	status: "active" | "completed" | "archived";
 };
 
-function listProjectsQuery(
-	cursor: string | null,
-	search: { sortField?: ProjectSortField; sortDirection?: "asc" | "desc" },
-) {
+function listProjectsQuery(search: AdminTableSearch<ProjectSortField>) {
 	return listProjects({
-		paginationOpts: { numItems: PAGE_SIZE, cursor },
+		paginationOpts: {
+			numItems: PAGE_SIZE,
+			cursor: getCursorFromSearch(search),
+		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
 	});
@@ -51,25 +52,14 @@ export const Route = createFileRoute("/admin/projects/")({
 	),
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context, deps }) => {
-		await context.queryClient.ensureQueryData(
-			listProjectsQuery(null, deps.search),
-		);
+		await context.queryClient.ensureQueryData(listProjectsQuery(deps.search));
 	},
-	component: RouteComponent,
+	component: ProjectsRouteComponent,
 });
 
-function RouteComponent() {
+export function ProjectsRouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const [cursors, setCursors] = React.useState<Array<string | null>>([null]);
-	const [currentPage, setCurrentPage] = React.useState(1);
-	const currentCursor = cursors[currentPage - 1] ?? null;
-	const sortKey = `${search.sortField ?? ""}:${search.sortDirection ?? ""}`;
-	const previousSortKeyRef = React.useRef(sortKey);
-	const sorting = React.useMemo(
-		() => sortingStateFromSearch<ProjectSortField>(search),
-		[search],
-	);
 	const updateProject = useMutation(api.functions.projects.updateSummary);
 	const titleInputRef = React.useRef<HTMLInputElement>(null);
 	const slugInputRef = React.useRef<HTMLInputElement>(null);
@@ -119,25 +109,9 @@ function RouteComponent() {
 			);
 		},
 	});
-
-	React.useEffect(() => {
-		if (previousSortKeyRef.current === sortKey) {
-			return;
-		}
-
-		previousSortKeyRef.current = sortKey;
-		setCursors([null]);
-		setCurrentPage(1);
-	}, [sortKey]);
-
-	const { data: result } = useQuery(listProjectsQuery(currentCursor, search));
+	const { data: result } = useQuery(listProjectsQuery(search));
 
 	const projects = result?.page ?? [];
-	const pageCount = cursors.length;
-	const canGoPrevious = currentPage > 1;
-	const canGoNext =
-		result !== undefined &&
-		(currentPage < pageCount || result.isDone === false);
 
 	React.useEffect(() => {
 		if (!editingProjectId) {
@@ -180,9 +154,7 @@ function RouteComponent() {
 				},
 				cell: ({ row }) => (
 					<div className="flex items-center gap-2">
-						<Button
-							size="icon-xs"
-							variant="outline"
+						<DataTable.ActionButton
 							nativeButton={false}
 							render={
 								<Link
@@ -194,9 +166,8 @@ function RouteComponent() {
 							title="Preview"
 						>
 							<HugeiconsIcon icon={Eye} strokeWidth={2} />
-						</Button>
-						<Button
-							size="icon-xs"
+						</DataTable.ActionButton>
+						<DataTable.ActionButton
 							nativeButton={false}
 							render={
 								<Link
@@ -208,7 +179,7 @@ function RouteComponent() {
 							title="Edit"
 						>
 							<HugeiconsIcon icon={Pencil} strokeWidth={2} />
-						</Button>
+						</DataTable.ActionButton>
 					</div>
 				),
 			},
@@ -223,7 +194,7 @@ function RouteComponent() {
 					const project = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingProjectId === project._id}
 							displayValue={project.title}
 							onDoubleClick={() => startEditingProject(project, "title")}
@@ -249,7 +220,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -264,7 +235,7 @@ function RouteComponent() {
 					const project = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingProjectId === project._id}
 							displayValue={project.slug}
 							onDoubleClick={() => startEditingProject(project, "slug")}
@@ -285,7 +256,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -324,57 +295,45 @@ function RouteComponent() {
 	);
 
 	return (
-		<PageCard
-			title="Projects"
-			description="Manage portfolio projects."
-			createButton={
-				<Button nativeButton={false} render={<Link to="/admin/projects/new" />}>
-					<HugeiconsIcon icon={Plus} strokeWidth={2} />
-					Create new
-				</Button>
-			}
-			loadingLabel="Loading projects..."
-			emptyLabel="No projects found."
+		<DataTable.Root
 			columns={columns}
 			data={projects}
-			sorting={sorting}
-			onSortingChange={(nextSorting: SortingState) => {
-				const nextSearch =
-					searchFromSortingState<ProjectSortField>(nextSorting);
-
+			loadingLabel="Loading projects..."
+			emptyLabel="No projects found."
+			isLoading={result === undefined}
+			search={search}
+			onSearchChange={(updater) => {
 				void navigate({
-					search: (prev) => ({
-						...prev,
-						sortField: nextSearch.sortField,
-						sortDirection: nextSearch.sortDirection,
-					}),
+					search: (previousSearch) => updater(previousSearch),
 				});
 			}}
-			isLoading={result === undefined}
-			currentPage={currentPage}
-			pageCount={pageCount}
-			canGoPrevious={canGoPrevious}
-			canGoNext={canGoNext}
-			onPrevious={() => {
-				setCurrentPage((prev) => Math.max(1, prev - 1));
-			}}
-			onSelectPage={(page) => {
-				setCurrentPage(page);
-			}}
-			onNext={() => {
-				if (currentPage < pageCount) {
-					setCurrentPage((prev) => prev + 1);
-					return;
-				}
-
-				if (!result?.continueCursor) {
-					return;
-				}
-
-				setCursors((prev) => [...prev, result.continueCursor]);
-				setCurrentPage((prev) => prev + 1);
+			pagination={{
+				continueCursor: result?.continueCursor ?? null,
+				isDone: result?.isDone ?? true,
 			}}
 			getRowId={(row) => row._id}
-		/>
+		>
+			<Page.Root>
+				<Page.Header>
+					<Page.Title>Projects</Page.Title>
+					<Page.Description>Manage portfolio projects.</Page.Description>
+					<Page.Action>
+						<Button
+							nativeButton={false}
+							render={<Link to="/admin/projects/new" />}
+						>
+							<HugeiconsIcon icon={Plus} strokeWidth={2} />
+							Create new
+						</Button>
+					</Page.Action>
+				</Page.Header>
+				<Page.Content>
+					<DataTable.Table />
+				</Page.Content>
+				<Page.Footer>
+					<DataTable.Pagination />
+				</Page.Footer>
+			</Page.Root>
+		</DataTable.Root>
 	);
 }

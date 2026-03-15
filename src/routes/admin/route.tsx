@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { AuthedPage } from "#/components/shell/authed";
 import { Sidebar } from "#/components/sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
 import { getSidebarOpenState } from "#/functions/sidebar";
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/admin")({
 	component: AdminLayout,
 });
 
-function AdminLayout() {
+export function AdminLayout() {
 	const { isSidebarOpen } = Route.useLoaderData();
 
 	if (!Route.useRouteContext().isAuthenticated) {
@@ -49,12 +50,14 @@ function AdminLayout() {
 	}
 
 	return (
-		<SidebarProvider defaultOpen={isSidebarOpen}>
-			<Sidebar />
+		<AuthedPage>
+			<SidebarProvider defaultOpen={isSidebarOpen}>
+				<Sidebar />
 
-			<main className="mx-auto flex min-h-screen w-full py-2 pr-2 pl-2 md:pl-0">
-				<Outlet />
-			</main>
-		</SidebarProvider>
+				<main className="mx-auto flex min-h-screen w-full py-2 pr-2 pl-2 md:pl-0">
+					<Outlet />
+				</main>
+			</SidebarProvider>
+		</AuthedPage>
 	);
 }

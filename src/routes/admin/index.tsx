@@ -22,7 +22,7 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { EditableCell } from "#/components/page-card";
+import { DataTable } from "#/components/data-table";
 import { useTheme } from "#/components/providers/theme-provider";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -285,7 +285,7 @@ function RouteComponent() {
 					status: post.status,
 					createdAt: post._creationTime,
 					titleCell: (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingPostId === post._id}
 							displayValue={post.title}
 							onDoubleClick={() =>
@@ -317,10 +317,10 @@ function RouteComponent() {
 									/>
 								)}
 							</postForm.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					),
 					slugCell: (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingPostId === post._id}
 							displayValue={post.slug}
 							onDoubleClick={() =>
@@ -347,7 +347,7 @@ function RouteComponent() {
 									/>
 								)}
 							</postForm.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					),
 					actions:
 						post.status !== "draft" ? (
@@ -426,7 +426,7 @@ function RouteComponent() {
 					status: project.status,
 					createdAt: project._creationTime,
 					titleCell: (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingProjectId === project._id}
 							displayValue={project.title}
 							onDoubleClick={() =>
@@ -458,10 +458,10 @@ function RouteComponent() {
 									/>
 								)}
 							</projectForm.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					),
 					slugCell: (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingProjectId === project._id}
 							displayValue={project.slug}
 							onDoubleClick={() =>
@@ -488,7 +488,7 @@ function RouteComponent() {
 									/>
 								)}
 							</projectForm.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					),
 					actions: (
 						<>

@@ -315,12 +315,12 @@ const getPublicBySlug = zQuery({
 });
 
 export {
-	list,
-	listRecent,
 	create,
-	update,
-	updateSummary,
-	remove,
 	getEditableBySlug,
 	getPublicBySlug,
+	list,
+	listRecent,
+	remove,
+	update,
+	updateSummary,
 };

@@ -2,7 +2,7 @@ import { Plus, Trash } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
@@ -10,15 +10,16 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
+import { DataTable } from "#/components/data-table";
 import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
-import { EditableCell, PageCard } from "#/components/page-card";
+import { Page } from "#/components/page";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
+	type AdminTableSearch,
 	createAdminTableSearchSchema,
-	searchFromSortingState,
-	sortingStateFromSearch,
+	getCursorFromSearch,
 } from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 import { listTags } from "#/queries/admin";
@@ -35,12 +36,12 @@ type TagRow = {
 	_creationTime: number;
 };
 
-function listTagsQuery(
-	cursor: string | null,
-	search: { sortField?: TagSortField; sortDirection?: "asc" | "desc" },
-) {
+function listTagsQuery(search: AdminTableSearch<TagSortField>) {
 	return listTags({
-		paginationOpts: { numItems: PAGE_SIZE, cursor },
+		paginationOpts: {
+			numItems: PAGE_SIZE,
+			cursor: getCursorFromSearch(search),
+		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
 	});
@@ -50,23 +51,14 @@ export const Route = createFileRoute("/admin/tags")({
 	validateSearch: zodValidator(createAdminTableSearchSchema(TAG_SORT_FIELDS)),
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context, deps }) => {
-		await context.queryClient.ensureQueryData(listTagsQuery(null, deps.search));
+		await context.queryClient.ensureQueryData(listTagsQuery(deps.search));
 	},
-	component: RouteComponent,
+	component: TagsRouteComponent,
 });
 
-function RouteComponent() {
+export function TagsRouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const [cursors, setCursors] = React.useState<Array<string | null>>([null]);
-	const [currentPage, setCurrentPage] = React.useState(1);
-	const currentCursor = cursors[currentPage - 1] ?? null;
-	const sortKey = `${search.sortField ?? ""}:${search.sortDirection ?? ""}`;
-	const previousSortKeyRef = React.useRef(sortKey);
-	const sorting = React.useMemo(
-		() => sortingStateFromSearch<TagSortField>(search),
-		[search],
-	);
 	const updateTag = useMutation(api.functions.tags.update);
 	const deleteTag = useMutation(api.functions.tags.remove);
 	const queryClient = useQueryClient();
@@ -117,24 +109,8 @@ function RouteComponent() {
 			);
 		},
 	});
-
-	React.useEffect(() => {
-		if (previousSortKeyRef.current === sortKey) {
-			return;
-		}
-
-		previousSortKeyRef.current = sortKey;
-		setCursors([null]);
-		setCurrentPage(1);
-	}, [sortKey]);
-
-	const { data: result } = useQuery(listTagsQuery(currentCursor, search));
+	const { data: result } = useQuery(listTagsQuery(search));
 	const tags = result?.page ?? [];
-	const pageCount = cursors.length;
-	const canGoPrevious = currentPage > 1;
-	const canGoNext =
-		result !== undefined &&
-		(currentPage < pageCount || result.isDone === false);
 
 	React.useEffect(() => {
 		if (!editingTagId) return;
@@ -158,7 +134,7 @@ function RouteComponent() {
 		const result = await toAsyncResult(
 			deleteTag({ id: tagToDelete._id }).then(async () => {
 				await queryClient.invalidateQueries({
-					queryKey: listTagsQuery(currentCursor, search).queryKey,
+					queryKey: listTagsQuery(search).queryKey,
 				});
 				toast.success("Tag deleted.");
 				setTagToDelete(null);
@@ -205,7 +181,7 @@ function RouteComponent() {
 					const tag = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingTagId === tag._id}
 							displayValue={tag.name}
 							onDoubleClick={() =>
@@ -237,7 +213,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -251,7 +227,7 @@ function RouteComponent() {
 					const tag = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingTagId === tag._id}
 							displayValue={tag.slug}
 							onDoubleClick={() =>
@@ -278,7 +254,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -301,51 +277,46 @@ function RouteComponent() {
 
 	return (
 		<>
-			<PageCard
-				title="Tags"
-				description="Manage post tags."
-				createButton={
-					<Button nativeButton={false} render={<Link to="/admin/tags/new" />}>
-						<HugeiconsIcon icon={Plus} strokeWidth={2} />
-						Create new
-					</Button>
-				}
-				loadingLabel="Loading tags..."
-				emptyLabel="No tags found."
+			<DataTable.Root
 				columns={columns}
 				data={tags}
-				sorting={sorting}
-				onSortingChange={(nextSorting: SortingState) => {
-					const nextSearch = searchFromSortingState<TagSortField>(nextSorting);
-
+				loadingLabel="Loading tags..."
+				emptyLabel="No tags found."
+				isLoading={result === undefined}
+				search={search}
+				onSearchChange={(updater) => {
 					void navigate({
-						search: (prev) => ({
-							...prev,
-							sortField: nextSearch.sortField,
-							sortDirection: nextSearch.sortDirection,
-						}),
+						search: (previousSearch) => updater(previousSearch),
 					});
 				}}
-				isLoading={result === undefined}
-				currentPage={currentPage}
-				pageCount={pageCount}
-				canGoPrevious={canGoPrevious}
-				canGoNext={canGoNext}
-				onPrevious={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-				onSelectPage={(page) => setCurrentPage(page)}
-				onNext={() => {
-					if (currentPage < pageCount) {
-						setCurrentPage((prev) => prev + 1);
-						return;
-					}
-
-					if (!result?.continueCursor) return;
-
-					setCursors((prev) => [...prev, result.continueCursor]);
-					setCurrentPage((prev) => prev + 1);
+				pagination={{
+					continueCursor: result?.continueCursor ?? null,
+					isDone: result?.isDone ?? true,
 				}}
 				getRowId={(row) => row._id}
-			/>
+			>
+				<Page.Root>
+					<Page.Header>
+						<Page.Title>Tags</Page.Title>
+						<Page.Description>Manage post tags.</Page.Description>
+						<Page.Action>
+							<Button
+								nativeButton={false}
+								render={<Link to="/admin/tags/new" />}
+							>
+								<HugeiconsIcon icon={Plus} strokeWidth={2} />
+								Create new
+							</Button>
+						</Page.Action>
+					</Page.Header>
+					<Page.Content>
+						<DataTable.Table />
+					</Page.Content>
+					<Page.Footer>
+						<DataTable.Pagination />
+					</Page.Footer>
+				</Page.Root>
+			</DataTable.Root>
 			<ConfirmDeleteDialog
 				open={tagToDelete !== null}
 				title={

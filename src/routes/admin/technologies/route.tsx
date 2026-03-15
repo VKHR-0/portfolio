@@ -2,7 +2,7 @@ import { Dice, Plus, Trash } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
@@ -16,8 +16,9 @@ import {
 } from "shared/colors";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
+import { DataTable } from "#/components/data-table";
 import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
-import { EditableCell, PageCard } from "#/components/page-card";
+import { Page } from "#/components/page";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import {
@@ -27,9 +28,9 @@ import {
 } from "#/components/ui/popover";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
+	type AdminTableSearch,
 	createAdminTableSearchSchema,
-	searchFromSortingState,
-	sortingStateFromSearch,
+	getCursorFromSearch,
 } from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 import { cn } from "#/lib/utils";
@@ -48,12 +49,12 @@ type TechRow = {
 	_creationTime: number;
 };
 
-function listTechQuery(
-	cursor: string | null,
-	search: { sortField?: TechSortField; sortDirection?: "asc" | "desc" },
-) {
+function listTechQuery(search: AdminTableSearch<TechSortField>) {
 	return listTechnologies({
-		paginationOpts: { numItems: PAGE_SIZE, cursor },
+		paginationOpts: {
+			numItems: PAGE_SIZE,
+			cursor: getCursorFromSearch(search),
+		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
 	});
@@ -145,23 +146,14 @@ export const Route = createFileRoute("/admin/technologies")({
 	validateSearch: zodValidator(createAdminTableSearchSchema(TECH_SORT_FIELDS)),
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context, deps }) => {
-		await context.queryClient.ensureQueryData(listTechQuery(null, deps.search));
+		await context.queryClient.ensureQueryData(listTechQuery(deps.search));
 	},
-	component: RouteComponent,
+	component: TechnologiesRouteComponent,
 });
 
-function RouteComponent() {
+export function TechnologiesRouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const [cursors, setCursors] = React.useState<Array<string | null>>([null]);
-	const [currentPage, setCurrentPage] = React.useState(1);
-	const currentCursor = cursors[currentPage - 1] ?? null;
-	const sortKey = `${search.sortField ?? ""}:${search.sortDirection ?? ""}`;
-	const previousSortKeyRef = React.useRef(sortKey);
-	const sorting = React.useMemo(
-		() => sortingStateFromSearch<TechSortField>(search),
-		[search],
-	);
 	const updateTechnology = useMutation(api.functions.technologies.update);
 	const deleteTechnology = useMutation(api.functions.technologies.remove);
 	const queryClient = useQueryClient();
@@ -221,24 +213,8 @@ function RouteComponent() {
 			);
 		},
 	});
-
-	React.useEffect(() => {
-		if (previousSortKeyRef.current === sortKey) {
-			return;
-		}
-
-		previousSortKeyRef.current = sortKey;
-		setCursors([null]);
-		setCurrentPage(1);
-	}, [sortKey]);
-
-	const { data: result } = useQuery(listTechQuery(currentCursor, search));
+	const { data: result } = useQuery(listTechQuery(search));
 	const technologies = result?.page ?? [];
-	const pageCount = cursors.length;
-	const canGoPrevious = currentPage > 1;
-	const canGoNext =
-		result !== undefined &&
-		(currentPage < pageCount || result.isDone === false);
 
 	React.useEffect(() => {
 		if (!editingTechId) return;
@@ -262,7 +238,7 @@ function RouteComponent() {
 		const result = await toAsyncResult(
 			deleteTechnology({ id: techToDelete._id }).then(async () => {
 				await queryClient.invalidateQueries({
-					queryKey: listTechQuery(currentCursor, search).queryKey,
+					queryKey: listTechQuery(search).queryKey,
 				});
 				toast.success("Technology deleted.");
 				setTechToDelete(null);
@@ -288,16 +264,14 @@ function RouteComponent() {
 					cellClassName: "py-2 px-1",
 				},
 				cell: ({ row }) => (
-					<Button
+					<DataTable.ActionButton
 						type="button"
-						size="icon-xs"
-						variant="outline"
 						aria-label={`Delete ${row.original.name}`}
 						title="Delete"
 						onClick={() => setTechToDelete(row.original)}
 					>
 						<HugeiconsIcon icon={Trash} strokeWidth={2} />
-					</Button>
+					</DataTable.ActionButton>
 				),
 			},
 			{
@@ -338,7 +312,7 @@ function RouteComponent() {
 					const tech = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingTechId === tech._id}
 							displayValue={tech.name}
 							onDoubleClick={() =>
@@ -370,7 +344,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -384,7 +358,7 @@ function RouteComponent() {
 					const tech = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingTechId === tech._id}
 							displayValue={tech.slug}
 							onDoubleClick={() =>
@@ -411,7 +385,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -434,54 +408,48 @@ function RouteComponent() {
 
 	return (
 		<>
-			<PageCard
-				title="Technologies"
-				description="Manage technologies for project tech stacks."
-				createButton={
-					<Button
-						nativeButton={false}
-						render={<Link to="/admin/technologies/new" />}
-					>
-						<HugeiconsIcon icon={Plus} strokeWidth={2} />
-						Create new
-					</Button>
-				}
-				loadingLabel="Loading technologies..."
-				emptyLabel="No technologies found."
+			<DataTable.Root
 				columns={columns}
 				data={technologies}
-				sorting={sorting}
-				onSortingChange={(nextSorting: SortingState) => {
-					const nextSearch = searchFromSortingState<TechSortField>(nextSorting);
-
+				loadingLabel="Loading technologies..."
+				emptyLabel="No technologies found."
+				isLoading={result === undefined}
+				search={search}
+				onSearchChange={(updater) => {
 					void navigate({
-						search: (prev) => ({
-							...prev,
-							sortField: nextSearch.sortField,
-							sortDirection: nextSearch.sortDirection,
-						}),
+						search: (previousSearch) => updater(previousSearch),
 					});
 				}}
-				isLoading={result === undefined}
-				currentPage={currentPage}
-				pageCount={pageCount}
-				canGoPrevious={canGoPrevious}
-				canGoNext={canGoNext}
-				onPrevious={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-				onSelectPage={(page) => setCurrentPage(page)}
-				onNext={() => {
-					if (currentPage < pageCount) {
-						setCurrentPage((prev) => prev + 1);
-						return;
-					}
-
-					if (!result?.continueCursor) return;
-
-					setCursors((prev) => [...prev, result.continueCursor]);
-					setCurrentPage((prev) => prev + 1);
+				pagination={{
+					continueCursor: result?.continueCursor ?? null,
+					isDone: result?.isDone ?? true,
 				}}
 				getRowId={(row) => row._id}
-			/>
+			>
+				<Page.Root>
+					<Page.Header>
+						<Page.Title>Technologies</Page.Title>
+						<Page.Description>
+							Manage technologies for project tech stacks.
+						</Page.Description>
+						<Page.Action>
+							<Button
+								nativeButton={false}
+								render={<Link to="/admin/technologies/new" />}
+							>
+								<HugeiconsIcon icon={Plus} strokeWidth={2} />
+								Create new
+							</Button>
+						</Page.Action>
+					</Page.Header>
+					<Page.Content>
+						<DataTable.Table />
+					</Page.Content>
+					<Page.Footer>
+						<DataTable.Pagination />
+					</Page.Footer>
+				</Page.Root>
+			</DataTable.Root>
 			<ConfirmDeleteDialog
 				open={techToDelete !== null}
 				title={

@@ -4,8 +4,8 @@ import {
 	ChevronUp,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { shallow, useStore } from "@tanstack/react-store";
 import {
-	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
 	type RowData,
@@ -22,6 +22,8 @@ import {
 	TableRow,
 } from "#/components/ui/table";
 import { cn } from "#/lib/utils";
+import { useDataTableContext } from "./context";
+import type { DataTableMeta } from "./types";
 
 declare const columnMetaType: unique symbol;
 
@@ -35,18 +37,6 @@ declare module "@tanstack/react-table" {
 		};
 	}
 }
-
-type AdminDataTableProps<TData> = {
-	columns: Array<ColumnDef<TData>>;
-	data: Array<TData>;
-	sorting: SortingState;
-	onSortingChange: (sorting: SortingState) => void;
-	loadingLabel: string;
-	emptyLabel: string;
-	isLoading: boolean;
-	getRowId?: (originalRow: TData, index: number) => string;
-	className?: string;
-};
 
 function getNextSortingState(
 	columnId: string,
@@ -63,18 +53,16 @@ function getNextSortingState(
 	return [];
 }
 
-function useAdminReactTable<TData>({
+function useAdminReactTable({
 	columns,
 	data,
-	sorting,
 	getRowId,
-}: Pick<
-	AdminDataTableProps<TData>,
-	"columns" | "data" | "sorting" | "getRowId"
->) {
+	sorting,
+}: Pick<DataTableMeta, "columns" | "data" | "getRowId"> & {
+	sorting: SortingState;
+}) {
 	"use no memo";
 
-	/* eslint-disable-next-line react-hooks-js/incompatible-library -- TanStack Table is intentionally opted out of React Compiler memoization */
 	return useReactTable({
 		data,
 		columns,
@@ -88,26 +76,25 @@ function useAdminReactTable<TData>({
 	});
 }
 
-export function AdminDataTable<TData>({
-	columns,
-	data,
-	sorting,
-	onSortingChange,
-	loadingLabel,
-	emptyLabel,
-	isLoading,
-	getRowId,
-	className,
-}: AdminDataTableProps<TData>) {
+export function DataTableTable() {
+	const { actions, meta, store } = useDataTableContext();
+	const { isLoading, sorting } = useStore(
+		store,
+		(state) => ({
+			isLoading: state.isLoading,
+			sorting: state.sorting,
+		}),
+		shallow,
+	);
 	const table = useAdminReactTable({
-		data,
-		columns,
-		getRowId,
+		columns: meta.columns,
+		data: meta.data,
+		getRowId: meta.getRowId,
 		sorting,
 	});
 
 	return (
-		<Table className={cn("table-fixed", className)}>
+		<Table className={cn("table-fixed", meta.tableClassName)}>
 			<TableHeader>
 				{table.getHeaderGroups().map((headerGroup) => (
 					<TableRow key={headerGroup.id}>
@@ -127,7 +114,7 @@ export function AdminDataTable<TData>({
 											size="sm"
 											className="-ml-2 h-8 px-2 hover:bg-muted/80"
 											onClick={() =>
-												onSortingChange(
+												actions.setSorting(
 													getNextSortingState(header.column.id, currentSort),
 												)
 											}
@@ -176,7 +163,7 @@ export function AdminDataTable<TData>({
 							colSpan={table.getAllLeafColumns().length}
 							className="h-24 text-center text-muted-foreground"
 						>
-							{loadingLabel}
+							{meta.loadingLabel}
 						</TableCell>
 					</TableRow>
 				) : table.getRowModel().rows.length > 0 ? (
@@ -198,7 +185,7 @@ export function AdminDataTable<TData>({
 							colSpan={table.getAllLeafColumns().length}
 							className="h-24 text-center text-muted-foreground"
 						>
-							{emptyLabel}
+							{meta.emptyLabel}
 						</TableCell>
 					</TableRow>
 				)}

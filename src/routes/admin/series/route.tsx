@@ -2,7 +2,7 @@ import { Plus, Trash } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
@@ -10,15 +10,16 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
+import { DataTable } from "#/components/data-table";
 import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
-import { EditableCell, PageCard } from "#/components/page-card";
+import { Page } from "#/components/page";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import {
+	type AdminTableSearch,
 	createAdminTableSearchSchema,
-	searchFromSortingState,
-	sortingStateFromSearch,
+	getCursorFromSearch,
 } from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 import { listSeries } from "#/queries/admin";
@@ -36,12 +37,12 @@ type SeriesRow = {
 	_creationTime: number;
 };
 
-function listSeriesQuery(
-	cursor: string | null,
-	search: { sortField?: SeriesSortField; sortDirection?: "asc" | "desc" },
-) {
+function listSeriesQuery(search: AdminTableSearch<SeriesSortField>) {
 	return listSeries({
-		paginationOpts: { numItems: PAGE_SIZE, cursor },
+		paginationOpts: {
+			numItems: PAGE_SIZE,
+			cursor: getCursorFromSearch(search),
+		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
 	});
@@ -53,25 +54,14 @@ export const Route = createFileRoute("/admin/series")({
 	),
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context, deps }) => {
-		await context.queryClient.ensureQueryData(
-			listSeriesQuery(null, deps.search),
-		);
+		await context.queryClient.ensureQueryData(listSeriesQuery(deps.search));
 	},
-	component: RouteComponent,
+	component: SeriesRouteComponent,
 });
 
-function RouteComponent() {
+export function SeriesRouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const [cursors, setCursors] = React.useState<Array<string | null>>([null]);
-	const [currentPage, setCurrentPage] = React.useState(1);
-	const currentCursor = cursors[currentPage - 1] ?? null;
-	const sortKey = `${search.sortField ?? ""}:${search.sortDirection ?? ""}`;
-	const previousSortKeyRef = React.useRef(sortKey);
-	const sorting = React.useMemo(
-		() => sortingStateFromSearch<SeriesSortField>(search),
-		[search],
-	);
 	const updateSeries = useMutation(api.functions.series.update);
 	const deleteSeries = useMutation(api.functions.series.remove);
 	const queryClient = useQueryClient();
@@ -135,24 +125,8 @@ function RouteComponent() {
 			);
 		},
 	});
-
-	React.useEffect(() => {
-		if (previousSortKeyRef.current === sortKey) {
-			return;
-		}
-
-		previousSortKeyRef.current = sortKey;
-		setCursors([null]);
-		setCurrentPage(1);
-	}, [sortKey]);
-
-	const { data: result } = useQuery(listSeriesQuery(currentCursor, search));
+	const { data: result } = useQuery(listSeriesQuery(search));
 	const seriesList = result?.page ?? [];
-	const pageCount = cursors.length;
-	const canGoPrevious = currentPage > 1;
-	const canGoNext =
-		result !== undefined &&
-		(currentPage < pageCount || result.isDone === false);
 
 	React.useEffect(() => {
 		if (!editingSeriesId) return;
@@ -182,7 +156,7 @@ function RouteComponent() {
 		const result = await toAsyncResult(
 			deleteSeries({ id: seriesToDelete._id }).then(async () => {
 				await queryClient.invalidateQueries({
-					queryKey: listSeriesQuery(currentCursor, search).queryKey,
+					queryKey: listSeriesQuery(search).queryKey,
 				});
 				toast.success("Series deleted.");
 				setSeriesToDelete(null);
@@ -206,16 +180,14 @@ function RouteComponent() {
 					cellClassName: "py-2 px-1",
 				},
 				cell: ({ row }) => (
-					<Button
+					<DataTable.ActionButton
 						type="button"
-						size="icon-xs"
-						variant="outline"
 						aria-label={`Delete ${row.original.name}`}
 						title="Delete"
 						onClick={() => setSeriesToDelete(row.original)}
 					>
 						<HugeiconsIcon icon={Trash} strokeWidth={2} />
-					</Button>
+					</DataTable.ActionButton>
 				),
 			},
 			{
@@ -229,7 +201,7 @@ function RouteComponent() {
 					const item = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingSeriesId === item._id}
 							displayValue={item.name}
 							onDoubleClick={() =>
@@ -265,7 +237,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -279,7 +251,7 @@ function RouteComponent() {
 					const item = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingSeriesId === item._id}
 							displayValue={item.slug}
 							onDoubleClick={() =>
@@ -310,7 +282,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -326,7 +298,7 @@ function RouteComponent() {
 					const item = row.original;
 
 					return (
-						<EditableCell
+						<DataTable.EditableCell
 							isEditing={editingSeriesId === item._id}
 							displayValue={item.description || "-"}
 							onDoubleClick={() =>
@@ -358,7 +330,7 @@ function RouteComponent() {
 									/>
 								)}
 							</form.Field>
-						</EditableCell>
+						</DataTable.EditableCell>
 					);
 				},
 			},
@@ -381,52 +353,46 @@ function RouteComponent() {
 
 	return (
 		<>
-			<PageCard
-				title="Series"
-				description="Manage post series."
-				createButton={
-					<Button nativeButton={false} render={<Link to="/admin/series/new" />}>
-						<HugeiconsIcon icon={Plus} strokeWidth={2} />
-						Create new
-					</Button>
-				}
-				loadingLabel="Loading series..."
-				emptyLabel="No series found."
+			<DataTable.Root
 				columns={columns}
 				data={seriesList}
-				sorting={sorting}
-				onSortingChange={(nextSorting: SortingState) => {
-					const nextSearch =
-						searchFromSortingState<SeriesSortField>(nextSorting);
-
+				loadingLabel="Loading series..."
+				emptyLabel="No series found."
+				isLoading={result === undefined}
+				search={search}
+				onSearchChange={(updater) => {
 					void navigate({
-						search: (prev) => ({
-							...prev,
-							sortField: nextSearch.sortField,
-							sortDirection: nextSearch.sortDirection,
-						}),
+						search: (previousSearch) => updater(previousSearch),
 					});
 				}}
-				isLoading={result === undefined}
-				currentPage={currentPage}
-				pageCount={pageCount}
-				canGoPrevious={canGoPrevious}
-				canGoNext={canGoNext}
-				onPrevious={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-				onSelectPage={(page) => setCurrentPage(page)}
-				onNext={() => {
-					if (currentPage < pageCount) {
-						setCurrentPage((prev) => prev + 1);
-						return;
-					}
-
-					if (!result?.continueCursor) return;
-
-					setCursors((prev) => [...prev, result.continueCursor]);
-					setCurrentPage((prev) => prev + 1);
+				pagination={{
+					continueCursor: result?.continueCursor ?? null,
+					isDone: result?.isDone ?? true,
 				}}
 				getRowId={(row) => row._id}
-			/>
+			>
+				<Page.Root>
+					<Page.Header>
+						<Page.Title>Series</Page.Title>
+						<Page.Description>Manage post series.</Page.Description>
+						<Page.Action>
+							<Button
+								nativeButton={false}
+								render={<Link to="/admin/series/new" />}
+							>
+								<HugeiconsIcon icon={Plus} strokeWidth={2} />
+								Create new
+							</Button>
+						</Page.Action>
+					</Page.Header>
+					<Page.Content>
+						<DataTable.Table />
+					</Page.Content>
+					<Page.Footer>
+						<DataTable.Pagination />
+					</Page.Footer>
+				</Page.Root>
+			</DataTable.Root>
 			<ConfirmDeleteDialog
 				open={seriesToDelete !== null}
 				title={

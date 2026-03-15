@@ -143,4 +143,4 @@ const getBySlug = zQuery({
 	},
 });
 
-export { list, create, remove, generateUploadUrl, getBySlug };
+export { create, generateUploadUrl, getBySlug, list, remove };
