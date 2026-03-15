@@ -1,89 +1,27 @@
-import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+import { zid } from "convex-helpers/server/zod4";
+import { z } from "zod";
 import { toSlug } from "../../shared/slug";
-import {
-	type MutationCtx,
-	mutation,
-	type QueryCtx,
-	query,
-} from "../_generated/server";
-import { authComponent } from "../auth";
-import {
-	getUsedInPosts,
-	getUsedInProjects,
-	hasMediaUsage,
-} from "./attachments";
+import { query } from "../_generated/server";
+import { getMediaUsage, hasMediaUsage } from "../_lib/attachment";
+import { authedMutation } from "../_lib/authed";
+import { sortedPaginate } from "../_lib/sorted";
+import { zAuthedMutation, zQuery } from "../_lib/validated";
 
-async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
-	const user = await authComponent.getAuthUser(ctx);
-
-	if (!user?._id) {
-		throw new Error("You must be signed in.");
-	}
-
-	return user._id;
-}
-
-export const generateUploadUrl = mutation({
-	args: {},
-	handler: async (ctx) => {
-		await requireCurrentUserId(ctx);
-		return await ctx.storage.generateUploadUrl();
-	},
-});
-
-export const createMedia = mutation({
+const list = zQuery({
 	args: {
-		storageId: v.id("_storage"),
-		filename: v.string(),
-		alt: v.optional(v.string()),
-		mimeType: v.string(),
-		size: v.number(),
+		paginationOpts: z.object({
+			cursor: z.union([z.string(), z.null()]),
+			numItems: z.number(),
+		}),
 	},
 	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-
-		const baseName = args.filename.replace(/\.[^.]+$/, "");
-		const baseSlug = toSlug(baseName) || "image";
-		let slug = baseSlug;
-		let suffix = 0;
-
-		while (true) {
-			const existing = await ctx.db
-				.query("media")
-				.withIndex("by_slug", (q) => q.eq("slug", slug))
-				.unique();
-
-			if (!existing) break;
-
-			suffix++;
-			slug = `${baseSlug}-${suffix}`;
-		}
-
-		const mediaId = await ctx.db.insert("media", {
-			storageId: args.storageId,
-			filename: args.filename,
-			slug,
-			alt: args.alt,
-			mimeType: args.mimeType,
-			size: args.size,
-			authorId,
-		});
-
-		const url = await ctx.storage.getUrl(args.storageId);
-
-		return { _id: mediaId, slug, url };
-	},
-});
-
-export const list = query({
-	args: { paginationOpts: paginationOptsValidator },
-	handler: async (ctx, args) => {
-		const result = await ctx.db
-			.query("media")
-			.withIndex("by_creation_time")
-			.order("desc")
-			.paginate(args.paginationOpts);
+		const result = await sortedPaginate(
+			ctx.db,
+			"media",
+			{ _creationTime: "by_creation_time" },
+			{ paginationOpts: args.paginationOpts },
+		);
 
 		const pageWithUrls = await Promise.all(
 			result.page.map(async (item) => ({
@@ -96,7 +34,7 @@ export const list = query({
 	},
 });
 
-export const listAll = query({
+const listAll = query({
 	args: {},
 	handler: async (ctx) => {
 		const items = await ctx.db
@@ -117,8 +55,84 @@ export const listAll = query({
 	},
 });
 
-export const getBySlug = query({
-	args: { slug: v.string() },
+const create = zAuthedMutation({
+	args: {
+		storageId: zid("_storage"),
+		filename: z.string().trim().min(1, "Filename is required."),
+		alt: z.string().trim().optional(),
+		mimeType: z.string().min(1, "MIME type is required."),
+		size: z.number().positive(),
+	},
+	handler: async (ctx, args) => {
+		const { userId: authorId } = ctx;
+		const { storageId, filename, alt, mimeType, size } = args;
+		const baseName = filename.replace(/\.[^.]+$/, "");
+		const baseSlug = toSlug(baseName);
+		let slug = baseSlug;
+		let suffix = 0;
+
+		while (true) {
+			const existing = await ctx.db
+				.query("media")
+				.withIndex("by_slug", (q) => q.eq("slug", slug))
+				.unique();
+
+			if (!existing) break;
+
+			suffix++;
+			slug = `${baseSlug}-${suffix}`;
+		}
+
+		const mediaId = await ctx.db.insert("media", {
+			storageId,
+			filename,
+			slug,
+			alt,
+			mimeType,
+			size,
+			authorId,
+		});
+
+		const url = await ctx.storage.getUrl(storageId);
+
+		return { _id: mediaId, slug, url };
+	},
+});
+
+const remove = zAuthedMutation({
+	args: {
+		id: zid("media"),
+	},
+	handler: async (ctx, args) => {
+		const { id } = args;
+		const media = await ctx.db.get(id);
+
+		if (!media) {
+			throw new ConvexError("Media not found.");
+		}
+
+		if (await hasMediaUsage(ctx, id)) {
+			throw new ConvexError(
+				"Cannot delete media while it is in use by posts or projects.",
+			);
+		}
+
+		await ctx.storage.delete(media.storageId);
+		await ctx.db.delete(id);
+	},
+});
+
+const generateUploadUrl = authedMutation({
+	args: {},
+	handler: async (ctx) => {
+		return await ctx.storage.generateUploadUrl();
+	},
+});
+
+const getBySlug = zQuery({
+	args: {
+		slug: z.string(),
+	},
 	handler: async (ctx, args) => {
 		const media = await ctx.db
 			.query("media")
@@ -126,44 +140,23 @@ export const getBySlug = query({
 			.unique();
 
 		if (!media) {
-			throw new Error("Media not found.");
+			throw new ConvexError("Media not found.");
 		}
 
-		const url = await ctx.storage.getUrl(media.storageId);
-		const [usedInPosts, usedInProjects] = await Promise.all([
-			getUsedInPosts(ctx, media._id),
-			getUsedInProjects(ctx, media._id),
+		const [url, usage] = await Promise.all([
+			ctx.storage.getUrl(media.storageId),
+			getMediaUsage(ctx, media._id),
 		]);
+
+		const { posts, projects } = usage;
 
 		return {
 			...media,
 			url,
-			usedInPosts,
-			usedInProjects,
+			posts,
+			projects,
 		};
 	},
 });
 
-export const deleteMedia = mutation({
-	args: {
-		id: v.id("media"),
-	},
-	handler: async (ctx, args) => {
-		await requireCurrentUserId(ctx);
-
-		const media = await ctx.db.get(args.id);
-
-		if (!media) {
-			throw new Error("Media not found.");
-		}
-
-		if (await hasMediaUsage(ctx, args.id)) {
-			throw new Error(
-				"Cannot delete media while it is in use by posts or projects.",
-			);
-		}
-
-		await ctx.storage.delete(media.storageId);
-		await ctx.db.delete(args.id);
-	},
-});
+export { list, listAll, create, remove, generateUploadUrl, getBySlug };

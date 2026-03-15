@@ -1,4 +1,6 @@
-export const TECHNOLOGY_COLORS = {
+import z from "zod";
+
+export const COLORS = {
 	red: {
 		bg: "bg-red-100 dark:bg-red-950",
 		text: "text-red-700 dark:text-red-300",
@@ -61,13 +63,15 @@ export const TECHNOLOGY_COLORS = {
 	},
 } as const;
 
-export type TechnologyColorKey = keyof typeof TECHNOLOGY_COLORS;
+export type ColorKey = keyof typeof COLORS;
 
-export const TECHNOLOGY_COLOR_KEYS = Object.keys(
-	TECHNOLOGY_COLORS,
-) as Array<TechnologyColorKey>;
+export const COLOR_KEYS = Object.keys(
+	COLORS,
+) as Array<ColorKey>;
 
-export function getRandomColorKey(): TechnologyColorKey {
-	const index = Math.floor(Math.random() * TECHNOLOGY_COLOR_KEYS.length);
-	return TECHNOLOGY_COLOR_KEYS[index] ?? "blue";
+export function getRandomColorKey(): ColorKey {
+	const index = Math.floor(Math.random() * COLOR_KEYS.length);
+	return COLOR_KEYS[index] ?? "blue";
 }
+
+export const colorSchema = z.enum(COLOR_KEYS as [ColorKey, ...ColorKey[]]);

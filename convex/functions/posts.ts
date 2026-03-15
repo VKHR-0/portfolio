@@ -1,346 +1,251 @@
-import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
-import { toSlug } from "../../shared/slug";
-import type { Id } from "../_generated/dataModel";
-import {
-	type MutationCtx,
-	mutation,
-	type QueryCtx,
-	query,
-} from "../_generated/server";
+import { ConvexError } from "convex/values";
+import { zid } from "convex-helpers/server/zod4";
+import { z } from "zod";
+import { query } from "../_generated/server";
+import { deriveAttachmentIds } from "../_lib/attachment";
+import { assertDocumentOwner } from "../_lib/owned";
+import { sortedPaginate } from "../_lib/sorted";
+import { syncPostMedia, syncPostTags } from "../_lib/sync";
+import { zAuthedMutation, zAuthedQuery, zQuery } from "../_lib/validated";
 import { authComponent } from "../auth";
-import { deriveAttachmentIds, syncPostMediaRelations } from "./attachments";
 
-async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
-	const user = await authComponent.getAuthUser(ctx);
+const POST_INDEXES = {
+	title: "by_title",
+	slug: "by_slug",
+	status: "by_status",
+	_creationTime: "by_creation_time",
+} as const;
 
-	if (!user?._id) {
-		throw new Error("You must be signed in.");
-	}
-
-	return user._id;
-}
-
-function normalizeTitle(value: string) {
-	const title = value.trim();
-
-	if (!title) {
-		throw new Error("Title is required.");
-	}
-
-	return title;
-}
-
-function normalizeSlug(value: string) {
-	const slug = toSlug(value.trim());
-
-	if (!slug) {
-		throw new Error("Slug is required.");
-	}
-
-	return slug;
-}
-
-async function syncPostTagRelations(
-	ctx: MutationCtx,
-	postId: Id<"posts">,
-	tagIds: Array<Id<"tags">>,
-) {
-	const existingRows = await ctx.db
-		.query("postTag")
-		.withIndex("by_post", (q) => q.eq("postId", postId))
-		.collect();
-
-	const desiredTagIds = new Set(tagIds);
-	const seenTagIds = new Set<Id<"tags">>();
-
-	for (const row of existingRows) {
-		if (!desiredTagIds.has(row.tagId) || seenTagIds.has(row.tagId)) {
-			await ctx.db.delete(row._id);
-			continue;
-		}
-
-		seenTagIds.add(row.tagId);
-	}
-
-	for (const tagId of tagIds) {
-		if (seenTagIds.has(tagId)) {
-			continue;
-		}
-
-		await ctx.db.insert("postTag", { postId, tagId });
-	}
-}
-
-export const list = query({
+const list = zQuery({
 	args: {
-		paginationOpts: paginationOptsValidator,
-		sortField: v.optional(
-			v.union(v.literal("title"), v.literal("slug"), v.literal("status")),
-		),
-		sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+		paginationOpts: z.object({
+			cursor: z.union([z.string(), z.null()]),
+			numItems: z.number(),
+		}),
+		sortField: z.enum(["title", "slug", "status", "_creationTime"]).optional(),
+		sortDirection: z.enum(["asc", "desc"]).optional(),
 	},
 	handler: async (ctx, args) => {
-		const direction = args.sortDirection ?? "desc";
-
-		switch (args.sortField) {
-			case "title":
-				return await ctx.db
-					.query("posts")
-					.withIndex("by_title")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "slug":
-				return await ctx.db
-					.query("posts")
-					.withIndex("by_slug")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "status":
-				return await ctx.db
-					.query("posts")
-					.withIndex("by_status")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			default:
-				return await ctx.db
-					.query("posts")
-					.withIndex("by_creation_time")
-					.order("desc")
-					.paginate(args.paginationOpts);
-		}
+		return sortedPaginate(ctx.db, "posts", POST_INDEXES, args);
 	},
 });
 
-export const listRecentPosts = query({
+const listAll = query({
+	args: {},
+	handler: async (ctx) => {
+		return await ctx.db
+			.query("posts")
+			.withIndex("by_creation_time")
+			.order("desc")
+			.collect();
+	},
+});
+
+const listRecent = zAuthedQuery({
 	args: {
-		limit: v.optional(v.number()),
-		authorId: v.string(),
+		limit: z.number().min(1).max(20).optional(),
 	},
 	handler: async (ctx, args) => {
-		const limit = Math.min(Math.max(args.limit ?? 5, 1), 20);
+		const { userId } = ctx;
+		const limit = args.limit ?? 5;
+
 		const posts = await ctx.db
 			.query("posts")
 			.withIndex("by_creation_time")
-			.filter((q) => q.eq(q.field("authorId"), args.authorId))
+			.filter((q) => q.eq(q.field("authorId"), userId))
 			.order("desc")
 			.take(limit);
 
-		return posts.map((post) => ({
-			_id: post._id,
-			title: post.title,
-			slug: post.slug,
-			status: post.status,
-			_creationTime: post._creationTime,
+		return posts.map(({ _id, title, slug, status, _creationTime }) => ({
+			_id,
+			title,
+			slug,
+			status,
+			_creationTime,
 		}));
 	},
 });
 
-export const getEditableBySlug = query({
+const postStatus = z.union([
+	z.literal("draft"),
+	z.literal("private"),
+	z.literal("public"),
+]);
+
+const create = zAuthedMutation({
 	args: {
-		slug: v.string(),
+		title: z.string(),
+		slug: z.string(),
+		content: z.string().optional(),
+		status: postStatus.optional(),
+		seriesId: zid("series").optional(),
+		categoryId: zid("categories").optional(),
+		projectId: zid("projects").optional(),
+		tagIds: z.array(zid("tags")).optional(),
 	},
 	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const post = await ctx.db
-			.query("posts")
-			.withIndex("by_slug", (q) => q.eq("slug", normalizeSlug(args.slug)))
-			.unique();
-
-		if (!post || post.authorId !== authorId) {
-			throw new Error("Post not found.");
-		}
-
-		return {
-			_id: post._id,
-			title: post.title,
-			slug: post.slug,
-			content: post.content,
-			status: post.status,
-			seriesId: post.seriesId,
-			categoryId: post.categoryId,
-			projectId: post.projectId,
-			tagIds: post.tags,
-			attachments: post.attachments,
-		};
-	},
-});
-
-export const createDraft = mutation({
-	args: {
-		title: v.string(),
-		slug: v.string(),
-		content: v.optional(v.string()),
-		status: v.optional(
-			v.union(v.literal("draft"), v.literal("private"), v.literal("public")),
-		),
-		seriesId: v.optional(v.id("series")),
-		categoryId: v.optional(v.id("categories")),
-		projectId: v.optional(v.id("projects")),
-		tagIds: v.optional(v.array(v.id("tags"))),
-	},
-	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const title = normalizeTitle(args.title);
-		const slug = normalizeSlug(args.slug);
+		const { userId } = ctx;
+		const { title, slug } = args;
 		const content = args.content?.trim() ?? "";
-		const status = args.status ?? "draft";
 		const tagIds = args.tagIds ?? [];
-		const existingPost = await ctx.db
+
+		const existing = await ctx.db
 			.query("posts")
 			.withIndex("by_slug", (q) => q.eq("slug", slug))
 			.unique();
 
-		if (existingPost) {
-			throw new Error("Post with this slug already exists.");
+		if (existing) {
+			throw new ConvexError("Post with this slug already exists.");
 		}
 
-		const attachments = deriveAttachmentIds({ content });
+		const attachments = deriveAttachmentIds(content);
 		const postId = await ctx.db.insert("posts", {
 			title,
 			slug,
 			content,
 			attachments,
-			status,
+			status: args.status ?? "draft",
 			seriesId: args.seriesId,
 			categoryId: args.categoryId,
 			projectId: args.projectId,
-			authorId,
+			authorId: userId,
 			tags: tagIds,
 		});
 
-		await syncPostMediaRelations(ctx, postId, attachments);
-		await syncPostTagRelations(ctx, postId, tagIds);
+		await Promise.all([
+			syncPostMedia(ctx, postId, attachments),
+			syncPostTags(ctx, postId, tagIds),
+		]);
 
-		return {
-			_id: postId,
-			title,
-			slug,
-			content,
-			status,
-			seriesId: args.seriesId,
-			categoryId: args.categoryId,
-			projectId: args.projectId,
-			tagIds,
-			attachments,
-		};
+		return { _id: postId, title, slug };
 	},
 });
 
-export const updateDraft = mutation({
+const update = zAuthedMutation({
 	args: {
-		id: v.id("posts"),
-		title: v.string(),
-		slug: v.string(),
-		content: v.string(),
-		status: v.union(
-			v.literal("draft"),
-			v.literal("private"),
-			v.literal("public"),
-		),
-		seriesId: v.optional(v.id("series")),
-		categoryId: v.optional(v.id("categories")),
-		projectId: v.optional(v.id("projects")),
-		tagIds: v.array(v.id("tags")),
+		id: zid("posts"),
+		title: z.string(),
+		slug: z.string(),
+		content: z.string(),
+		status: postStatus,
+		seriesId: zid("series").optional(),
+		categoryId: zid("categories").optional(),
+		projectId: zid("projects").optional(),
+		tagIds: z.array(zid("tags")),
 	},
 	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const existingPost = await ctx.db.get(args.id);
+		const { id, title, slug, tagIds, ...fields } = args;
+		const { userId } = ctx;
 
-		if (!existingPost || existingPost.authorId !== authorId) {
-			throw new Error("Post not found.");
-		}
+		await assertDocumentOwner(ctx, {
+			documentId: id,
+			userId,
+			documentType: "posts",
+		});
 
-		const title = normalizeTitle(args.title);
-		const slug = normalizeSlug(args.slug);
-		const content = args.content.trim();
-		const conflictingPost = await ctx.db
+		const content = fields.content.trim();
+
+		const conflicting = await ctx.db
 			.query("posts")
 			.withIndex("by_slug", (q) => q.eq("slug", slug))
 			.unique();
 
-		if (conflictingPost && conflictingPost._id !== args.id) {
-			throw new Error("Post with this slug already exists.");
+		if (conflicting && conflicting._id !== id) {
+			throw new ConvexError("Post with this slug already exists.");
 		}
 
-		const attachments = deriveAttachmentIds({ content });
+		const attachments = deriveAttachmentIds(content);
 
-		await ctx.db.patch(args.id, {
+		await ctx.db.patch(id, {
 			title,
 			slug,
+			...fields,
 			content,
 			attachments,
-			status: args.status,
-			seriesId: args.seriesId,
-			categoryId: args.categoryId,
-			projectId: args.projectId,
-			tags: args.tagIds,
+			tags: tagIds,
 		});
 
-		await syncPostMediaRelations(ctx, args.id, attachments);
-		await syncPostTagRelations(ctx, args.id, args.tagIds);
+		await Promise.all([
+			syncPostMedia(ctx, id, attachments),
+			syncPostTags(ctx, id, tagIds),
+		]);
 
-		return {
-			_id: args.id,
-			title,
-			slug,
-			content,
-			status: args.status,
-			seriesId: args.seriesId,
-			categoryId: args.categoryId,
-			projectId: args.projectId,
-			tagIds: args.tagIds,
-			attachments,
-		};
+		return { _id: id, title, slug };
 	},
 });
 
-export const updatePostSummary = mutation({
+const remove = zAuthedMutation({
 	args: {
-		id: v.id("posts"),
-		title: v.string(),
-		slug: v.string(),
+		id: zid("posts"),
 	},
 	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const existingPost = await ctx.db.get(args.id);
+		const { id } = args;
+		const { userId } = ctx;
 
-		if (!existingPost || existingPost.authorId !== authorId) {
-			throw new Error("Post not found.");
-		}
-
-		const title = normalizeTitle(args.title);
-		const slug = normalizeSlug(args.slug);
-		const conflictingPost = await ctx.db
-			.query("posts")
-			.withIndex("by_slug", (q) => q.eq("slug", slug))
-			.unique();
-
-		if (conflictingPost && conflictingPost._id !== args.id) {
-			throw new Error("Post with this slug already exists.");
-		}
-
-		await ctx.db.patch(args.id, {
-			title,
-			slug,
+		await assertDocumentOwner(ctx, {
+			documentId: id,
+			userId,
+			documentType: "posts",
 		});
 
-		return {
-			_id: args.id,
-			title,
-			slug,
-		};
+		const [postMediaRows, postTagRows] = await Promise.all([
+			ctx.db
+				.query("postMedia")
+				.withIndex("by_post", (q) => q.eq("postId", id))
+				.collect(),
+			ctx.db
+				.query("postTag")
+				.withIndex("by_post", (q) => q.eq("postId", id))
+				.collect(),
+		]);
+
+		for (const row of postMediaRows) {
+			await ctx.db.delete(row._id);
+		}
+
+		for (const row of postTagRows) {
+			await ctx.db.delete(row._id);
+		}
+
+		await ctx.db.delete(id);
 	},
 });
 
-export const getPublicBySlug = query({
+const getEditableBySlug = zAuthedQuery({
 	args: {
-		slug: v.string(),
+		slug: z.string(),
 	},
-	handler: async (ctx, args) => {
+	handler: async (ctx, { slug }) => {
+		const { userId } = ctx;
 		const post = await ctx.db
 			.query("posts")
-			.withIndex("by_slug", (q) => q.eq("slug", args.slug))
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (!post) {
+			throw new Error("Post not found.");
+		}
+
+		await assertDocumentOwner(ctx, {
+			documentId: post._id,
+			userId,
+			documentType: "posts",
+		});
+
+		const { _creationTime, authorId, tags, ...rest } = post;
+
+		return { ...rest, tagIds: tags };
+	},
+});
+
+const getPublicBySlug = zQuery({
+	args: {
+		slug: z.string(),
+	},
+	handler: async (ctx, { slug }) => {
+		const post = await ctx.db
+			.query("posts")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
 			.unique();
 
 		if (!post) {
@@ -353,7 +258,6 @@ export const getPublicBySlug = query({
 
 		if (post.status === "private") {
 			const user = await authComponent.getAuthUser(ctx);
-
 			if (!user || post.authorId !== user._id) {
 				return null;
 			}
@@ -372,42 +276,18 @@ export const getPublicBySlug = query({
 			category: category ? { name: category.name, slug: category.slug } : null,
 			tags: tags
 				.filter((tag): tag is NonNullable<typeof tag> => tag !== null)
-				.map((tag) => ({ name: tag.name, slug: tag.slug })),
+				.map(({ name, slug }) => ({ name, slug })),
 		};
 	},
 });
 
-export const deletePost = mutation({
-	args: {
-		id: v.id("posts"),
-	},
-	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const post = await ctx.db.get(args.id);
-
-		if (!post || post.authorId !== authorId) {
-			throw new Error("Post not found.");
-		}
-
-		const [postMediaRows, postTagRows] = await Promise.all([
-			ctx.db
-				.query("postMedia")
-				.withIndex("by_post", (q) => q.eq("postId", args.id))
-				.collect(),
-			ctx.db
-				.query("postTag")
-				.withIndex("by_post", (q) => q.eq("postId", args.id))
-				.collect(),
-		]);
-
-		for (const row of postMediaRows) {
-			await ctx.db.delete(row._id);
-		}
-
-		for (const row of postTagRows) {
-			await ctx.db.delete(row._id);
-		}
-
-		await ctx.db.delete(args.id);
-	},
-});
+export {
+	list,
+	listAll,
+	listRecent,
+	create,
+	update,
+	remove,
+	getEditableBySlug,
+	getPublicBySlug,
+};

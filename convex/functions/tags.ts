@@ -1,64 +1,50 @@
-import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+import { zid } from "convex-helpers/server/zod4";
+import { z } from "zod";
 import { toSlug } from "../../shared/slug";
-import { mutation, query } from "../_generated/server";
+import { query } from "../_generated/server";
+import { sortedPaginate } from "../_lib/sorted";
+import { zAuthedMutation, zQuery } from "../_lib/validated";
 
-export const list = query({
+const TAG_INDEXES = {
+	name: "by_name",
+	slug: "by_slug",
+	_creationTime: "by_creation_time",
+} as const;
+
+const list = zQuery({
 	args: {
-		paginationOpts: paginationOptsValidator,
-		sortField: v.optional(
-			v.union(v.literal("name"), v.literal("slug"), v.literal("_creationTime")),
-		),
-		sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+		paginationOpts: z.object({
+			cursor: z.union([z.string(), z.null()]),
+			numItems: z.number(),
+		}),
+		sortField: z.enum(["name", "slug", "_creationTime"]).optional(),
+		sortDirection: z.enum(["asc", "desc"]).optional(),
 	},
 	handler: async (ctx, args) => {
-		const direction = args.sortDirection ?? "desc";
-
-		switch (args.sortField) {
-			case "name":
-				return await ctx.db
-					.query("tags")
-					.withIndex("by_name")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "slug":
-				return await ctx.db
-					.query("tags")
-					.withIndex("by_slug")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "_creationTime":
-				return await ctx.db
-					.query("tags")
-					.withIndex("by_creation_time")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			default:
-				return await ctx.db
-					.query("tags")
-					.withIndex("by_creation_time")
-					.order("desc")
-					.paginate(args.paginationOpts);
-		}
+		return sortedPaginate(ctx.db, "tags", TAG_INDEXES, args);
 	},
 });
 
-export const createTag = mutation({
+const listAll = query({
+	args: {},
+	handler: async (ctx) => {
+		return await ctx.db
+			.query("tags")
+			.withIndex("by_name")
+			.order("asc")
+			.collect();
+	},
+});
+
+const create = zAuthedMutation({
 	args: {
-		name: v.string(),
-		slug: v.optional(v.string()),
+		name: z.string().trim().min(1, "Name is required."),
+		slug: z.string().trim().min(1, "Slug is required."),
 	},
 	handler: async (ctx, args) => {
-		const name = args.name.trim();
-		const slug = toSlug(args.slug?.trim() || name);
-
-		if (!name) {
-			throw new Error("Name is required.");
-		}
-
-		if (!slug) {
-			throw new Error("Slug is required.");
-		}
+		const { name } = args;
+		const slug = toSlug(args.slug);
 
 		const existing = await ctx.db
 			.query("tags")
@@ -66,77 +52,67 @@ export const createTag = mutation({
 			.unique();
 
 		if (existing) {
-			throw new Error("Tag with this slug already exists.");
+			throw new ConvexError("Tag with this slug already exists.");
 		}
 
-		return await ctx.db.insert("tags", {
-			name,
-			slug,
-		});
+		return await ctx.db.insert("tags", { name, slug });
 	},
 });
 
-export const updateTag = mutation({
+const update = zAuthedMutation({
 	args: {
-		id: v.id("tags"),
-		name: v.string(),
-		slug: v.optional(v.string()),
+		id: zid("tags"),
+		name: z.string().trim().min(1, "Name is required."),
+		slug: z.string().trim().min(1, "Slug is required."),
 	},
 	handler: async (ctx, args) => {
-		const existingTag = await ctx.db.get(args.id);
+		const { id, name } = args;
+		const existing = await ctx.db.get(id);
 
-		if (!existingTag) {
-			throw new Error("Tag not found.");
+		if (!existing) {
+			throw new ConvexError("Tag not found.");
 		}
 
-		const name = args.name.trim();
-		const slug = toSlug(args.slug?.trim() || name);
+		const slug = toSlug(args.slug);
 
-		if (!name) {
-			throw new Error("Name is required.");
-		}
-
-		if (!slug) {
-			throw new Error("Slug is required.");
-		}
-
-		const conflictingTag = await ctx.db
+		const conflicting = await ctx.db
 			.query("tags")
 			.withIndex("by_slug", (q) => q.eq("slug", slug))
 			.unique();
 
-		if (conflictingTag && conflictingTag._id !== args.id) {
-			throw new Error("Tag with this slug already exists.");
+		if (conflicting && conflicting._id !== id) {
+			throw new ConvexError("Tag with this slug already exists.");
 		}
 
-		await ctx.db.patch(args.id, {
-			name,
-			slug,
-		});
+		await ctx.db.patch(id, { name, slug });
 	},
 });
 
-export const deleteTag = mutation({
+const remove = zAuthedMutation({
 	args: {
-		id: v.id("tags"),
+		id: zid("tags"),
 	},
 	handler: async (ctx, args) => {
-		const tag = await ctx.db.get(args.id);
+		const { id } = args;
+		const tag = await ctx.db.get(id);
 
 		if (!tag) {
-			throw new Error("Tag not found.");
+			throw new ConvexError("Tag not found.");
 		}
 
-		const associatedPost =
-			(await ctx.db
-				.query("postTag")
-				.withIndex("by_tag", (q) => q.eq("tagId", args.id))
-				.first()) !== null;
+		const associatedPost = await ctx.db
+			.query("postTag")
+			.withIndex("by_tag", (q) => q.eq("tagId", id))
+			.first();
 
 		if (associatedPost) {
-			throw new Error("Cannot delete tag while it is associated with posts.");
+			throw new ConvexError(
+				"Cannot delete tag while it is associated with posts.",
+			);
 		}
 
-		await ctx.db.delete(args.id);
+		await ctx.db.delete(id);
 	},
 });
+
+export { list, listAll, create, update, remove };

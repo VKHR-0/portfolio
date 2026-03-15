@@ -1,77 +1,54 @@
-import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+import { zid } from "convex-helpers/server/zod4";
+import { z } from "zod";
 import { toSlug } from "../../shared/slug";
-import { mutation, query } from "../_generated/server";
+import { query } from "../_generated/server";
+import { sortedPaginate } from "../_lib/sorted";
+import { zAuthedMutation, zQuery } from "../_lib/validated";
 
-export const list = query({
+const CATEGORY_INDEXES = {
+	name: "by_name",
+	slug: "by_slug",
+	description: "by_description",
+	_creationTime: "by_creation_time",
+} as const;
+
+const list = zQuery({
 	args: {
-		paginationOpts: paginationOptsValidator,
-		sortField: v.optional(
-			v.union(
-				v.literal("name"),
-				v.literal("slug"),
-				v.literal("description"),
-				v.literal("_creationTime"),
-			),
-		),
-		sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+		paginationOpts: z.object({
+			cursor: z.union([z.string(), z.null()]),
+			numItems: z.number(),
+		}),
+		sortField: z
+			.enum(["name", "slug", "description", "_creationTime"])
+			.optional(),
+		sortDirection: z.enum(["asc", "desc"]).optional(),
 	},
 	handler: async (ctx, args) => {
-		const direction = args.sortDirection ?? "desc";
-
-		switch (args.sortField) {
-			case "name":
-				return await ctx.db
-					.query("categories")
-					.withIndex("by_name")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "slug":
-				return await ctx.db
-					.query("categories")
-					.withIndex("by_slug")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "description":
-				return await ctx.db
-					.query("categories")
-					.withIndex("by_description")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "_creationTime":
-				return await ctx.db
-					.query("categories")
-					.withIndex("by_creation_time")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			default:
-				return await ctx.db
-					.query("categories")
-					.withIndex("by_creation_time")
-					.order("desc")
-					.paginate(args.paginationOpts);
-		}
+		return sortedPaginate(ctx.db, "categories", CATEGORY_INDEXES, args);
 	},
 });
 
-export const createCategory = mutation({
+const listAll = query({
+	args: {},
+	handler: async (ctx) => {
+		return await ctx.db
+			.query("categories")
+			.withIndex("by_name")
+			.order("asc")
+			.collect();
+	},
+});
+
+const create = zAuthedMutation({
 	args: {
-		name: v.string(),
-		slug: v.optional(v.string()),
-		description: v.optional(v.string()),
+		name: z.string().trim().min(1, "Name is required."),
+		slug: z.string().trim().min(1, "Slug is required."),
+		description: z.string().trim().optional(),
 	},
 	handler: async (ctx, args) => {
-		const name = args.name.trim();
-		const slug = toSlug(args.slug?.trim() || name);
-		const description = args.description?.trim() || undefined;
-
-		if (!name) {
-			throw new Error("Name is required.");
-		}
-
-		if (!slug) {
-			throw new Error("Slug is required.");
-		}
+		const { name, description } = args;
+		const slug = toSlug(args.slug);
 
 		const existing = await ctx.db
 			.query("categories")
@@ -79,82 +56,68 @@ export const createCategory = mutation({
 			.unique();
 
 		if (existing) {
-			throw new Error("Category with this slug already exists.");
+			throw new ConvexError("Category with this slug already exists.");
 		}
 
-		return await ctx.db.insert("categories", {
-			name,
-			slug,
-			description,
-		});
+		return await ctx.db.insert("categories", { name, slug, description });
 	},
 });
 
-export const updateCategory = mutation({
+const update = zAuthedMutation({
 	args: {
-		id: v.id("categories"),
-		name: v.string(),
-		slug: v.optional(v.string()),
-		description: v.optional(v.string()),
+		id: zid("categories"),
+		name: z.string().trim().min(1, "Name is required."),
+		slug: z.string().trim().min(1, "Slug is required."),
+		description: z.string().trim().optional(),
 	},
 	handler: async (ctx, args) => {
-		const existingCategory = await ctx.db.get(args.id);
+		const { id, name, description } = args;
+		const existing = await ctx.db.get(id);
 
-		if (!existingCategory) {
-			throw new Error("Category not found.");
+		if (!existing) {
+			throw new ConvexError("Category not found.");
 		}
 
-		const name = args.name.trim();
-		const slug = toSlug(args.slug?.trim() || name);
-		const description = args.description?.trim() || undefined;
+		const slug = toSlug(args.slug);
 
-		if (!name) {
-			throw new Error("Name is required.");
-		}
-
-		if (!slug) {
-			throw new Error("Slug is required.");
-		}
-
-		const conflictingCategory = await ctx.db
+		const conflicting = await ctx.db
 			.query("categories")
 			.withIndex("by_slug", (q) => q.eq("slug", slug))
 			.unique();
 
-		if (conflictingCategory && conflictingCategory._id !== args.id) {
-			throw new Error("Category with this slug already exists.");
+		if (conflicting && conflicting._id !== id) {
+			throw new ConvexError("Category with this slug already exists.");
 		}
 
-		await ctx.db.patch(args.id, {
-			name,
-			slug,
-			description,
-		});
+		await ctx.db.patch(id, { name, slug, description });
 	},
 });
 
-export const deleteCategory = mutation({
+const remove = zAuthedMutation({
 	args: {
-		id: v.id("categories"),
+		id: zid("categories"),
 	},
 	handler: async (ctx, args) => {
-		const category = await ctx.db.get(args.id);
+		const { id } = args;
+		const category = await ctx.db.get(id);
 
 		if (!category) {
-			throw new Error("Category not found.");
+			throw new ConvexError("Category not found.");
 		}
 
 		const associatedPost = await ctx.db
 			.query("posts")
-			.withIndex("by_category", (q) => q.eq("categoryId", args.id))
+			.withIndex("by_category", (q) => q.eq("categoryId", id))
 			.first();
 
 		if (associatedPost) {
-			throw new Error(
+			throw new ConvexError(
 				"Cannot delete category while it is associated with posts.",
 			);
 		}
 
-		await ctx.db.delete(args.id);
+		await ctx.db.delete(id);
 	},
 });
+
+export { list, listAll, create, update, remove };

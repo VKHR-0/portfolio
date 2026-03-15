@@ -1,254 +1,104 @@
-import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
-import { toSlug } from "../../shared/slug";
-import type { Id } from "../_generated/dataModel";
-import {
-	type MutationCtx,
-	mutation,
-	type QueryCtx,
-	query,
-} from "../_generated/server";
-import { authComponent } from "../auth";
-import { deriveAttachmentIds, syncProjectMediaRelations } from "./attachments";
+import { ConvexError } from "convex/values";
+import { zid } from "convex-helpers/server/zod4";
+import { z } from "zod";
+import { query } from "../_generated/server";
+import { deriveAttachmentIds } from "../_lib/attachment";
+import { resolveImageUrl } from "../_lib/media";
+import { assertDocumentOwner } from "../_lib/owned";
+import { sortedPaginate } from "../_lib/sorted";
+import { syncProjectMedia } from "../_lib/sync";
+import { zAuthedMutation, zAuthedQuery, zQuery } from "../_lib/validated";
 
-async function resolveMediaUrl(
-	ctx: QueryCtx | MutationCtx,
-	mediaId: Id<"media"> | undefined,
-) {
-	if (!mediaId) {
-		return undefined;
-	}
+const PROJECT_INDEXES = {
+	title: "by_title",
+	slug: "by_slug",
+	_creationTime: "by_creation_time",
+} as const;
 
-	const media = await ctx.db.get(mediaId);
-
-	if (!media) {
-		return undefined;
-	}
-
-	return (await ctx.storage.getUrl(media.storageId)) ?? undefined;
-}
-
-function normalizeProjectImageId(
-	imageId: Id<"media"> | string | undefined,
-): Id<"media"> | undefined {
-	if (!imageId || imageId.startsWith("http")) {
-		return undefined;
-	}
-
-	return imageId as Id<"media">;
-}
-
-async function getProjectImageUrl(
-	ctx: QueryCtx | MutationCtx,
-	imageId: Id<"media"> | string | undefined,
-) {
-	const normalizedImageId = normalizeProjectImageId(imageId);
-
-	if (normalizedImageId) {
-		return await resolveMediaUrl(ctx, normalizedImageId);
-	}
-
-	if (imageId?.startsWith("http")) {
-		return imageId;
-	}
-
-	return undefined;
-}
-
-async function requireCurrentUserId(ctx: QueryCtx | MutationCtx) {
-	const user = await authComponent.getAuthUser(ctx);
-
-	if (!user?._id) {
-		throw new Error("You must be signed in.");
-	}
-
-	return user._id;
-}
-
-function normalizeTitle(value: string) {
-	const title = value.trim();
-
-	if (!title) {
-		throw new Error("Title is required.");
-	}
-
-	return title;
-}
-
-function normalizeSlug(value: string) {
-	const slug = toSlug(value.trim());
-
-	if (!slug) {
-		throw new Error("Slug is required.");
-	}
-
-	return slug;
-}
-
-export const list = query({
+const list = zQuery({
 	args: {
-		paginationOpts: paginationOptsValidator,
-		sortField: v.optional(v.union(v.literal("title"), v.literal("slug"))),
-		sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+		paginationOpts: z.object({
+			cursor: z.union([z.string(), z.null()]),
+			numItems: z.number(),
+		}),
+		sortField: z.enum(["title", "slug", "_creationTime"]).optional(),
+		sortDirection: z.enum(["asc", "desc"]).optional(),
 	},
 	handler: async (ctx, args) => {
-		const direction = args.sortDirection ?? "desc";
-
-		switch (args.sortField) {
-			case "title":
-				return await ctx.db
-					.query("projects")
-					.withIndex("by_title")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "slug":
-				return await ctx.db
-					.query("projects")
-					.withIndex("by_slug")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			default:
-				return await ctx.db
-					.query("projects")
-					.withIndex("by_creation_time")
-					.order("desc")
-					.paginate(args.paginationOpts);
-		}
+		return sortedPaginate(ctx.db, "projects", PROJECT_INDEXES, args);
 	},
 });
 
-export const listRecentProjects = query({
+const listAll = query({
+	args: {},
+	handler: async (ctx) => {
+		return await ctx.db
+			.query("projects")
+			.withIndex("by_creation_time")
+			.order("desc")
+			.collect();
+	},
+});
+
+const listRecent = zAuthedQuery({
 	args: {
-		limit: v.optional(v.number()),
-		authorId: v.string(),
+		limit: z.number().min(1).max(20).optional(),
 	},
 	handler: async (ctx, args) => {
-		const limit = Math.min(Math.max(args.limit ?? 5, 1), 20);
+		const { userId } = ctx;
+		const limit = args.limit ?? 5;
+
 		const projects = await ctx.db
 			.query("projects")
 			.withIndex("by_creation_time")
-			.filter((q) => q.eq(q.field("authorId"), args.authorId))
+			.filter((q) => q.eq(q.field("authorId"), userId))
 			.order("desc")
 			.take(limit);
 
-		return projects.map((project) => ({
-			_id: project._id,
-			title: project.title,
-			slug: project.slug,
-			status: project.status,
-			_creationTime: project._creationTime,
+		return projects.map(({ _id, title, slug, status, _creationTime }) => ({
+			_id,
+			title,
+			slug,
+			status,
+			_creationTime,
 		}));
 	},
 });
 
-export const updateProjectSummary = mutation({
+const projectStatus = z.union([
+	z.literal("active"),
+	z.literal("completed"),
+	z.literal("archived"),
+]);
+
+const create = zAuthedMutation({
 	args: {
-		id: v.id("projects"),
-		title: v.string(),
-		slug: v.string(),
+		title: z.string(),
+		slug: z.string(),
+		description: z.string().optional(),
+		content: z.string().optional(),
+		status: projectStatus.optional(),
+		imageId: zid("media").optional(),
+		repositoryUrl: z.string().optional(),
+		demoUrl: z.string().optional(),
+		technologyIds: z.array(zid("technologies")).optional(),
 	},
 	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const existingProject = await ctx.db.get(args.id);
-
-		if (!existingProject || existingProject.authorId !== authorId) {
-			throw new Error("Project not found.");
-		}
-
-		const title = normalizeTitle(args.title);
-		const slug = normalizeSlug(args.slug);
-		const conflictingProject = await ctx.db
-			.query("projects")
-			.withIndex("by_slug", (q) => q.eq("slug", slug))
-			.unique();
-
-		if (conflictingProject && conflictingProject._id !== args.id) {
-			throw new Error("Project with this slug already exists.");
-		}
-
-		await ctx.db.patch(args.id, {
-			title,
-			slug,
-		});
-
-		return {
-			_id: args.id,
-			title,
-			slug,
-		};
-	},
-});
-
-export const getEditableBySlug = query({
-	args: {
-		slug: v.string(),
-	},
-	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const project = await ctx.db
-			.query("projects")
-			.withIndex("by_slug", (q) => q.eq("slug", normalizeSlug(args.slug)))
-			.unique();
-
-		if (!project || project.authorId !== authorId) {
-			throw new Error("Project not found.");
-		}
-
-		const normalizedImageId = normalizeProjectImageId(project.imageId);
-
-		return {
-			_id: project._id,
-			title: project.title,
-			slug: project.slug,
-			description: project.description,
-			content: project.content,
-			status: project.status,
-			imageId: normalizedImageId,
-			imageUrl: await getProjectImageUrl(ctx, project.imageId),
-			repositoryUrl: project.repositoryUrl,
-			demoUrl: project.demoUrl,
-			technologyIds: project.technologyIds,
-		};
-	},
-});
-
-export const createDraft = mutation({
-	args: {
-		title: v.string(),
-		slug: v.string(),
-		description: v.optional(v.string()),
-		content: v.optional(v.string()),
-		status: v.optional(
-			v.union(
-				v.literal("active"),
-				v.literal("completed"),
-				v.literal("archived"),
-			),
-		),
-		imageId: v.optional(v.id("media")),
-		repositoryUrl: v.optional(v.string()),
-		demoUrl: v.optional(v.string()),
-		technologyIds: v.optional(v.array(v.id("technologies"))),
-	},
-	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const title = normalizeTitle(args.title);
-		const slug = normalizeSlug(args.slug);
-
-		const existingProject = await ctx.db
-			.query("projects")
-			.withIndex("by_slug", (q) => q.eq("slug", slug))
-			.unique();
-
-		if (existingProject) {
-			throw new Error("Project with this slug already exists.");
-		}
-
+		const { userId } = ctx;
+		const { title, slug } = args;
 		const content = args.content?.trim() ?? "";
-		const attachments = deriveAttachmentIds({
-			content,
-			extraMediaIds: args.imageId ? [args.imageId] : [],
-		});
+		const technologyIds = args.technologyIds ?? [];
+
+		const existing = await ctx.db
+			.query("projects")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (existing) {
+			throw new ConvexError("Project with this slug already exists.");
+		}
+
+		const attachments = deriveAttachmentIds(content, [args.imageId]);
 		const projectId = await ctx.db.insert("projects", {
 			title,
 			slug,
@@ -259,137 +109,163 @@ export const createDraft = mutation({
 			attachments,
 			repositoryUrl: args.repositoryUrl,
 			demoUrl: args.demoUrl,
-			technologyIds: args.technologyIds ?? [],
-			authorId,
+			technologyIds,
+			authorId: userId,
 		});
 
-		await syncProjectMediaRelations(ctx, projectId, attachments);
+		await syncProjectMedia(ctx, projectId, attachments);
 
 		return { _id: projectId, title, slug };
 	},
 });
 
-export const updateDraft = mutation({
+const update = zAuthedMutation({
 	args: {
-		id: v.id("projects"),
-		title: v.string(),
-		slug: v.string(),
-		description: v.string(),
-		content: v.string(),
-		status: v.union(
-			v.literal("active"),
-			v.literal("completed"),
-			v.literal("archived"),
-		),
-		imageId: v.optional(v.id("media")),
-		repositoryUrl: v.optional(v.string()),
-		demoUrl: v.optional(v.string()),
-		technologyIds: v.array(v.id("technologies")),
+		id: zid("projects"),
+		title: z.string(),
+		slug: z.string(),
+		description: z.string(),
+		content: z.string(),
+		status: projectStatus,
+		imageId: zid("media").optional(),
+		repositoryUrl: z.string().optional(),
+		demoUrl: z.string().optional(),
+		technologyIds: z.array(zid("technologies")),
 	},
 	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const existingProject = await ctx.db.get(args.id);
+		const { id, title, slug, ...fields } = args;
+		const { userId } = ctx;
 
-		if (!existingProject || existingProject.authorId !== authorId) {
-			throw new Error("Project not found.");
-		}
+		await assertDocumentOwner(ctx, {
+			documentId: id,
+			userId,
+			documentType: "projects",
+		});
 
-		const title = normalizeTitle(args.title);
-		const slug = normalizeSlug(args.slug);
+		const content = fields.content.trim();
+		const description = fields.description.trim();
 
-		const conflictingProject = await ctx.db
+		const conflicting = await ctx.db
 			.query("projects")
 			.withIndex("by_slug", (q) => q.eq("slug", slug))
 			.unique();
 
-		if (conflictingProject && conflictingProject._id !== args.id) {
-			throw new Error("Project with this slug already exists.");
+		if (conflicting && conflicting._id !== id) {
+			throw new ConvexError("Project with this slug already exists.");
 		}
 
-		const content = args.content.trim();
-		const attachments = deriveAttachmentIds({
-			content,
-			extraMediaIds: args.imageId ? [args.imageId] : [],
-		});
+		const attachments = deriveAttachmentIds(content, [fields.imageId]);
 
-		await ctx.db.patch(args.id, {
+		await ctx.db.patch(id, {
 			title,
 			slug,
-			description: args.description.trim(),
+			...fields,
 			content,
-			status: args.status,
-			imageId: args.imageId,
+			description,
 			attachments,
-			repositoryUrl: args.repositoryUrl,
-			demoUrl: args.demoUrl,
-			technologyIds: args.technologyIds,
 		});
 
-		await syncProjectMediaRelations(ctx, args.id, attachments);
+		await syncProjectMedia(ctx, id, attachments);
 
-		return { _id: args.id, title, slug };
+		return { _id: id, title, slug };
 	},
 });
 
-export const deleteProject = mutation({
+const remove = zAuthedMutation({
 	args: {
-		id: v.id("projects"),
+		id: zid("projects"),
 	},
 	handler: async (ctx, args) => {
-		const authorId = await requireCurrentUserId(ctx);
-		const project = await ctx.db.get(args.id);
+		const { id } = args;
+		const { userId } = ctx;
 
-		if (!project || project.authorId !== authorId) {
-			throw new Error("Project not found.");
-		}
+		await assertDocumentOwner(ctx, {
+			documentId: id,
+			userId,
+			documentType: "projects",
+		});
 
 		const projectMediaRows = await ctx.db
 			.query("projectMedia")
-			.withIndex("by_project", (q) => q.eq("projectId", args.id))
+			.withIndex("by_project", (q) => q.eq("projectId", id))
 			.collect();
 
 		for (const row of projectMediaRows) {
 			await ctx.db.delete(row._id);
 		}
 
-		await ctx.db.delete(args.id);
+		await ctx.db.delete(id);
 	},
 });
 
-export const getPublicBySlug = query({
+const getEditableBySlug = zAuthedQuery({
 	args: {
-		slug: v.string(),
+		slug: z.string(),
 	},
-	handler: async (ctx, args) => {
+	handler: async (ctx, { slug }) => {
+		const { userId } = ctx;
 		const project = await ctx.db
 			.query("projects")
-			.withIndex("by_slug", (q) => q.eq("slug", args.slug))
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (!project) {
+			throw new Error("Project not found.");
+		}
+
+		await assertDocumentOwner(ctx, {
+			documentId: project._id,
+			userId,
+			documentType: "projects",
+		});
+
+		const { _creationTime, authorId, attachments, ...rest } = project;
+
+		return {
+			...rest,
+			imageUrl: await resolveImageUrl(ctx, project.imageId),
+		};
+	},
+});
+
+const getPublicBySlug = zQuery({
+	args: {
+		slug: z.string(),
+	},
+	handler: async (ctx, { slug }) => {
+		const project = await ctx.db
+			.query("projects")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
 			.unique();
 
 		if (!project || project.status === "archived") {
 			return null;
 		}
 
-		const normalizedImageId = normalizeProjectImageId(project.imageId);
+		const [technologies, imageUrl] = await Promise.all([
+			Promise.all(project.technologyIds.map((id) => ctx.db.get(id))),
+			resolveImageUrl(ctx, project.imageId),
+		]);
 
-		const technologies = (
-			await Promise.all(project.technologyIds.map((id) => ctx.db.get(id)))
-		)
-			.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
-			.map((tech) => ({ name: tech.name, color: tech.color }));
+		const { _id, authorId, attachments, technologyIds, ...rest } = project;
 
 		return {
-			title: project.title,
-			slug: project.slug,
-			description: project.description,
-			content: project.content,
-			imageId: normalizedImageId,
-			imageUrl: await getProjectImageUrl(ctx, project.imageId),
-			status: project.status,
-			repositoryUrl: project.repositoryUrl,
-			demoUrl: project.demoUrl,
-			technologies,
-			_creationTime: project._creationTime,
+			...rest,
+			imageUrl,
+			technologies: technologies
+				.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
+				.map(({ name, color }) => ({ name, color })),
 		};
 	},
 });
+
+export {
+	list,
+	listAll,
+	listRecent,
+	create,
+	update,
+	remove,
+	getEditableBySlug,
+	getPublicBySlug,
+};

@@ -1,50 +1,33 @@
-import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
+import { ConvexError } from "convex/values";
+import { zid } from "convex-helpers/server/zod4";
+import { z } from "zod";
+import { colorSchema } from "../../shared/colors";
 import { toSlug } from "../../shared/slug";
-import { TECHNOLOGY_COLOR_KEYS } from "../../shared/technology-colors";
-import { mutation, query } from "../_generated/server";
+import { query } from "../_generated/server";
+import { sortedPaginate } from "../_lib/sorted";
+import { zAuthedMutation, zQuery } from "../_lib/validated";
 
-export const list = query({
+const TECHNOLOGY_INDEXES = {
+	name: "by_name",
+	slug: "by_slug",
+	_creationTime: "by_creation_time",
+} as const;
+
+const list = zQuery({
 	args: {
-		paginationOpts: paginationOptsValidator,
-		sortField: v.optional(
-			v.union(v.literal("name"), v.literal("slug"), v.literal("_creationTime")),
-		),
-		sortDirection: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+		paginationOpts: z.object({
+			cursor: z.union([z.string(), z.null()]),
+			numItems: z.number(),
+		}),
+		sortField: z.enum(["name", "slug", "_creationTime"]).optional(),
+		sortDirection: z.enum(["asc", "desc"]).optional(),
 	},
 	handler: async (ctx, args) => {
-		const direction = args.sortDirection ?? "desc";
-
-		switch (args.sortField) {
-			case "name":
-				return await ctx.db
-					.query("technologies")
-					.withIndex("by_name")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "slug":
-				return await ctx.db
-					.query("technologies")
-					.withIndex("by_slug")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			case "_creationTime":
-				return await ctx.db
-					.query("technologies")
-					.withIndex("by_creation_time")
-					.order(direction)
-					.paginate(args.paginationOpts);
-			default:
-				return await ctx.db
-					.query("technologies")
-					.withIndex("by_creation_time")
-					.order("desc")
-					.paginate(args.paginationOpts);
-		}
+		return sortedPaginate(ctx.db, "technologies", TECHNOLOGY_INDEXES, args);
 	},
 });
 
-export const listAll = query({
+const listAll = query({
 	args: {},
 	handler: async (ctx) => {
 		return await ctx.db
@@ -55,27 +38,15 @@ export const listAll = query({
 	},
 });
 
-export const createTechnology = mutation({
+const create = zAuthedMutation({
 	args: {
-		name: v.string(),
-		slug: v.optional(v.string()),
-		color: v.string(),
+		name: z.string().trim().min(1, "Name is required."),
+		slug: z.string().trim().min(1, "Slug is required."),
+		color: colorSchema,
 	},
 	handler: async (ctx, args) => {
-		const name = args.name.trim();
-		const slug = toSlug(args.slug?.trim() || name);
-
-		if (!name) {
-			throw new Error("Name is required.");
-		}
-
-		if (!slug) {
-			throw new Error("Slug is required.");
-		}
-
-		if (!TECHNOLOGY_COLOR_KEYS.includes(args.color as never)) {
-			throw new Error("Invalid color.");
-		}
+		const { name, color } = args;
+		const slug = toSlug(args.slug);
 
 		const existing = await ctx.db
 			.query("technologies")
@@ -83,85 +54,68 @@ export const createTechnology = mutation({
 			.unique();
 
 		if (existing) {
-			throw new Error("Technology with this slug already exists.");
+			throw new ConvexError("Technology with this slug already exists.");
 		}
 
-		return await ctx.db.insert("technologies", {
-			name,
-			slug,
-			color: args.color,
-		});
+		return await ctx.db.insert("technologies", { name, slug, color });
 	},
 });
 
-export const updateTechnology = mutation({
+const update = zAuthedMutation({
 	args: {
-		id: v.id("technologies"),
-		name: v.string(),
-		slug: v.optional(v.string()),
-		color: v.string(),
+		id: zid("technologies"),
+		name: z.string().trim().min(1, "Name is required."),
+		slug: z.string().trim().min(1, "Slug is required."),
+		color: colorSchema,
 	},
 	handler: async (ctx, args) => {
-		const existing = await ctx.db.get(args.id);
+		const { id, name, color } = args;
+		const existing = await ctx.db.get(id);
 
 		if (!existing) {
-			throw new Error("Technology not found.");
+			throw new ConvexError("Technology not found.");
 		}
 
-		const name = args.name.trim();
-		const slug = toSlug(args.slug?.trim() || name);
-
-		if (!name) {
-			throw new Error("Name is required.");
-		}
-
-		if (!slug) {
-			throw new Error("Slug is required.");
-		}
-
-		if (!TECHNOLOGY_COLOR_KEYS.includes(args.color as never)) {
-			throw new Error("Invalid color.");
-		}
+		const slug = toSlug(args.slug);
 
 		const conflicting = await ctx.db
 			.query("technologies")
 			.withIndex("by_slug", (q) => q.eq("slug", slug))
 			.unique();
 
-		if (conflicting && conflicting._id !== args.id) {
-			throw new Error("Technology with this slug already exists.");
+		if (conflicting && conflicting._id !== id) {
+			throw new ConvexError("Technology with this slug already exists.");
 		}
 
-		await ctx.db.patch(args.id, {
-			name,
-			slug,
-			color: args.color,
-		});
+		await ctx.db.patch(id, { name, slug, color });
 	},
 });
 
-export const deleteTechnology = mutation({
+const remove = zAuthedMutation({
 	args: {
-		id: v.id("technologies"),
+		id: zid("technologies"),
 	},
 	handler: async (ctx, args) => {
-		const technology = await ctx.db.get(args.id);
+		const { id } = args;
+		const technology = await ctx.db.get(id);
 
 		if (!technology) {
-			throw new Error("Technology not found.");
+			throw new ConvexError("Technology not found.");
 		}
 
 		const allProjects = await ctx.db.query("projects").collect();
 		const isUsed = allProjects.some((project) =>
-			project.technologyIds.includes(args.id),
+			project.technologyIds.includes(id),
 		);
 
 		if (isUsed) {
-			throw new Error(
+			throw new ConvexError(
 				"Cannot delete technology while it is assigned to projects.",
 			);
 		}
 
-		await ctx.db.delete(args.id);
+		await ctx.db.delete(id);
 	},
 });
+
+export { list, listAll, create, update, remove };
