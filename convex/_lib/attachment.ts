@@ -92,27 +92,16 @@ export async function hasMediaUsage(
 	ctx: QueryCtx | MutationCtx,
 	mediaId: Id<"media">,
 ): Promise<boolean> {
-	const hasRow = async (result: Promise<unknown>) => {
-		if ((await result) !== null) return true;
-		throw false;
-	};
+	const [postRow, projectRow] = await Promise.all([
+		ctx.db
+			.query("postMedia")
+			.withIndex("by_media", (q) => q.eq("mediaId", mediaId))
+			.first(),
+		ctx.db
+			.query("projectMedia")
+			.withIndex("by_media", (q) => q.eq("mediaId", mediaId))
+			.first(),
+	]);
 
-	try {
-		return await Promise.any([
-			hasRow(
-				ctx.db
-					.query("postMedia")
-					.withIndex("by_media", (q) => q.eq("mediaId", mediaId))
-					.first(),
-			),
-			hasRow(
-				ctx.db
-					.query("projectMedia")
-					.withIndex("by_media", (q) => q.eq("mediaId", mediaId))
-					.first(),
-			),
-		]);
-	} catch {
-		return false;
-	}
+	return postRow !== null || projectRow !== null;
 }

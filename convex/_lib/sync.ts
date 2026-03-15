@@ -57,6 +57,34 @@ export async function syncProjectMedia(
 	}
 }
 
+export async function syncProjectTechnologies(
+	ctx: MutationCtx,
+	projectId: Id<"projects">,
+	technologyIds: Array<Id<"technologies">>,
+) {
+	const existing = await ctx.db
+		.query("projectTechnology")
+		.withIndex("by_project", (q) => q.eq("projectId", projectId))
+		.collect();
+
+	const desired = new Set(technologyIds);
+	const seen = new Set<Id<"technologies">>();
+
+	for (const row of existing) {
+		if (!desired.has(row.technologyId) || seen.has(row.technologyId)) {
+			await ctx.db.delete(row._id);
+		} else {
+			seen.add(row.technologyId);
+		}
+	}
+
+	for (const technologyId of technologyIds) {
+		if (!seen.has(technologyId)) {
+			await ctx.db.insert("projectTechnology", { projectId, technologyId });
+		}
+	}
+}
+
 export async function syncPostTags(
 	ctx: MutationCtx,
 	postId: Id<"posts">,

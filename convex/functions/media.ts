@@ -2,9 +2,9 @@ import { ConvexError } from "convex/values";
 import { zid } from "convex-helpers/server/zod4";
 import { z } from "zod";
 import { toSlug } from "../../shared/slug";
-import { query } from "../_generated/server";
 import { getMediaUsage, hasMediaUsage } from "../_lib/attachment";
 import { authedMutation } from "../_lib/authed";
+import { assertDocumentOwner } from "../_lib/owned";
 import { sortedPaginate } from "../_lib/sorted";
 import { zAuthedMutation, zQuery } from "../_lib/validated";
 
@@ -31,27 +31,6 @@ const list = zQuery({
 		);
 
 		return { ...result, page: pageWithUrls };
-	},
-});
-
-const listAll = query({
-	args: {},
-	handler: async (ctx) => {
-		const items = await ctx.db
-			.query("media")
-			.withIndex("by_creation_time")
-			.order("desc")
-			.collect();
-
-		return Promise.all(
-			items.map(async (item) => ({
-				_id: item._id,
-				filename: item.filename,
-				slug: item.slug,
-				alt: item.alt,
-				url: await ctx.storage.getUrl(item.storageId),
-			})),
-		);
 	},
 });
 
@@ -105,11 +84,13 @@ const remove = zAuthedMutation({
 	},
 	handler: async (ctx, args) => {
 		const { id } = args;
-		const media = await ctx.db.get(id);
+		const { userId } = ctx;
 
-		if (!media) {
-			throw new ConvexError("Media not found.");
-		}
+		await assertDocumentOwner(ctx, {
+			documentId: id,
+			userId,
+			documentType: "media",
+		});
 
 		if (await hasMediaUsage(ctx, id)) {
 			throw new ConvexError(
@@ -117,7 +98,10 @@ const remove = zAuthedMutation({
 			);
 		}
 
-		await ctx.storage.delete(media.storageId);
+		const media = await ctx.db.get(id);
+		if (media) {
+			await ctx.storage.delete(media.storageId);
+		}
 		await ctx.db.delete(id);
 	},
 });
@@ -159,4 +143,4 @@ const getBySlug = zQuery({
 	},
 });
 
-export { list, listAll, create, remove, generateUploadUrl, getBySlug };
+export { list, create, remove, generateUploadUrl, getBySlug };

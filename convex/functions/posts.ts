@@ -1,7 +1,7 @@
 import { ConvexError } from "convex/values";
 import { zid } from "convex-helpers/server/zod4";
 import { z } from "zod";
-import { query } from "../_generated/server";
+import { toSlug } from "../../shared/slug";
 import { deriveAttachmentIds } from "../_lib/attachment";
 import { assertDocumentOwner } from "../_lib/owned";
 import { sortedPaginate } from "../_lib/sorted";
@@ -30,17 +30,6 @@ const list = zQuery({
 	},
 });
 
-const listAll = query({
-	args: {},
-	handler: async (ctx) => {
-		return await ctx.db
-			.query("posts")
-			.withIndex("by_creation_time")
-			.order("desc")
-			.collect();
-	},
-});
-
 const listRecent = zAuthedQuery({
 	args: {
 		limit: z.number().min(1).max(20).optional(),
@@ -51,8 +40,7 @@ const listRecent = zAuthedQuery({
 
 		const posts = await ctx.db
 			.query("posts")
-			.withIndex("by_creation_time")
-			.filter((q) => q.eq(q.field("authorId"), userId))
+			.withIndex("by_author", (q) => q.eq("authorId", userId))
 			.order("desc")
 			.take(limit);
 
@@ -85,7 +73,8 @@ const create = zAuthedMutation({
 	},
 	handler: async (ctx, args) => {
 		const { userId } = ctx;
-		const { title, slug } = args;
+		const { title } = args;
+		const slug = toSlug(args.slug);
 		const content = args.content?.trim() ?? "";
 		const tagIds = args.tagIds ?? [];
 
@@ -109,7 +98,6 @@ const create = zAuthedMutation({
 			categoryId: args.categoryId,
 			projectId: args.projectId,
 			authorId: userId,
-			tags: tagIds,
 		});
 
 		await Promise.all([
@@ -134,7 +122,8 @@ const update = zAuthedMutation({
 		tagIds: z.array(zid("tags")),
 	},
 	handler: async (ctx, args) => {
-		const { id, title, slug, tagIds, ...fields } = args;
+		const { id, title, slug: rawSlug, tagIds, ...fields } = args;
+		const slug = toSlug(rawSlug);
 		const { userId } = ctx;
 
 		await assertDocumentOwner(ctx, {
@@ -162,7 +151,6 @@ const update = zAuthedMutation({
 			...fields,
 			content,
 			attachments,
-			tags: tagIds,
 		});
 
 		await Promise.all([
@@ -232,9 +220,14 @@ const getEditableBySlug = zAuthedQuery({
 			documentType: "posts",
 		});
 
-		const { _creationTime, authorId, tags, ...rest } = post;
+		const tagRows = await ctx.db
+			.query("postTag")
+			.withIndex("by_post", (q) => q.eq("postId", post._id))
+			.collect();
 
-		return { ...rest, tagIds: tags };
+		const { _creationTime, authorId, ...rest } = post;
+
+		return { ...rest, tagIds: tagRows.map((row) => row.tagId) };
 	},
 });
 
@@ -263,9 +256,14 @@ const getPublicBySlug = zQuery({
 			}
 		}
 
+		const tagRows = await ctx.db
+			.query("postTag")
+			.withIndex("by_post", (q) => q.eq("postId", post._id))
+			.collect();
+
 		const [category, tags] = await Promise.all([
 			post.categoryId ? ctx.db.get(post.categoryId) : null,
-			Promise.all(post.tags.map((tagId) => ctx.db.get(tagId))),
+			Promise.all(tagRows.map((row) => ctx.db.get(row.tagId))),
 		]);
 
 		return {
@@ -283,7 +281,6 @@ const getPublicBySlug = zQuery({
 
 export {
 	list,
-	listAll,
 	listRecent,
 	create,
 	update,

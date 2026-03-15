@@ -1,12 +1,12 @@
 import { ConvexError } from "convex/values";
 import { zid } from "convex-helpers/server/zod4";
 import { z } from "zod";
-import { query } from "../_generated/server";
+import { toSlug } from "../../shared/slug";
 import { deriveAttachmentIds } from "../_lib/attachment";
 import { resolveImageUrl } from "../_lib/media";
 import { assertDocumentOwner } from "../_lib/owned";
 import { sortedPaginate } from "../_lib/sorted";
-import { syncProjectMedia } from "../_lib/sync";
+import { syncProjectMedia, syncProjectTechnologies } from "../_lib/sync";
 import { zAuthedMutation, zAuthedQuery, zQuery } from "../_lib/validated";
 
 const PROJECT_INDEXES = {
@@ -29,17 +29,6 @@ const list = zQuery({
 	},
 });
 
-const listAll = query({
-	args: {},
-	handler: async (ctx) => {
-		return await ctx.db
-			.query("projects")
-			.withIndex("by_creation_time")
-			.order("desc")
-			.collect();
-	},
-});
-
 const listRecent = zAuthedQuery({
 	args: {
 		limit: z.number().min(1).max(20).optional(),
@@ -50,8 +39,7 @@ const listRecent = zAuthedQuery({
 
 		const projects = await ctx.db
 			.query("projects")
-			.withIndex("by_creation_time")
-			.filter((q) => q.eq(q.field("authorId"), userId))
+			.withIndex("by_author", (q) => q.eq("authorId", userId))
 			.order("desc")
 			.take(limit);
 
@@ -85,7 +73,8 @@ const create = zAuthedMutation({
 	},
 	handler: async (ctx, args) => {
 		const { userId } = ctx;
-		const { title, slug } = args;
+		const { title } = args;
+		const slug = toSlug(args.slug);
 		const content = args.content?.trim() ?? "";
 		const technologyIds = args.technologyIds ?? [];
 
@@ -109,11 +98,13 @@ const create = zAuthedMutation({
 			attachments,
 			repositoryUrl: args.repositoryUrl,
 			demoUrl: args.demoUrl,
-			technologyIds,
 			authorId: userId,
 		});
 
-		await syncProjectMedia(ctx, projectId, attachments);
+		await Promise.all([
+			syncProjectMedia(ctx, projectId, attachments),
+			syncProjectTechnologies(ctx, projectId, technologyIds),
+		]);
 
 		return { _id: projectId, title, slug };
 	},
@@ -133,7 +124,8 @@ const update = zAuthedMutation({
 		technologyIds: z.array(zid("technologies")),
 	},
 	handler: async (ctx, args) => {
-		const { id, title, slug, ...fields } = args;
+		const { id, title, slug: rawSlug, technologyIds, ...fields } = args;
+		const slug = toSlug(rawSlug);
 		const { userId } = ctx;
 
 		await assertDocumentOwner(ctx, {
@@ -165,7 +157,10 @@ const update = zAuthedMutation({
 			attachments,
 		});
 
-		await syncProjectMedia(ctx, id, attachments);
+		await Promise.all([
+			syncProjectMedia(ctx, id, attachments),
+			syncProjectTechnologies(ctx, id, technologyIds),
+		]);
 
 		return { _id: id, title, slug };
 	},
@@ -185,12 +180,22 @@ const remove = zAuthedMutation({
 			documentType: "projects",
 		});
 
-		const projectMediaRows = await ctx.db
-			.query("projectMedia")
-			.withIndex("by_project", (q) => q.eq("projectId", id))
-			.collect();
+		const [projectMediaRows, projectTechRows] = await Promise.all([
+			ctx.db
+				.query("projectMedia")
+				.withIndex("by_project", (q) => q.eq("projectId", id))
+				.collect(),
+			ctx.db
+				.query("projectTechnology")
+				.withIndex("by_project", (q) => q.eq("projectId", id))
+				.collect(),
+		]);
 
 		for (const row of projectMediaRows) {
+			await ctx.db.delete(row._id);
+		}
+
+		for (const row of projectTechRows) {
 			await ctx.db.delete(row._id);
 		}
 
@@ -219,10 +224,16 @@ const getEditableBySlug = zAuthedQuery({
 			documentType: "projects",
 		});
 
+		const techRows = await ctx.db
+			.query("projectTechnology")
+			.withIndex("by_project", (q) => q.eq("projectId", project._id))
+			.collect();
+
 		const { _creationTime, authorId, attachments, ...rest } = project;
 
 		return {
 			...rest,
+			technologyIds: techRows.map((row) => row.technologyId),
 			imageUrl: await resolveImageUrl(ctx, project.imageId),
 		};
 	},
@@ -242,12 +253,17 @@ const getPublicBySlug = zQuery({
 			return null;
 		}
 
+		const techRows = await ctx.db
+			.query("projectTechnology")
+			.withIndex("by_project", (q) => q.eq("projectId", project._id))
+			.collect();
+
 		const [technologies, imageUrl] = await Promise.all([
-			Promise.all(project.technologyIds.map((id) => ctx.db.get(id))),
+			Promise.all(techRows.map((row) => ctx.db.get(row.technologyId))),
 			resolveImageUrl(ctx, project.imageId),
 		]);
 
-		const { _id, authorId, attachments, technologyIds, ...rest } = project;
+		const { _id, authorId, attachments, ...rest } = project;
 
 		return {
 			...rest,
@@ -261,7 +277,6 @@ const getPublicBySlug = zQuery({
 
 export {
 	list,
-	listAll,
 	listRecent,
 	create,
 	update,

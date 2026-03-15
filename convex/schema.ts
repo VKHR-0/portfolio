@@ -20,11 +20,10 @@ export default defineSchema({
 
 		repositoryUrl: v.optional(v.string()),
 		demoUrl: v.optional(v.string()),
-
-		technologyIds: v.array(v.id("technologies")),
 	})
 		.index("by_slug", ["slug"])
 		.index("by_title", ["title"])
+		.index("by_author", ["authorId", "_creationTime"])
 		.index("by_creation_time", ["_creationTime"]),
 
 	posts: defineTable({
@@ -44,14 +43,13 @@ export default defineSchema({
 		seriesId: v.optional(v.id("series")),
 
 		authorId: v.string(),
-
-		tags: v.array(v.id("tags")),
 	})
 		.index("by_slug", ["slug"])
 		.index("by_title", ["title"])
 		.index("by_status", ["status"])
 		.index("by_category", ["categoryId"])
 		.index("by_series", ["seriesId"])
+		.index("by_author", ["authorId", "_creationTime"])
 		.index("by_status_and_category", ["status", "categoryId"])
 		.index("by_creation_time", ["_creationTime"]),
 
@@ -61,8 +59,7 @@ export default defineSchema({
 		description: v.optional(v.string()),
 	})
 		.index("by_slug", ["slug"])
-		.index("by_name", ["name"])
-		.index("by_description", ["description"]),
+		.index("by_name", ["name"]),
 
 	series: defineTable({
 		name: v.string(),
@@ -70,8 +67,7 @@ export default defineSchema({
 		description: v.optional(v.string()),
 	})
 		.index("by_slug", ["slug"])
-		.index("by_name", ["name"])
-		.index("by_description", ["description"]),
+		.index("by_name", ["name"]),
 
 	tags: defineTable({
 		name: v.string(),
@@ -124,4 +120,12 @@ export default defineSchema({
 		.index("by_post", ["postId"])
 		.index("by_tag", ["tagId"])
 		.index("by_post_and_tag", ["postId", "tagId"]),
+
+	projectTechnology: defineTable({
+		projectId: v.id("projects"),
+		technologyId: v.id("technologies"),
+	})
+		.index("by_project", ["projectId"])
+		.index("by_technology", ["technologyId"])
+		.index("by_project_and_technology", ["projectId", "technologyId"]),
 });

@@ -3,7 +3,6 @@ import { zid } from "convex-helpers/server/zod4";
 import { z } from "zod";
 import { colorSchema } from "../../shared/colors";
 import { toSlug } from "../../shared/slug";
-import { query } from "../_generated/server";
 import { sortedPaginate } from "../_lib/sorted";
 import { zAuthedMutation, zQuery } from "../_lib/validated";
 
@@ -24,17 +23,6 @@ const list = zQuery({
 	},
 	handler: async (ctx, args) => {
 		return sortedPaginate(ctx.db, "technologies", TECHNOLOGY_INDEXES, args);
-	},
-});
-
-const listAll = query({
-	args: {},
-	handler: async (ctx) => {
-		return await ctx.db
-			.query("technologies")
-			.withIndex("by_name")
-			.order("asc")
-			.collect();
 	},
 });
 
@@ -103,12 +91,12 @@ const remove = zAuthedMutation({
 			throw new ConvexError("Technology not found.");
 		}
 
-		const allProjects = await ctx.db.query("projects").collect();
-		const isUsed = allProjects.some((project) =>
-			project.technologyIds.includes(id),
-		);
+		const associatedProject = await ctx.db
+			.query("projectTechnology")
+			.withIndex("by_technology", (q) => q.eq("technologyId", id))
+			.first();
 
-		if (isUsed) {
+		if (associatedProject) {
 			throw new ConvexError(
 				"Cannot delete technology while it is assigned to projects.",
 			);
@@ -118,4 +106,4 @@ const remove = zAuthedMutation({
 	},
 });
 
-export { list, listAll, create, update, remove };
+export { list, create, update, remove };

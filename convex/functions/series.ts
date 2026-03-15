@@ -2,14 +2,12 @@ import { ConvexError } from "convex/values";
 import { zid } from "convex-helpers/server/zod4";
 import { z } from "zod";
 import { toSlug } from "../../shared/slug";
-import { query } from "../_generated/server";
 import { sortedPaginate } from "../_lib/sorted";
 import { zAuthedMutation, zQuery } from "../_lib/validated";
 
 const SERIES_INDEXES = {
 	name: "by_name",
 	slug: "by_slug",
-	description: "by_description",
 	_creationTime: "by_creation_time",
 } as const;
 
@@ -19,24 +17,11 @@ const list = zQuery({
 			cursor: z.union([z.string(), z.null()]),
 			numItems: z.number(),
 		}),
-		sortField: z
-			.enum(["name", "slug", "description", "_creationTime"])
-			.optional(),
+		sortField: z.enum(["name", "slug", "_creationTime"]).optional(),
 		sortDirection: z.enum(["asc", "desc"]).optional(),
 	},
 	handler: async (ctx, args) => {
 		return sortedPaginate(ctx.db, "series", SERIES_INDEXES, args);
-	},
-});
-
-const listAll = query({
-	args: {},
-	handler: async (ctx) => {
-		return await ctx.db
-			.query("series")
-			.withIndex("by_name")
-			.order("asc")
-			.collect();
 	},
 });
 
@@ -120,4 +105,4 @@ const remove = zAuthedMutation({
 	},
 });
 
-export { list, listAll, create, update, remove };
+export { list, create, update, remove };
