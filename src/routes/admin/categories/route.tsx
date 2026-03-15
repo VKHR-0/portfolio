@@ -1,4 +1,3 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { Plus, Trash } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,14 +21,10 @@ import {
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
+import { listCategories } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
-const CATEGORY_SORT_FIELDS = [
-	"name",
-	"slug",
-	"description",
-	"_creationTime",
-] as const;
+const CATEGORY_SORT_FIELDS = ["name", "slug", "_creationTime"] as const;
 
 type CategorySortField = (typeof CATEGORY_SORT_FIELDS)[number];
 
@@ -45,7 +40,7 @@ function listCategoriesQuery(
 	cursor: string | null,
 	search: { sortField?: CategorySortField; sortDirection?: "asc" | "desc" },
 ) {
-	return convexQuery(api.functions.categories.list, {
+	return listCategories({
 		paginationOpts: { numItems: PAGE_SIZE, cursor },
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
@@ -77,8 +72,8 @@ function RouteComponent() {
 		() => sortingStateFromSearch<CategorySortField>(search),
 		[search],
 	);
-	const updateCategory = useMutation(api.functions.categories.updateCategory);
-	const deleteCategory = useMutation(api.functions.categories.deleteCategory);
+	const updateCategory = useMutation(api.functions.categories.update);
+	const deleteCategory = useMutation(api.functions.categories.remove);
 	const queryClient = useQueryClient();
 	const nameInputRef = React.useRef<HTMLInputElement>(null);
 	const slugInputRef = React.useRef<HTMLInputElement>(null);
@@ -316,6 +311,7 @@ function RouteComponent() {
 			{
 				accessorKey: "description",
 				header: "Description",
+				enableSorting: false,
 				meta: {
 					headerClassName: "w-[36%]",
 					cellClassName: "text-muted-foreground",

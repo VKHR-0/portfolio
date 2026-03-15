@@ -1,4 +1,3 @@
-import { convexQuery } from "@convex-dev/react-query";
 import {
 	Desktop,
 	Eye,
@@ -48,27 +47,22 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "#/components/ui/tooltip";
+import { getCurrentUser } from "#/functions/auth";
+import type { Theme } from "#/functions/theme";
 import { useInlineEditForm } from "#/hooks/use-inline-edit-form";
 import { authClient } from "#/lib/auth-client";
 import { isAuthError } from "#/lib/auth-errors";
-import { getCurrentUser } from "#/server/auth";
-import type { Theme } from "#/server/theme";
+import { listRecentPosts, listRecentProjects } from "#/queries/admin";
 
-const DASHBOARD_LIMIT = 10;
+const DASHBOARD_LIMIT = 11;
 const THEME_ORDER: Array<Theme> = ["system", "light", "dark"];
 
-function recentPostsQuery(authorId: string) {
-	return convexQuery(api.functions.posts.listRecentPosts, {
-		authorId,
-		limit: DASHBOARD_LIMIT,
-	});
+function recentPostsQuery() {
+	return listRecentPosts({ limit: DASHBOARD_LIMIT });
 }
 
-function recentProjectsQuery(authorId: string) {
-	return convexQuery(api.functions.projects.listRecentProjects, {
-		authorId,
-		limit: DASHBOARD_LIMIT,
-	});
+function recentProjectsQuery() {
+	return listRecentProjects({ limit: DASHBOARD_LIMIT });
 }
 
 function formatCreatedAt(timestamp: number) {
@@ -89,8 +83,8 @@ export const Route = createFileRoute("/admin/")({
 			const user = await getCurrentUser();
 
 			await Promise.all([
-				context.queryClient.ensureQueryData(recentPostsQuery(user._id)),
-				context.queryClient.ensureQueryData(recentProjectsQuery(user._id)),
+				context.queryClient.ensureQueryData(recentPostsQuery()),
+				context.queryClient.ensureQueryData(recentProjectsQuery()),
 			]);
 
 			return { user };
@@ -111,16 +105,11 @@ export const Route = createFileRoute("/admin/")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const { user } = Route.useLoaderData();
 	const { theme, setTheme } = useTheme();
-	const updatePostSummary = useMutation(api.functions.posts.updatePostSummary);
-	const updateProjectSummary = useMutation(
-		api.functions.projects.updateProjectSummary,
-	);
-	const { data: recentPosts } = useSuspenseQuery(recentPostsQuery(user._id));
-	const { data: recentProjects } = useSuspenseQuery(
-		recentProjectsQuery(user._id),
-	);
+	const updatePost = useMutation(api.functions.posts.updateSummary);
+	const updateProject = useMutation(api.functions.projects.updateSummary);
+	const { data: recentPosts } = useSuspenseQuery(recentPostsQuery());
+	const { data: recentProjects } = useSuspenseQuery(recentProjectsQuery());
 	const postTitleInputRef = React.useRef<HTMLInputElement>(null);
 	const postSlugInputRef = React.useRef<HTMLInputElement>(null);
 	const projectTitleInputRef = React.useRef<HTMLInputElement>(null);
@@ -157,7 +146,7 @@ function RouteComponent() {
 				return false;
 			}
 
-			await updatePostSummary({ id, title, slug });
+			await updatePost({ id, title, slug });
 		},
 		onError: (mutationError) => {
 			toast.error(
@@ -199,7 +188,7 @@ function RouteComponent() {
 				return false;
 			}
 
-			await updateProjectSummary({ id, title, slug });
+			await updateProject({ id, title, slug });
 		},
 		onError: (mutationError) => {
 			toast.error(

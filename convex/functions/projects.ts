@@ -166,6 +166,41 @@ const update = zAuthedMutation({
 	},
 });
 
+const updateSummary = zAuthedMutation({
+	args: {
+		id: zid("projects"),
+		title: z.string(),
+		slug: z.string(),
+	},
+	handler: async (ctx, args) => {
+		const { id, title, slug: rawSlug } = args;
+		const slug = toSlug(rawSlug);
+		const { userId } = ctx;
+
+		await assertDocumentOwner(ctx, {
+			documentId: id,
+			userId,
+			documentType: "projects",
+		});
+
+		const conflicting = await ctx.db
+			.query("projects")
+			.withIndex("by_slug", (q) => q.eq("slug", slug))
+			.unique();
+
+		if (conflicting && conflicting._id !== id) {
+			throw new ConvexError("Project with this slug already exists.");
+		}
+
+		await ctx.db.patch(id, {
+			title,
+			slug,
+		});
+
+		return { _id: id, title, slug };
+	},
+});
+
 const remove = zAuthedMutation({
 	args: {
 		id: zid("projects"),
@@ -280,6 +315,7 @@ export {
 	listRecent,
 	create,
 	update,
+	updateSummary,
 	remove,
 	getEditableBySlug,
 	getPublicBySlug,

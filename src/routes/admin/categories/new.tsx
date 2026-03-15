@@ -60,10 +60,11 @@ function RouteComponent() {
 			onSubmit: createCategorySchema,
 		},
 		onSubmit: async ({ value }) => {
+			const slug = toSlug(value.slug || value.name);
 			const result = await toAsyncResult(
 				createCategory({
 					name: value.name,
-					slug: value.slug,
+					slug,
 					description: value.description || undefined,
 				}),
 			);

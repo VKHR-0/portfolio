@@ -17,17 +17,17 @@ import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import * as React from "react";
-import { TECHNOLOGY_COLORS, type TechnologyColorKey } from "shared/colors";
+import { COLORS, type ColorKey } from "shared/colors";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
+import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
+import { MediaPickerDialog } from "#/components/dialogs/media-picker";
 import {
 	Editor,
 	type ImagePickerHandler,
 	type ImagePickerResult,
 	type ImageUploadHandler,
 } from "#/components/editor";
-import { MediaPickerDialog } from "#/components/media-picker-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
@@ -184,10 +184,10 @@ function TechnologyBadge({
 	onRemove,
 }: {
 	name: string;
-	color: TechnologyColorKey;
+	color: string;
 	onRemove: () => void;
 }) {
-	const palette = TECHNOLOGY_COLORS[color] ?? TECHNOLOGY_COLORS.blue;
+	const palette = COLORS[color as ColorKey] ?? COLORS.blue;
 
 	return (
 		<Badge
@@ -238,7 +238,7 @@ function TechnologyPicker({
 					<TechnologyBadge
 						key={tech._id}
 						name={tech.name}
-						color={tech.color as TechnologyColorKey}
+						color={tech.color}
 						onRemove={() =>
 							onChange(technologyIds.filter((id) => id !== tech._id))
 						}
@@ -257,9 +257,7 @@ function TechnologyPicker({
 							<CommandEmpty>No technologies available.</CommandEmpty>
 							<CommandGroup>
 								{availableTechnologies.map((tech) => {
-									const palette =
-										TECHNOLOGY_COLORS[tech.color as TechnologyColorKey] ??
-										TECHNOLOGY_COLORS.blue;
+									const palette = COLORS[tech.color as ColorKey] ?? COLORS.blue;
 
 									return (
 										<CommandItem
@@ -398,11 +396,9 @@ export function ProjectEditor({
 }: ProjectEditorProps) {
 	const navigate = useNavigate();
 
-	const createDraft = useMutation(api.functions.projects.createDraft);
-	const updateDraft = useMutation(api.functions.projects.updateDraft);
-	const deleteProjectMutation = useMutation(
-		api.functions.projects.deleteProject,
-	);
+	const createDraft = useMutation(api.functions.projects.create);
+	const updateDraft = useMutation(api.functions.projects.update);
+	const deleteProjectMutation = useMutation(api.functions.projects.remove);
 
 	const [draftId, setDraftId] = React.useState<Id<"projects"> | undefined>(
 		initialProject?._id,

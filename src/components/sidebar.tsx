@@ -1,4 +1,3 @@
-import { convexQuery } from "@convex-dev/react-query";
 import {
 	Briefcase,
 	Cpu,
@@ -12,8 +11,6 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { api } from "convex/_generated/api";
-import type { FunctionArgs } from "convex/server";
 import * as React from "react";
 import {
 	Sidebar,
@@ -34,12 +31,9 @@ import {
 	SidebarSeparator,
 	SidebarTrigger,
 } from "#/components/ui/sidebar";
+import { listRecentPosts, listRecentProjects } from "#/queries/admin";
 
-type SidebarAuthorId = FunctionArgs<
-	typeof api.functions.posts.listRecentPosts
->["authorId"];
-
-function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
+function AdminSidebar() {
 	const pathname = useRouterState({
 		select: (state) => state.location.pathname,
 	});
@@ -86,7 +80,7 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 							<React.Suspense
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
-								<RecentPostsMenu authorId={authorId} pathname={pathname} />
+								<RecentPostsMenu pathname={pathname} />
 							</React.Suspense>
 
 							<SidebarMenuItem>
@@ -109,7 +103,7 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 							<React.Suspense
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
-								<RecentProjectsMenu authorId={authorId} pathname={pathname} />
+								<RecentProjectsMenu pathname={pathname} />
 							</React.Suspense>
 
 							<SidebarMenuItem>
@@ -222,16 +216,8 @@ function AdminSidebar({ authorId }: { authorId: SidebarAuthorId }) {
 	);
 }
 
-function RecentPostsMenu({
-	authorId,
-	pathname,
-}: {
-	authorId: SidebarAuthorId;
-	pathname: string;
-}) {
-	const { data: recentPosts } = useSuspenseQuery(
-		convexQuery(api.functions.posts.listRecentPosts, { authorId, limit: 5 }),
-	);
+function RecentPostsMenu({ pathname }: { pathname: string }) {
+	const { data: recentPosts } = useSuspenseQuery(listRecentPosts({ limit: 5 }));
 
 	if (recentPosts.length === 0) {
 		return (
@@ -263,18 +249,9 @@ function RecentPostsMenu({
 	);
 }
 
-function RecentProjectsMenu({
-	authorId,
-	pathname,
-}: {
-	authorId: SidebarAuthorId;
-	pathname: string;
-}) {
+function RecentProjectsMenu({ pathname }: { pathname: string }) {
 	const { data: recentProjects } = useSuspenseQuery(
-		convexQuery(api.functions.projects.listRecentProjects, {
-			authorId,
-			limit: 5,
-		}),
+		listRecentProjects({ limit: 5 }),
 	);
 
 	if (recentProjects.length === 0) {

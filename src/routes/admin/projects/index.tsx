@@ -1,4 +1,3 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { Eye, Pencil, Plus } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +20,7 @@ import {
 	searchFromSortingState,
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
+import { listProjects } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
 const PROJECT_SORT_FIELDS = ["title", "slug"] as const;
@@ -38,7 +38,7 @@ function listProjectsQuery(
 	cursor: string | null,
 	search: { sortField?: ProjectSortField; sortDirection?: "asc" | "desc" },
 ) {
-	return convexQuery(api.functions.projects.list, {
+	return listProjects({
 		paginationOpts: { numItems: PAGE_SIZE, cursor },
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
@@ -70,9 +70,7 @@ function RouteComponent() {
 		() => sortingStateFromSearch<ProjectSortField>(search),
 		[search],
 	);
-	const updateProjectSummary = useMutation(
-		api.functions.projects.updateProjectSummary,
-	);
+	const updateProject = useMutation(api.functions.projects.updateSummary);
 	const titleInputRef = React.useRef<HTMLInputElement>(null);
 	const slugInputRef = React.useRef<HTMLInputElement>(null);
 	const {
@@ -107,7 +105,7 @@ function RouteComponent() {
 				return false;
 			}
 
-			await updateProjectSummary({
+			await updateProject({
 				id,
 				title,
 				slug,

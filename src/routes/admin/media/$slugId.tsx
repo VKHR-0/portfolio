@@ -1,4 +1,3 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { Eye, Maximize, Trash, X } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -21,6 +20,7 @@ import {
 } from "#/components/ui/dialog";
 import { Separator } from "#/components/ui/separator";
 import { Spinner } from "#/components/ui/spinner";
+import { getMediaBySlug } from "#/queries/admin";
 
 function formatFileSize(bytes: number): string {
 	if (bytes < 1024) return `${bytes} B`;
@@ -30,9 +30,7 @@ function formatFileSize(bytes: number): string {
 
 export const Route = createFileRoute("/admin/media/$slugId")({
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(
-			convexQuery(api.functions.media.getBySlug, { slug: params.slugId }),
-		);
+		await context.queryClient.ensureQueryData(getMediaBySlug(params.slugId));
 	},
 	component: RouteComponent,
 });
@@ -40,16 +38,14 @@ export const Route = createFileRoute("/admin/media/$slugId")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const { slugId } = Route.useParams();
-	const deleteMediaMutation = useMutation(api.functions.media.deleteMedia);
+	const deleteMediaMutation = useMutation(api.functions.media.remove);
 	const [isDeleting, setIsDeleting] = React.useState(false);
 	const [isImageExpanded, setIsImageExpanded] = React.useState(false);
 
-	const { data: media } = useSuspenseQuery(
-		convexQuery(api.functions.media.getBySlug, { slug: slugId }),
-	);
+	const { data: media } = useSuspenseQuery(getMediaBySlug(slugId));
 
-	const postUsageCount = media.usedInPosts.length;
-	const projectUsageCount = media.usedInProjects.length;
+	const postUsageCount = media.posts.length;
+	const projectUsageCount = media.projects.length;
 	const usageCount = postUsageCount + projectUsageCount;
 	const isInUse = usageCount > 0;
 	const usageSections = [
@@ -57,14 +53,14 @@ function RouteComponent() {
 			key: "posts",
 			title: "Posts",
 			count: postUsageCount,
-			items: media.usedInPosts,
+			items: media.posts,
 			to: "/admin/posts/$slugId" as const,
 		},
 		{
 			key: "projects",
 			title: "Projects",
 			count: projectUsageCount,
-			items: media.usedInProjects,
+			items: media.projects,
 			to: "/admin/projects/$slugId" as const,
 		},
 	].filter((section) => section.count > 0);

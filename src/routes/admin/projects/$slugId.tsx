@@ -1,18 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-	getEditableProjectBySlugQuery,
-	listAllTechnologiesQuery,
-} from "#/queries";
+import { getProjectBySlug, listTechnologies } from "#/queries/admin";
 import { ProjectEditor, ProjectEditorSkeleton } from "./-project-editor";
 
 export const Route = createFileRoute("/admin/projects/$slugId")({
 	loader: async ({ context, params }) => {
 		await Promise.all([
+			context.queryClient.ensureQueryData(getProjectBySlug(params.slugId)),
 			context.queryClient.ensureQueryData(
-				getEditableProjectBySlugQuery(params.slugId),
+				listTechnologies({ sortField: "name", sortDirection: "asc" }),
 			),
-			context.queryClient.ensureQueryData(listAllTechnologiesQuery()),
 		]);
 	},
 	component: RouteComponent,
@@ -20,12 +17,19 @@ export const Route = createFileRoute("/admin/projects/$slugId")({
 
 function RouteComponent() {
 	const { slugId } = Route.useParams();
-	const { data: project } = useQuery(getEditableProjectBySlugQuery(slugId));
-	const { data: technologies } = useQuery(listAllTechnologiesQuery());
+	const { data: project } = useQuery(getProjectBySlug(slugId));
+	const { data: technologiesResult } = useQuery(
+		listTechnologies({ sortField: "name", sortDirection: "asc" }),
+	);
 
-	if (project === undefined || technologies === undefined) {
+	if (project === undefined || technologiesResult === undefined) {
 		return <ProjectEditorSkeleton />;
 	}
 
-	return <ProjectEditor initialProject={project} technologies={technologies} />;
+	return (
+		<ProjectEditor
+			initialProject={project}
+			technologies={technologiesResult.page}
+		/>
+	);
 }

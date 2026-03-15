@@ -4,8 +4,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarkdownContent } from "#/components/markdown-content";
 import { Badge } from "#/components/ui/badge";
-import { getPostBySlug } from "#/queries/public";
 import { getRendered } from "#/functions/renderer";
+import { getPostBySlug } from "#/queries/public";
 
 export const Route = createFileRoute("/_home/posts/$slugId")({
 	loader: async ({ context, params }) => {

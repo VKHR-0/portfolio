@@ -6,10 +6,10 @@ import { api } from "convex/_generated/api";
 import { useMutation } from "convex/react";
 import * as React from "react";
 import {
+	COLOR_KEYS,
+	COLORS,
+	type ColorKey,
 	getRandomColorKey,
-	TECHNOLOGY_COLOR_KEYS,
-	TECHNOLOGY_COLORS,
-	type TechnologyColorKey,
 } from "shared/colors";
 import { SLUG_PATTERN, toSlug } from "shared/slug";
 import { toast } from "sonner";
@@ -41,13 +41,9 @@ const createTechnologySchema = z.object({
 		.trim()
 		.regex(SLUG_PATTERN, "Use lowercase letters, numbers, and hyphens.")
 		.or(z.literal("")),
-	color: z.enum(
-		TECHNOLOGY_COLOR_KEYS as unknown as [
-			TechnologyColorKey,
-			...TechnologyColorKey[],
-		],
-		{ message: "Please select a color." },
-	),
+	color: z.enum(COLOR_KEYS as [ColorKey, ...ColorKey[]], {
+		message: "Please select a color.",
+	}),
 });
 
 export const Route = createFileRoute("/admin/technologies/new")({
@@ -56,9 +52,7 @@ export const Route = createFileRoute("/admin/technologies/new")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const createTechnology = useMutation(
-		api.functions.technologies.createTechnology,
-	);
+	const createTechnology = useMutation(api.functions.technologies.create);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
 	const nameInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -76,10 +70,11 @@ function RouteComponent() {
 			onSubmit: createTechnologySchema,
 		},
 		onSubmit: async ({ value }) => {
+			const slug = toSlug(value.slug || value.name);
 			const result = await toAsyncResult(
 				createTechnology({
 					name: value.name,
-					slug: value.slug || undefined,
+					slug,
 					color: value.color,
 				}),
 			);
@@ -204,8 +199,8 @@ function RouteComponent() {
 										</Button>
 									</div>
 									<div className="grid grid-cols-6 gap-x-1.5 gap-y-2.5">
-										{TECHNOLOGY_COLOR_KEYS.map((key) => {
-											const palette = TECHNOLOGY_COLORS[key];
+										{COLOR_KEYS.map((key) => {
+											const palette = COLORS[key];
 											const isSelected = key === field.state.value;
 
 											return (

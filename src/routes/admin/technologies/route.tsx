@@ -1,4 +1,3 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { Dice, Plus, Trash } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,14 +9,14 @@ import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
 import * as React from "react";
 import {
+	COLOR_KEYS,
+	COLORS,
+	type ColorKey,
 	getRandomColorKey,
-	TECHNOLOGY_COLOR_KEYS,
-	TECHNOLOGY_COLORS,
-	type TechnologyColorKey,
 } from "shared/colors";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
+import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
 import { EditableCell, PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -34,6 +33,7 @@ import {
 } from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
 import { cn } from "#/lib/utils";
+import { listTechnologies } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
 const TECH_SORT_FIELDS = ["name", "slug", "_creationTime"] as const;
@@ -52,7 +52,7 @@ function listTechQuery(
 	cursor: string | null,
 	search: { sortField?: TechSortField; sortDirection?: "asc" | "desc" },
 ) {
-	return convexQuery(api.functions.technologies.list, {
+	return listTechnologies({
 		paginationOpts: { numItems: PAGE_SIZE, cursor },
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
@@ -60,7 +60,7 @@ function listTechQuery(
 }
 
 function ColorSwatch({ color }: { color: string }) {
-	const palette = TECHNOLOGY_COLORS[color as TechnologyColorKey];
+	const palette = COLORS[color as ColorKey];
 
 	if (!palette) {
 		return <span className="size-4 rounded-full bg-muted" />;
@@ -100,8 +100,8 @@ function ColorSwatchPicker({
 			/>
 			<PopoverContent align="start" className="w-auto p-2">
 				<div className="grid grid-cols-6 gap-x-1.5 gap-y-2.5">
-					{TECHNOLOGY_COLOR_KEYS.map((key) => {
-						const palette = TECHNOLOGY_COLORS[key];
+					{COLOR_KEYS.map((key) => {
+						const palette = COLORS[key];
 						const isSelected = key === value;
 
 						return (
@@ -162,12 +162,8 @@ function RouteComponent() {
 		() => sortingStateFromSearch<TechSortField>(search),
 		[search],
 	);
-	const updateTechnology = useMutation(
-		api.functions.technologies.updateTechnology,
-	);
-	const deleteTechnology = useMutation(
-		api.functions.technologies.deleteTechnology,
-	);
+	const updateTechnology = useMutation(api.functions.technologies.update);
+	const deleteTechnology = useMutation(api.functions.technologies.remove);
 	const queryClient = useQueryClient();
 	const nameInputRef = React.useRef<HTMLInputElement>(null);
 	const slugInputRef = React.useRef<HTMLInputElement>(null);
@@ -210,7 +206,12 @@ function RouteComponent() {
 				return false;
 			}
 
-			await updateTechnology({ id, name, slug, color: value.color });
+			await updateTechnology({
+				id,
+				name,
+				slug,
+				color: value.color as ColorKey,
+			});
 		},
 		onError: (mutationError) => {
 			toast.error(

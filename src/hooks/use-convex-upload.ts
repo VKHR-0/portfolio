@@ -11,7 +11,7 @@ type UploadResult = {
 
 export function useConvexUpload() {
 	const generateUploadUrl = useMutation(api.functions.media.generateUploadUrl);
-	const createMedia = useMutation(api.functions.media.createMedia);
+	const createMedia = useMutation(api.functions.media.create);
 
 	const uploadFile = async (file: File): Promise<UploadResult> => {
 		const uploadUrl = await generateUploadUrl();

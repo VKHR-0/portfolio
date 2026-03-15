@@ -1,21 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { listAllTechnologiesQuery } from "#/queries";
+import { listTechnologies } from "#/queries/admin";
 import { ProjectEditor, ProjectEditorSkeleton } from "./-project-editor";
 
 export const Route = createFileRoute("/admin/projects/new")({
 	loader: async ({ context }) => {
-		await context.queryClient.ensureQueryData(listAllTechnologiesQuery());
+		await context.queryClient.ensureQueryData(
+			listTechnologies({ sortField: "name", sortDirection: "asc" }),
+		);
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { data: technologies } = useQuery(listAllTechnologiesQuery());
+	const { data: technologiesResult } = useQuery(
+		listTechnologies({ sortField: "name", sortDirection: "asc" }),
+	);
 
-	if (technologies === undefined) {
+	if (technologiesResult === undefined) {
 		return <ProjectEditorSkeleton />;
 	}
 
-	return <ProjectEditor technologies={technologies} />;
+	return <ProjectEditor technologies={technologiesResult.page} />;
 }

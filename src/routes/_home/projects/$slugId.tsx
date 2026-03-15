@@ -2,11 +2,11 @@ import { ArrowLeft, ExternalLink, Github } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { COLORS, type ColorKey } from "shared/colors";
 import { MarkdownContent } from "#/components/markdown-content";
 import { Badge } from "#/components/ui/badge";
-import { getProjectBySlug } from "#/queries/public";
 import { getRendered } from "#/functions/renderer";
-import { COLORS, type ColorKey } from "shared/colors";
+import { getProjectBySlug } from "#/queries/public";
 
 export const Route = createFileRoute("/_home/projects/$slugId")({
 	loader: async ({ context, params }) => {
@@ -147,9 +147,7 @@ function RouteComponent() {
 				{project.technologies.length > 0 && (
 					<div className="mb-4 flex flex-wrap gap-1.5">
 						{project.technologies.map((tech) => {
-							const palette =
-								COLORS[tech.color as ColorKey] ??
-								COLORS.blue;
+							const palette = COLORS[tech.color as ColorKey] ?? COLORS.blue;
 
 							return (
 								<Badge

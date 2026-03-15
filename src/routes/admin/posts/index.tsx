@@ -1,4 +1,3 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { Eye, EyeOff, Pencil, Plus } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +25,7 @@ import {
 	searchFromSortingState,
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
+import { listPosts } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
 const POST_SORT_FIELDS = ["title", "slug", "status"] as const;
@@ -43,7 +43,7 @@ function listPostsQuery(
 	cursor: string | null,
 	search: { sortField?: PostSortField; sortDirection?: "asc" | "desc" },
 ) {
-	return convexQuery(api.functions.posts.list, {
+	return listPosts({
 		paginationOpts: { numItems: PAGE_SIZE, cursor },
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
@@ -73,7 +73,7 @@ function RouteComponent() {
 		() => sortingStateFromSearch<PostSortField>(search),
 		[search],
 	);
-	const updatePostSummary = useMutation(api.functions.posts.updatePostSummary);
+	const updatePost = useMutation(api.functions.posts.updateSummary);
 	const titleInputRef = React.useRef<HTMLInputElement>(null);
 	const slugInputRef = React.useRef<HTMLInputElement>(null);
 	const {
@@ -108,7 +108,7 @@ function RouteComponent() {
 				return false;
 			}
 
-			await updatePostSummary({
+			await updatePost({
 				id,
 				title,
 				slug,

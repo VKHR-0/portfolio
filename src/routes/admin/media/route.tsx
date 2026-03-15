@@ -1,9 +1,7 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { Photo, Upload } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { api } from "convex/_generated/api";
 import * as React from "react";
 import { toast } from "sonner";
 import { CursorPagination } from "#/components/cursor-pagination";
@@ -21,11 +19,12 @@ import { Skeleton } from "#/components/ui/skeleton";
 import { Spinner } from "#/components/ui/spinner";
 import { useConvexUpload } from "#/hooks/use-convex-upload";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
+import { listMedia } from "#/queries/admin";
 
 const PAGE_SIZE = 20;
 
 function listMediaQuery(cursor: string | null) {
-	return convexQuery(api.functions.media.list, {
+	return listMedia({
 		paginationOpts: { numItems: PAGE_SIZE, cursor },
 	});
 }
@@ -182,9 +181,7 @@ function UploadButton() {
 		const result = await toAsyncResult(
 			uploadFile(file).then(async () => {
 				await queryClient.invalidateQueries({
-					queryKey: convexQuery(api.functions.media.list, {
-						paginationOpts: { numItems: PAGE_SIZE, cursor: null },
-					}).queryKey,
+					queryKey: listMediaQuery(null).queryKey,
 				});
 				toast.success("Image uploaded.");
 			}),

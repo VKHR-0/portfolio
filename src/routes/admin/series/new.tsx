@@ -42,7 +42,7 @@ export const Route = createFileRoute("/admin/series/new")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const createSeries = useMutation(api.functions.series.createSeries);
+	const createSeries = useMutation(api.functions.series.create);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
 	const nameInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -60,10 +60,11 @@ function RouteComponent() {
 			onSubmit: createSeriesSchema,
 		},
 		onSubmit: async ({ value }) => {
+			const slug = toSlug(value.slug || value.name);
 			const result = await toAsyncResult(
 				createSeries({
 					name: value.name,
-					slug: value.slug || undefined,
+					slug,
 					description: value.description || undefined,
 				}),
 			);

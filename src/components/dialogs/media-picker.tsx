@@ -1,23 +1,22 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { Photo, Upload } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "convex/_generated/api";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import type { ImagePickerResult } from "#/components/editor";
 import { useConvexUpload } from "#/hooks/use-convex-upload";
 import { cn } from "#/lib/utils";
-import { Button } from "./ui/button";
+import { listMedia } from "#/queries/admin";
+import { Button } from "../ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "./ui/dialog";
-import { ScrollArea } from "./ui/scroll-area";
-import { Skeleton } from "./ui/skeleton";
-import { Spinner } from "./ui/spinner";
+} from "../ui/dialog";
+import { ScrollArea } from "../ui/scroll-area";
+import { Skeleton } from "../ui/skeleton";
+import { Spinner } from "../ui/spinner";
 
 type MediaPickerDialogProps = {
 	open: boolean;
@@ -25,19 +24,35 @@ type MediaPickerDialogProps = {
 	onCancel: () => void;
 };
 
+const MEDIA_PAGE_SIZE = 20;
+
 export function MediaPickerDialog({
 	open,
 	onSelect,
 	onCancel,
 }: MediaPickerDialogProps) {
-	const { data: mediaItems, isPending } = useQuery(
-		convexQuery(api.functions.media.listAll, {}),
-	);
-
 	const { uploadFile } = useConvexUpload();
+	const queryClient = useQueryClient();
+	const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isPending } =
+		useInfiniteQuery({
+			queryKey: ["admin", "media-picker"],
+			initialPageParam: null as string | null,
+			queryFn: ({ pageParam }) =>
+				queryClient.fetchQuery(
+					listMedia({
+						paginationOpts: {
+							numItems: MEDIA_PAGE_SIZE,
+							cursor: pageParam,
+						},
+					}),
+				),
+			getNextPageParam: (lastPage) =>
+				lastPage.isDone ? undefined : lastPage.continueCursor,
+		});
 	const [isUploading, setIsUploading] = React.useState(false);
 	const [isDragging, setIsDragging] = React.useState(false);
 	const fileInputRef = React.useRef<HTMLInputElement>(null);
+	const mediaItems = data?.pages.flatMap((page) => page.page) ?? [];
 
 	const handleFileUpload = async (file: File) => {
 		if (!file.type.startsWith("image/")) return;
@@ -194,6 +209,18 @@ export function MediaPickerDialog({
 									) : null,
 								)}
 							</div>
+							{hasNextPage ? (
+								<div className="mt-3 flex justify-center">
+									<Button
+										type="button"
+										variant="outline"
+										disabled={isFetchingNextPage}
+										onClick={() => void fetchNextPage()}
+									>
+										{isFetchingNextPage ? "Loading..." : "Load more"}
+									</Button>
+								</div>
+							) : null}
 						</ScrollArea>
 					)}
 				</div>

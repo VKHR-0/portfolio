@@ -40,7 +40,7 @@ export const Route = createFileRoute("/admin/tags/new")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const createTag = useMutation(api.functions.tags.createTag);
+	const createTag = useMutation(api.functions.tags.create);
 	const [isSlugManuallyEdited, setIsSlugManuallyEdited] = React.useState(false);
 	const nameInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -57,10 +57,11 @@ function RouteComponent() {
 			onSubmit: createTagSchema,
 		},
 		onSubmit: async ({ value }) => {
+			const slug = toSlug(value.slug || value.name);
 			const result = await toAsyncResult(
 				createTag({
 					name: value.name,
-					slug: value.slug || undefined,
+					slug,
 				}),
 			);
 

@@ -1,4 +1,3 @@
-import { convexQuery } from "@convex-dev/react-query";
 import { Plus, Trash } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,7 +10,7 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
+import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
 import { EditableCell, PageCard } from "#/components/page-card";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -22,6 +21,7 @@ import {
 	sortingStateFromSearch,
 } from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
+import { listTags } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
 const TAG_SORT_FIELDS = ["name", "slug", "_creationTime"] as const;
@@ -39,7 +39,7 @@ function listTagsQuery(
 	cursor: string | null,
 	search: { sortField?: TagSortField; sortDirection?: "asc" | "desc" },
 ) {
-	return convexQuery(api.functions.tags.list, {
+	return listTags({
 		paginationOpts: { numItems: PAGE_SIZE, cursor },
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
@@ -67,8 +67,8 @@ function RouteComponent() {
 		() => sortingStateFromSearch<TagSortField>(search),
 		[search],
 	);
-	const updateTag = useMutation(api.functions.tags.updateTag);
-	const deleteTag = useMutation(api.functions.tags.deleteTag);
+	const updateTag = useMutation(api.functions.tags.update);
+	const deleteTag = useMutation(api.functions.tags.remove);
 	const queryClient = useQueryClient();
 	const nameInputRef = React.useRef<HTMLInputElement>(null);
 	const slugInputRef = React.useRef<HTMLInputElement>(null);

@@ -15,14 +15,14 @@ import { useMutation } from "convex/react";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
-import { ConfirmDeleteDialog } from "#/components/confirm-delete-dialog";
+import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
+import { MediaPickerDialog } from "#/components/dialogs/media-picker";
 import {
 	Editor,
 	type ImagePickerHandler,
 	type ImagePickerResult,
 	type ImageUploadHandler,
 } from "#/components/editor";
-import { MediaPickerDialog } from "#/components/media-picker-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
@@ -386,9 +386,9 @@ export function PostEditor({
 }: PostEditorProps) {
 	const navigate = useNavigate();
 
-	const createDraft = useMutation(api.functions.posts.createDraft);
-	const deletePost = useMutation(api.functions.posts.deletePost);
-	const updateDraft = useMutation(api.functions.posts.updateDraft);
+	const createDraft = useMutation(api.functions.posts.create);
+	const deletePost = useMutation(api.functions.posts.remove);
+	const updateDraft = useMutation(api.functions.posts.update);
 
 	const [draftId, setDraftId] = React.useState<Id<"posts"> | undefined>(
 		initialPost?._id,
