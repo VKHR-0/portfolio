@@ -4,7 +4,7 @@ import { api } from "convex/_generated/api";
 import { authClient } from "#/lib/auth-client";
 import { isAuthError } from "#/lib/auth-errors";
 
-export const ClientAuthBoundary = ({ children }: React.PropsWithChildren) => {
+export const AuthedPage = ({ children }: React.PropsWithChildren) => {
 	const navigate = useNavigate();
 	return (
 		<AuthBoundary
