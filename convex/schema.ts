@@ -23,8 +23,7 @@ export default defineSchema({
 	})
 		.index("by_slug", ["slug"])
 		.index("by_title", ["title"])
-		.index("by_author", ["authorId", "_creationTime"])
-		.index("by_creation_time", ["_creationTime"]),
+		.index("by_author", ["authorId"]),
 
 	posts: defineTable({
 		title: v.string(),
@@ -49,9 +48,8 @@ export default defineSchema({
 		.index("by_status", ["status"])
 		.index("by_category", ["categoryId"])
 		.index("by_series", ["seriesId"])
-		.index("by_author", ["authorId", "_creationTime"])
-		.index("by_status_and_category", ["status", "categoryId"])
-		.index("by_creation_time", ["_creationTime"]),
+		.index("by_author", ["authorId"])
+		.index("by_status_and_category", ["status", "categoryId"]),
 
 	categories: defineTable({
 		name: v.string(),
@@ -94,8 +92,7 @@ export default defineSchema({
 		authorId: v.string(),
 	})
 		.index("by_slug", ["slug"])
-		.index("by_storage_id", ["storageId"])
-		.index("by_creation_time", ["_creationTime"]),
+		.index("by_storage_id", ["storageId"]),
 
 	postMedia: defineTable({
 		postId: v.id("posts"),

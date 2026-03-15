@@ -8,11 +8,16 @@
  * @module
  */
 
+import type * as _lib_attachment from "../_lib/attachment.js";
+import type * as _lib_authed from "../_lib/authed.js";
+import type * as _lib_media from "../_lib/media.js";
+import type * as _lib_owned from "../_lib/owned.js";
+import type * as _lib_sorted from "../_lib/sorted.js";
+import type * as _lib_sync from "../_lib/sync.js";
+import type * as _lib_validated from "../_lib/validated.js";
 import type * as auth from "../auth.js";
 import type * as functions_categories from "../functions/categories.js";
-import type * as functions_general from "../functions/general.js";
 import type * as functions_media from "../functions/media.js";
-import type * as functions_mediaAttachments from "../functions/attachments.js";
 import type * as functions_posts from "../functions/posts.js";
 import type * as functions_projects from "../functions/projects.js";
 import type * as functions_series from "../functions/series.js";
@@ -27,11 +32,16 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "_lib/attachment": typeof _lib_attachment;
+  "_lib/authed": typeof _lib_authed;
+  "_lib/media": typeof _lib_media;
+  "_lib/owned": typeof _lib_owned;
+  "_lib/sorted": typeof _lib_sorted;
+  "_lib/sync": typeof _lib_sync;
+  "_lib/validated": typeof _lib_validated;
   auth: typeof auth;
   "functions/categories": typeof functions_categories;
-  "functions/general": typeof functions_general;
   "functions/media": typeof functions_media;
-  "functions/mediaAttachments": typeof functions_mediaAttachments;
   "functions/posts": typeof functions_posts;
   "functions/projects": typeof functions_projects;
   "functions/series": typeof functions_series;
