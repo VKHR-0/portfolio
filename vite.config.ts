@@ -1,12 +1,15 @@
+import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import react from "@vitejs/plugin-react-oxc";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 const config = defineConfig({
+	resolve: {
+		tsconfigPaths: true,
+	},
 	plugins: [
 		devtools({
 			editor: {
@@ -19,17 +22,24 @@ const config = defineConfig({
 				},
 			},
 		}),
-		nitro({
-			preset: "bun",
-			rollupConfig: {
-				external: [/^@sentry\//],
-			},
-		}),
-		tsconfigPaths({ projects: ["./tsconfig.json"] }),
+		nitro({ preset: "bun" }),
 		tailwindcss(),
 		tanstackStart(),
 		react(),
+		//@ts-expect-error
+		babel({
+			presets: [reactCompilerPreset()],
+		}),
 	],
+	build: {
+		rolldownOptions: {
+			output: {
+				codeSplitting: {
+					groups: [{ name: "vendor", test: /\/react(?:-dom)?/ }],
+				},
+			},
+		},
+	},
 	ssr: {
 		noExternal: ["@convex-dev/better-auth"],
 	},
