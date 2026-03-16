@@ -8,3 +8,11 @@ export function getPostBySlug(slug: string) {
 export function getProjectBySlug(slug: string) {
 	return convexQuery(api.functions.projects.getPublicBySlug, { slug });
 }
+
+export function listPublicProjects(limit?: number) {
+	return convexQuery(api.functions.projects.listPublicRecent, { limit });
+}
+
+export function listPublicPosts(limit?: number) {
+	return convexQuery(api.functions.posts.listPublicRecent, { limit });
+}

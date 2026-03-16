@@ -54,6 +54,28 @@ const listRecent = zAuthedQuery({
 	},
 });
 
+const listPublicRecent = zQuery({
+	args: {
+		limit: z.number().min(1).max(20).optional(),
+	},
+	handler: async (ctx, args) => {
+		const limit = args.limit ?? 5;
+
+		const posts = await ctx.db
+			.query("posts")
+			.filter((q) => q.eq(q.field("status"), "public"))
+			.order("desc")
+			.take(limit);
+
+		return posts.map(({ _id, title, slug, _creationTime }) => ({
+			_id,
+			title,
+			slug,
+			_creationTime,
+		}));
+	},
+});
+
 const postStatus = z.union([
 	z.literal("draft"),
 	z.literal("private"),
@@ -319,6 +341,7 @@ export {
 	getEditableBySlug,
 	getPublicBySlug,
 	list,
+	listPublicRecent,
 	listRecent,
 	remove,
 	update,

@@ -53,6 +53,48 @@ const listRecent = zAuthedQuery({
 	},
 });
 
+const listPublicRecent = zQuery({
+	args: {
+		limit: z.number().min(1).max(20).optional(),
+	},
+	handler: async (ctx, args) => {
+		const limit = args.limit ?? 4;
+
+		const projects = await ctx.db
+			.query("projects")
+			.filter((q) => q.neq(q.field("status"), "archived"))
+			.order("desc")
+			.take(limit);
+
+		return await Promise.all(
+			projects.map(async (project) => {
+				const techRows = await ctx.db
+					.query("projectTechnology")
+					.withIndex("by_project", (q) => q.eq("projectId", project._id))
+					.collect();
+
+				const [technologies, imageUrl] = await Promise.all([
+					Promise.all(techRows.map((row) => ctx.db.get(row.technologyId))),
+					resolveImageUrl(ctx, project.imageId),
+				]);
+
+				return {
+					_id: project._id,
+					title: project.title,
+					slug: project.slug,
+					description: project.description,
+					imageUrl,
+					technologies: technologies
+						.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
+						.map(({ name, color }) => ({ name, color })),
+					repositoryUrl: project.repositoryUrl,
+					demoUrl: project.demoUrl,
+				};
+			}),
+		);
+	},
+});
+
 const projectStatus = z.union([
 	z.literal("active"),
 	z.literal("completed"),
@@ -315,6 +357,7 @@ export {
 	getEditableBySlug,
 	getPublicBySlug,
 	list,
+	listPublicRecent,
 	listRecent,
 	remove,
 	update,
