@@ -67,13 +67,13 @@ export function ProjectsAdminResource({
 			{
 				id: "actions",
 				enableSorting: false,
-				header: "",
+        header: "",
 				meta: {
-					headerClassName: "w-8",
+					headerClassName: "w-[6%]",
 					cellClassName: "px-1 py-2",
 				},
 				cell: ({ row }) => (
-					<div className="flex items-center gap-2">
+					<div className="flex justify-center gap-2">
 						<DataTable.ActionButton
 							nativeButton={false}
 							render={
@@ -147,7 +147,7 @@ export function ProjectsAdminResource({
 				accessorKey: "status",
 				header: "Status",
 				meta: {
-					headerClassName: "w-[16%]",
+					headerClassName: "w-[6%]",
 				},
 				cell: ({ row }) => {
 					const variant =

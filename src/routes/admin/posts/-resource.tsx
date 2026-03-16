@@ -72,11 +72,11 @@ export function PostsAdminResource({
 				enableSorting: false,
 				header: "",
 				meta: {
-					headerClassName: "w-8",
+					headerClassName: "w-[7%]",
 					cellClassName: "px-1 py-2",
 				},
 				cell: ({ row }) => (
-					<div className="flex items-center gap-2">
+					<div className="flex justify-center gap-2">
 						{row.original.status !== "draft" ? (
 							<DataTable.ActionButton
 								nativeButton={false}
@@ -166,7 +166,7 @@ export function PostsAdminResource({
 				accessorKey: "status",
 				header: "Status",
 				meta: {
-					headerClassName: "w-[16%]",
+					headerClassName: "w-[6%]",
 				},
 				cell: ({ row }) => {
 					const variant =

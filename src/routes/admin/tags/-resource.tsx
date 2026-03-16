@@ -95,8 +95,8 @@ export function TagsAdminResource({
 				enableSorting: false,
 				header: "",
 				meta: {
-					headerClassName: "w-8",
-					cellClassName: "px-1 py-2",
+					headerClassName: "w-9",
+					cellClassName: "px-1 py-2 grid place-items-center",
 				},
 				cell: ({ row }) => (
 					<DataTable.ActionButton
@@ -150,7 +150,10 @@ export function TagsAdminResource({
 			},
 			{
 				accessorKey: "_creationTime",
-				header: "Created",
+        header: "Created",
+        meta: {
+          headerClassName: "w-[20%]",
+        },
 				cell: ({ row }) =>
 					new Date(row.original._creationTime).toLocaleString(),
 			},
