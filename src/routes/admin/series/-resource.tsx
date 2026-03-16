@@ -17,11 +17,8 @@ import {
 import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
 import { Page } from "#/components/page";
 import { Button } from "#/components/ui/button";
-import {
-	type AdminTableSearch,
-	getCursorFromSearch,
-} from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
+import { getCursor, type TableSearchParams } from "#/lib/table-search-params";
 import { listSeries } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
@@ -39,20 +36,22 @@ type SeriesRow = {
 };
 
 type SeriesAdminResourceProps = {
-	search: AdminTableSearch<SeriesSortField>;
+	search: TableSearchParams<SeriesSortField>;
 	onSearchChange: (
 		updater: (
-			prev: AdminTableSearch<SeriesSortField>,
-		) => AdminTableSearch<SeriesSortField>,
+			prev: TableSearchParams<SeriesSortField>,
+		) => TableSearchParams<SeriesSortField>,
 	) => void;
 	extraOverlays?: React.ReactNode;
 };
 
-export function getSeriesAdminQuery(search: AdminTableSearch<SeriesSortField>) {
+export function getSeriesAdminQuery(
+	search: TableSearchParams<SeriesSortField>,
+) {
 	return listSeries({
 		paginationOpts: {
 			numItems: PAGE_SIZE,
-			cursor: getCursorFromSearch(search),
+			cursor: getCursor(search),
 		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,

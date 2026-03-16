@@ -1,16 +1,14 @@
 import type { SortingState } from "@tanstack/react-table";
 import z from "zod";
 
-export type AdminTableSortDirection = "asc" | "desc";
-
-export type AdminTableSearch<TField extends string> = {
+export type TableSearchParams<TField extends string> = {
 	sortField?: TField;
-	sortDirection?: AdminTableSortDirection;
+	sortDirection?: "asc" | "desc";
 	cursor?: string;
 	page?: number;
 };
 
-export function createAdminTableSearchSchema<
+export function createSearchParamsSchema<
 	const TFields extends readonly [string, ...Array<string>],
 >(fields: TFields) {
 	return z
@@ -21,7 +19,7 @@ export function createAdminTableSearchSchema<
 			page: z.coerce.number().int().positive().optional(),
 		})
 		.transform((value) => {
-			const search: AdminTableSearch<(typeof fields)[number]> = {};
+			const search: TableSearchParams<(typeof fields)[number]> = {};
 
 			if (value.sortField) {
 				search.sortField = value.sortField;
@@ -40,8 +38,8 @@ export function createAdminTableSearchSchema<
 		});
 }
 
-export function sortingStateFromSearch<TField extends string>(
-	search: AdminTableSearch<TField>,
+export function toSortingState<TField extends string>(
+	search: TableSearchParams<TField>,
 ): SortingState {
 	if (!search.sortField) {
 		return [];
@@ -50,9 +48,9 @@ export function sortingStateFromSearch<TField extends string>(
 	return [{ id: search.sortField, desc: search.sortDirection !== "asc" }];
 }
 
-export function searchFromSortingState<TField extends string>(
+export function toSearchParams<TField extends string>(
 	sorting: SortingState,
-): AdminTableSearch<TField> {
+): TableSearchParams<TField> {
 	const nextSort = sorting[0];
 
 	if (!nextSort) {
@@ -65,22 +63,22 @@ export function searchFromSortingState<TField extends string>(
 	};
 }
 
-export function getCursorFromSearch<TField extends string>(
-	search: AdminTableSearch<TField>,
+export function getCursor<TField extends string>(
+	search: TableSearchParams<TField>,
 ): null | string {
 	return search.cursor ?? null;
 }
 
-export function getPageFromSearch<TField extends string>(
-	search: AdminTableSearch<TField>,
+export function getPage<TField extends string>(
+	search: TableSearchParams<TField>,
 ): number {
 	return search.page ?? 1;
 }
 
-export function applySortingToSearch<TField extends string>(
+export function applySorting<TField extends string>(
 	sorting: SortingState,
-): AdminTableSearch<TField> {
-	const nextSorting = searchFromSortingState<TField>(sorting);
+): TableSearchParams<TField> {
+	const nextSorting = toSearchParams<TField>(sorting);
 
 	return {
 		sortField: nextSorting.sortField,
@@ -90,22 +88,22 @@ export function applySortingToSearch<TField extends string>(
 	};
 }
 
-export function getNextPageSearch<TField extends string>(
-	search: AdminTableSearch<TField>,
+export function getNextPage<TField extends string>(
+	search: TableSearchParams<TField>,
 	cursor: string,
-): AdminTableSearch<TField> {
+): TableSearchParams<TField> {
 	return {
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
 		cursor,
-		page: getPageFromSearch(search) + 1,
+		page: getPage(search) + 1,
 	};
 }
 
-export function getPreviousPageSearch<TField extends string>(
-	search: AdminTableSearch<TField>,
+export function getPrevPage<TField extends string>(
+	search: TableSearchParams<TField>,
 	pageState: { cursor: null | string; page: number },
-): AdminTableSearch<TField> {
+): TableSearchParams<TField> {
 	return {
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,

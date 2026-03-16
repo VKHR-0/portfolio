@@ -29,11 +29,8 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "#/components/ui/popover";
-import {
-	type AdminTableSearch,
-	getCursorFromSearch,
-} from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
+import { getCursor, type TableSearchParams } from "#/lib/table-search-params";
 import { cn } from "#/lib/utils";
 import { listTechnologies } from "#/queries/admin";
 
@@ -52,11 +49,11 @@ type TechRow = {
 };
 
 type TechnologiesAdminResourceProps = {
-	search: AdminTableSearch<TechSortField>;
+	search: TableSearchParams<TechSortField>;
 	onSearchChange: (
 		updater: (
-			prev: AdminTableSearch<TechSortField>,
-		) => AdminTableSearch<TechSortField>,
+			prev: TableSearchParams<TechSortField>,
+		) => TableSearchParams<TechSortField>,
 	) => void;
 	extraOverlays?: React.ReactNode;
 };
@@ -175,12 +172,12 @@ function ColorPicker({ value, onChange, isSaving }: ColorPickerProps) {
 }
 
 export function getTechnologiesAdminQuery(
-	search: AdminTableSearch<TechSortField>,
+	search: TableSearchParams<TechSortField>,
 ) {
 	return listTechnologies({
 		paginationOpts: {
 			numItems: PAGE_SIZE,
-			cursor: getCursorFromSearch(search),
+			cursor: getCursor(search),
 		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,

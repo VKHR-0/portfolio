@@ -16,10 +16,7 @@ import {
 import { Page } from "#/components/page";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import {
-	type AdminTableSearch,
-	getCursorFromSearch,
-} from "#/lib/admin-table-sorting";
+import { getCursor, type TableSearchParams } from "#/lib/table-search-params";
 import { listProjects } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
@@ -36,21 +33,21 @@ type ProjectRow = {
 };
 
 type ProjectsAdminResourceProps = {
-	search: AdminTableSearch<ProjectSortField>;
+	search: TableSearchParams<ProjectSortField>;
 	onSearchChange: (
 		updater: (
-			prev: AdminTableSearch<ProjectSortField>,
-		) => AdminTableSearch<ProjectSortField>,
+			prev: TableSearchParams<ProjectSortField>,
+		) => TableSearchParams<ProjectSortField>,
 	) => void;
 };
 
 export function getProjectsAdminQuery(
-	search: AdminTableSearch<ProjectSortField>,
+	search: TableSearchParams<ProjectSortField>,
 ) {
 	return listProjects({
 		paginationOpts: {
 			numItems: PAGE_SIZE,
-			cursor: getCursorFromSearch(search),
+			cursor: getCursor(search),
 		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,

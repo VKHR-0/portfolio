@@ -17,11 +17,8 @@ import {
 import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
 import { Page } from "#/components/page";
 import { Button } from "#/components/ui/button";
-import {
-	type AdminTableSearch,
-	getCursorFromSearch,
-} from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
+import { getCursor, type TableSearchParams } from "#/lib/table-search-params";
 import { listCategories } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
@@ -39,22 +36,22 @@ type CategoryRow = {
 };
 
 type CategoriesAdminResourceProps = {
-	search: AdminTableSearch<CategorySortField>;
+	search: TableSearchParams<CategorySortField>;
 	onSearchChange: (
 		updater: (
-			prev: AdminTableSearch<CategorySortField>,
-		) => AdminTableSearch<CategorySortField>,
+			prev: TableSearchParams<CategorySortField>,
+		) => TableSearchParams<CategorySortField>,
 	) => void;
 	extraOverlays?: React.ReactNode;
 };
 
 export function getCategoriesAdminQuery(
-	search: AdminTableSearch<CategorySortField>,
+	search: TableSearchParams<CategorySortField>,
 ) {
 	return listCategories({
 		paginationOpts: {
 			numItems: PAGE_SIZE,
-			cursor: getCursorFromSearch(search),
+			cursor: getCursor(search),
 		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,

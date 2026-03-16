@@ -1,7 +1,7 @@
 import type { Store } from "@tanstack/react-store";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import type * as React from "react";
-import type { AdminTableSearch } from "#/lib/admin-table-sorting";
+import type { TableSearchParams } from "#/lib/table-search-params";
 
 export type CursorHistoryEntry = {
 	cursor: null | string;
@@ -9,7 +9,7 @@ export type CursorHistoryEntry = {
 };
 
 export type DataTableStoreState = {
-	search: AdminTableSearch<string>;
+	search: TableSearchParams<string>;
 	sorting: SortingState;
 	continueCursor: null | string;
 	isDone: boolean;
@@ -50,9 +50,9 @@ export type DataTableRootProps<TData extends object, TField extends string> = {
 	loadingLabel: string;
 	emptyLabel: string;
 	isLoading: boolean;
-	search: AdminTableSearch<TField>;
+	search: TableSearchParams<TField>;
 	onSearchChange: (
-		updater: (prev: AdminTableSearch<TField>) => AdminTableSearch<TField>,
+		updater: (prev: TableSearchParams<TField>) => TableSearchParams<TField>,
 	) => void;
 	pagination: {
 		continueCursor: null | string;

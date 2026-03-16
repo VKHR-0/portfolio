@@ -17,11 +17,8 @@ import {
 import { ConfirmDeleteDialog } from "#/components/dialogs/confirm-delete";
 import { Page } from "#/components/page";
 import { Button } from "#/components/ui/button";
-import {
-	type AdminTableSearch,
-	getCursorFromSearch,
-} from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
+import { getCursor, type TableSearchParams } from "#/lib/table-search-params";
 import { listTags } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
@@ -38,20 +35,20 @@ type TagRow = {
 };
 
 type TagsAdminResourceProps = {
-	search: AdminTableSearch<TagSortField>;
+	search: TableSearchParams<TagSortField>;
 	onSearchChange: (
 		updater: (
-			prev: AdminTableSearch<TagSortField>,
-		) => AdminTableSearch<TagSortField>,
+			prev: TableSearchParams<TagSortField>,
+		) => TableSearchParams<TagSortField>,
 	) => void;
 	extraOverlays?: React.ReactNode;
 };
 
-export function getTagsAdminQuery(search: AdminTableSearch<TagSortField>) {
+export function getTagsAdminQuery(search: TableSearchParams<TagSortField>) {
 	return listTags({
 		paginationOpts: {
 			numItems: PAGE_SIZE,
-			cursor: getCursorFromSearch(search),
+			cursor: getCursor(search),
 		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,

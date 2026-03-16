@@ -1,14 +1,14 @@
 import { Store } from "@tanstack/react-store";
 import * as React from "react";
 import {
-	type AdminTableSearch,
-	applySortingToSearch,
-	getCursorFromSearch,
-	getNextPageSearch,
-	getPageFromSearch,
-	getPreviousPageSearch,
-	sortingStateFromSearch,
-} from "#/lib/admin-table-sorting";
+	applySorting,
+	getCursor,
+	getNextPage,
+	getPage,
+	getPrevPage,
+	type TableSearchParams,
+	toSortingState,
+} from "#/lib/table-search-params";
 import { DataTableContext } from "./context";
 import type {
 	DataTableActions,
@@ -18,7 +18,7 @@ import type {
 	DataTableStoreState,
 } from "./types";
 
-function getSortKey(search: AdminTableSearch<string>) {
+function getSortKey(search: TableSearchParams<string>) {
 	return `${search.sortField ?? ""}:${search.sortDirection ?? ""}`;
 }
 
@@ -37,12 +37,12 @@ export function DataTableRoot<TData extends object, TField extends string>({
 	tableClassName,
 }: DataTableRootProps<TData, TField>) {
 	const internalNavigationRef = React.useRef(false);
-	const widenedSearch = search as AdminTableSearch<string>;
+	const widenedSearch = search as TableSearchParams<string>;
 	const store = React.useState(
 		() =>
 			new Store<DataTableStoreState>({
 				search: widenedSearch,
-				sorting: sortingStateFromSearch(widenedSearch),
+				sorting: toSortingState(widenedSearch),
 				continueCursor: pagination.continueCursor,
 				isDone: pagination.isDone,
 				isLoading,
@@ -55,17 +55,15 @@ export function DataTableRoot<TData extends object, TField extends string>({
 			const sortChanged =
 				getSortKey(previousState.search) !== getSortKey(widenedSearch);
 			const pageChanged =
-				getCursorFromSearch(previousState.search) !==
-					getCursorFromSearch(widenedSearch) ||
-				getPageFromSearch(previousState.search) !==
-					getPageFromSearch(widenedSearch);
+				getCursor(previousState.search) !== getCursor(widenedSearch) ||
+				getPage(previousState.search) !== getPage(widenedSearch);
 			const shouldResetHistory =
 				sortChanged || (!internalNavigationRef.current && pageChanged);
 
 			return {
 				...previousState,
 				search: widenedSearch,
-				sorting: sortingStateFromSearch(widenedSearch),
+				sorting: toSortingState(widenedSearch),
 				continueCursor: pagination.continueCursor,
 				isDone: pagination.isDone,
 				isLoading,
@@ -82,13 +80,15 @@ export function DataTableRoot<TData extends object, TField extends string>({
 	]);
 
 	const updateSearch = React.useCallback(
-		(updater: (prev: AdminTableSearch<string>) => AdminTableSearch<string>) => {
+		(
+			updater: (prev: TableSearchParams<string>) => TableSearchParams<string>,
+		) => {
 			internalNavigationRef.current = true;
 			onSearchChange(
 				(previousSearch) =>
 					updater(
-						previousSearch as unknown as AdminTableSearch<string>,
-					) as AdminTableSearch<TField>,
+						previousSearch as unknown as TableSearchParams<string>,
+					) as TableSearchParams<TField>,
 			);
 		},
 		[onSearchChange],
@@ -102,7 +102,7 @@ export function DataTableRoot<TData extends object, TField extends string>({
 					cursorHistory: [],
 					sorting: nextSorting,
 				}));
-				updateSearch(() => applySortingToSearch(nextSorting));
+				updateSearch(() => applySorting(nextSorting));
 			},
 			goToNextPage: () => {
 				const currentState = store.state;
@@ -117,13 +117,13 @@ export function DataTableRoot<TData extends object, TField extends string>({
 					cursorHistory: [
 						...previousState.cursorHistory,
 						{
-							cursor: getCursorFromSearch(previousState.search),
-							page: getPageFromSearch(previousState.search),
+							cursor: getCursor(previousState.search),
+							page: getPage(previousState.search),
 						},
 					],
 				}));
 				updateSearch((previousSearch) =>
-					getNextPageSearch(previousSearch, nextCursor),
+					getNextPage(previousSearch, nextCursor),
 				);
 			},
 			goToPreviousPage: () => {
@@ -139,7 +139,7 @@ export function DataTableRoot<TData extends object, TField extends string>({
 					cursorHistory: previousState.cursorHistory.slice(0, -1),
 				}));
 				updateSearch((previousSearch) =>
-					getPreviousPageSearch(previousSearch, previousPage),
+					getPrevPage(previousSearch, previousPage),
 				);
 			},
 			goToPage: (targetPage: number) => {

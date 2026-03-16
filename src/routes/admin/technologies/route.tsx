@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-adapter";
-import { createAdminTableSearchSchema } from "#/lib/admin-table-sorting";
+import { createSearchParamsSchema } from "#/lib/table-search-params";
 import {
 	getTechnologiesAdminQuery,
 	TECH_SORT_FIELDS,
@@ -8,7 +8,7 @@ import {
 } from "./-resource";
 
 export const Route = createFileRoute("/admin/technologies")({
-	validateSearch: zodValidator(createAdminTableSearchSchema(TECH_SORT_FIELDS)),
+	validateSearch: zodValidator(createSearchParamsSchema(TECH_SORT_FIELDS)),
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({ context, deps }) => {
 		await context.queryClient.ensureQueryData(

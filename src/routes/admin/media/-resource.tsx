@@ -12,11 +12,8 @@ import { Button } from "#/components/ui/button";
 import { Skeleton } from "#/components/ui/skeleton";
 import { Spinner } from "#/components/ui/spinner";
 import { useConvexUpload } from "#/hooks/use-convex-upload";
-import {
-	type AdminTableSearch,
-	getCursorFromSearch,
-} from "#/lib/admin-table-sorting";
 import { getErrorMessage, toAsyncResult } from "#/lib/async-result";
+import { getCursor, type TableSearchParams } from "#/lib/table-search-params";
 import { listMedia } from "#/queries/admin";
 
 const PAGE_SIZE = 20;
@@ -36,20 +33,20 @@ type MediaRow = {
 };
 
 type MediaAdminResourceProps = {
-	search: AdminTableSearch<MediaSortField>;
+	search: TableSearchParams<MediaSortField>;
 	onSearchChange: (
 		updater: (
-			prev: AdminTableSearch<MediaSortField>,
-		) => AdminTableSearch<MediaSortField>,
+			prev: TableSearchParams<MediaSortField>,
+		) => TableSearchParams<MediaSortField>,
 	) => void;
 	extraOverlays?: React.ReactNode;
 };
 
-export function getMediaAdminQuery(search: AdminTableSearch<MediaSortField>) {
+export function getMediaAdminQuery(search: TableSearchParams<MediaSortField>) {
 	return listMedia({
 		paginationOpts: {
 			numItems: PAGE_SIZE,
-			cursor: getCursorFromSearch(search),
+			cursor: getCursor(search),
 		},
 	});
 }

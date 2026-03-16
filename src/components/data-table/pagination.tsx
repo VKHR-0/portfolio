@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { shallow, useStore } from "@tanstack/react-store";
 import { Button } from "#/components/ui/button";
-import { getPageFromSearch } from "#/lib/admin-table-sorting";
+import { getPage } from "#/lib/table-search-params";
 import { useDataTableContext } from "./context";
 
 function EllipsisButton() {
@@ -71,7 +71,7 @@ export function DataTablePagination() {
 				state.isDone === false &&
 				Boolean(state.continueCursor),
 			canGoPrevious: state.cursorHistory.length > 0,
-			page: getPageFromSearch(state.search),
+			page: getPage(state.search),
 			cursorHistory: state.cursorHistory,
 			continueCursor: state.continueCursor,
 			isDone: state.isDone,

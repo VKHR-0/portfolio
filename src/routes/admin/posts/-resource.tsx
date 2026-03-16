@@ -21,10 +21,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "#/components/ui/tooltip";
-import {
-	type AdminTableSearch,
-	getCursorFromSearch,
-} from "#/lib/admin-table-sorting";
+import { getCursor, type TableSearchParams } from "#/lib/table-search-params";
 import { listPosts } from "#/queries/admin";
 
 const PAGE_SIZE = 10;
@@ -41,19 +38,19 @@ type PostRow = {
 };
 
 type PostsAdminResourceProps = {
-	search: AdminTableSearch<PostSortField>;
+	search: TableSearchParams<PostSortField>;
 	onSearchChange: (
 		updater: (
-			prev: AdminTableSearch<PostSortField>,
-		) => AdminTableSearch<PostSortField>,
+			prev: TableSearchParams<PostSortField>,
+		) => TableSearchParams<PostSortField>,
 	) => void;
 };
 
-export function getPostsAdminQuery(search: AdminTableSearch<PostSortField>) {
+export function getPostsAdminQuery(search: TableSearchParams<PostSortField>) {
 	return listPosts({
 		paginationOpts: {
 			numItems: PAGE_SIZE,
-			cursor: getCursorFromSearch(search),
+			cursor: getCursor(search),
 		},
 		sortField: search.sortField,
 		sortDirection: search.sortDirection,
