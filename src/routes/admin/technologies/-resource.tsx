@@ -62,16 +62,12 @@ function ColorSwatch({ color }: { color: string }) {
 	const palette = COLORS[color as ColorKey];
 
 	if (!palette) {
-		return <span className="size-4 rounded-full bg-muted" />;
+		return <span className="size-6 rounded-full bg-muted" />;
 	}
 
 	return (
 		<span
-			className={cn(
-				"inline-block size-4 rounded-full border",
-				palette.bg,
-				palette.border,
-			)}
+			className={cn("size-6 rounded-full border", palette.bg, palette.border)}
 		/>
 	);
 }
@@ -107,12 +103,9 @@ function ColorPicker({ value, onChange, isSaving }: ColorPickerProps) {
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger
 					render={
-						<button
-							type="button"
-							className="flex size-8 items-center justify-center rounded-md border border-input hover:bg-muted"
-						>
+						<Button variant="ghost" size="icon-xs" type="button">
 							<ColorSwatch color={value} />
-						</button>
+						</Button>
 					}
 				/>
 				<PopoverContent align="start" className="w-auto p-2">
@@ -157,17 +150,19 @@ function ColorPicker({ value, onChange, isSaving }: ColorPickerProps) {
 	}
 
 	return (
-		<button
+		<Button
+			variant="ghost"
+			size="icon-xs"
 			type="button"
-			className="group relative flex size-8 items-center justify-center rounded-md border border-input hover:bg-muted"
+			className="group relative"
 			onClick={() => startEditing(id)}
 			disabled={isSaving}
 		>
 			<ColorSwatch color={value} />
-			<div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-				<HugeiconsIcon icon={Edit} strokeWidth={2} className="size-3.5" />
+			<div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover/button:opacity-100">
+				<HugeiconsIcon icon={Edit} strokeWidth={2} className="size-3" />
 			</div>
-		</button>
+		</Button>
 	);
 }
 
@@ -248,7 +243,7 @@ export function TechnologiesAdminResource({
 				header: "",
 				meta: {
 					headerClassName: "w-10",
-					cellClassName: "px-1 py-2",
+					cellClassName: "px-1 py-2 grid place-items-center",
 				},
 				cell: ({ row }) => (
 					<ColorPicker

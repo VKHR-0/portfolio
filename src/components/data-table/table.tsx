@@ -94,105 +94,113 @@ export function DataTableTable() {
 	});
 
 	return (
-		<Table className={cn("table-fixed", meta.tableClassName)}>
-			<TableHeader>
-				{table.getHeaderGroups().map((headerGroup) => (
-					<TableRow key={headerGroup.id}>
-						{headerGroup.headers.map((header) => {
-							const canSort = header.column.getCanSort();
-							const currentSort = header.column.getIsSorted();
+		<div className="rounded-lg border">
+			<Table className={cn("table-fixed", meta.tableClassName)}>
+				<TableHeader className="bg-muted/50">
+					{table.getHeaderGroups().map((headerGroup) => (
+						<TableRow key={headerGroup.id}>
+							{headerGroup.headers.map((header) => {
+								const canSort = header.column.getCanSort();
+								const currentSort = header.column.getIsSorted();
 
-							return (
-								<TableHead
-									key={header.id}
-									className={header.column.columnDef.meta?.headerClassName}
-								>
-									{header.isPlaceholder ? null : canSort ? (
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="-ml-2 h-8 px-2 hover:bg-muted/80"
-											onClick={() =>
-												actions.setSorting(
-													getNextSortingState(header.column.id, currentSort),
-												)
-											}
-										>
-											{flexRender(
+								return (
+									<TableHead
+										key={header.id}
+										className={cn(
+											"border-r last:border-r-0",
+											header.column.columnDef.meta?.headerClassName,
+										)}
+									>
+										{header.isPlaceholder ? null : canSort ? (
+											<Button
+												type="button"
+												variant="ghost"
+												size="sm"
+												className="-ml-2 h-8 px-2 hover:bg-muted/80"
+												onClick={() =>
+													actions.setSorting(
+														getNextSortingState(header.column.id, currentSort),
+													)
+												}
+											>
+												{flexRender(
+													header.column.columnDef.header,
+													header.getContext(),
+												)}
+												{currentSort === "desc" ? (
+													<HugeiconsIcon
+														icon={ChevronDown}
+														strokeWidth={2}
+														data-icon="inline-end"
+													/>
+												) : currentSort === "asc" ? (
+													<HugeiconsIcon
+														icon={ChevronUp}
+														strokeWidth={2}
+														data-icon="inline-end"
+													/>
+												) : (
+													<HugeiconsIcon
+														icon={ArrowUpDown}
+														strokeWidth={2}
+														data-icon="inline-end"
+														className="text-muted-foreground"
+													/>
+												)}
+											</Button>
+										) : (
+											flexRender(
 												header.column.columnDef.header,
 												header.getContext(),
-											)}
-											{currentSort === "desc" ? (
-												<HugeiconsIcon
-													icon={ChevronDown}
-													strokeWidth={2}
-													data-icon="inline-end"
-												/>
-											) : currentSort === "asc" ? (
-												<HugeiconsIcon
-													icon={ChevronUp}
-													strokeWidth={2}
-													data-icon="inline-end"
-												/>
-											) : (
-												<HugeiconsIcon
-													icon={ArrowUpDown}
-													strokeWidth={2}
-													data-icon="inline-end"
-													className="text-muted-foreground"
-												/>
-											)}
-										</Button>
-									) : (
-										flexRender(
-											header.column.columnDef.header,
-											header.getContext(),
-										)
-									)}
-								</TableHead>
-							);
-						})}
-					</TableRow>
-				))}
-			</TableHeader>
-			<TableBody>
-				{isLoading ? (
-					<TableRow>
-						<TableCell
-							colSpan={table.getAllLeafColumns().length}
-							className="h-24 text-center text-muted-foreground"
-						>
-							{meta.loadingLabel}
-						</TableCell>
-					</TableRow>
-				) : table.getRowModel().rows.length > 0 ? (
-					table.getRowModel().rows.map((row) => (
-						<TableRow
-							key={row.id}
-							{...(meta.getRowProps?.(row.original, row.index) ?? {})}
-						>
-							{row.getVisibleCells().map((cell) => (
-								<TableCell
-									key={cell.id}
-									className={cell.column.columnDef.meta?.cellClassName}
-								>
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</TableCell>
-							))}
+											)
+										)}
+									</TableHead>
+								);
+							})}
 						</TableRow>
-					))
-				) : (
-					<TableRow>
-						<TableCell
-							colSpan={table.getAllLeafColumns().length}
-							className="h-24 text-center text-muted-foreground"
-						>
-							{meta.emptyLabel}
-						</TableCell>
-					</TableRow>
-				)}
-			</TableBody>
-		</Table>
+					))}
+				</TableHeader>
+				<TableBody>
+					{isLoading ? (
+						<TableRow>
+							<TableCell
+								colSpan={table.getAllLeafColumns().length}
+								className="h-24 text-center text-muted-foreground"
+							>
+								{meta.loadingLabel}
+							</TableCell>
+						</TableRow>
+					) : table.getRowModel().rows.length > 0 ? (
+						table.getRowModel().rows.map((row) => (
+							<TableRow
+								key={row.id}
+								{...(meta.getRowProps?.(row.original, row.index) ?? {})}
+							>
+								{row.getVisibleCells().map((cell) => (
+									<TableCell
+										key={cell.id}
+										className={cn(
+											"border-r last:border-r-0",
+											cell.column.columnDef.meta?.cellClassName,
+										)}
+									>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
+								))}
+							</TableRow>
+						))
+					) : (
+						<TableRow>
+							<TableCell
+								colSpan={table.getAllLeafColumns().length}
+								className="h-24 text-center text-muted-foreground"
+							>
+								{meta.emptyLabel}
+							</TableCell>
+						</TableRow>
+					)}
+				</TableBody>
+			</Table>
+		</div>
 	);
 }
