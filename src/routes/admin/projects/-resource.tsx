@@ -67,7 +67,7 @@ export function ProjectsAdminResource({
 			{
 				id: "actions",
 				enableSorting: false,
-        header: "",
+				header: "",
 				meta: {
 					headerClassName: "w-[6%]",
 					cellClassName: "px-1 py-2",

@@ -1,31 +1,15 @@
-import {
-	ArrowRight,
-	Desktop,
-	Github,
-	Mail,
-	Moon,
-	Sun,
-} from "@hugeicons/core-free-icons";
+import { ArrowRight, Github, Mail } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { COLORS, type ColorKey } from "shared/colors";
-import { useTheme } from "#/components/providers/theme-provider";
+import { ThemeSwitcher } from "#/components/theme-switcher";
 import { Badge } from "#/components/ui/badge";
-import { Button, buttonVariants } from "#/components/ui/button";
+import { buttonVariants } from "#/components/ui/button";
 import { Card } from "#/components/ui/card";
 import { Skeleton } from "#/components/ui/skeleton";
-import type { Theme } from "#/functions/theme";
 import { cn } from "#/lib/utils";
 import { listPublicPosts, listPublicProjects } from "#/queries/public";
-
-const THEME_ORDER: Array<Theme> = ["system", "light", "dark"];
-
-function getNextTheme(theme: Theme): Theme {
-	const currentIndex = THEME_ORDER.indexOf(theme);
-	const nextIndex = (currentIndex + 1) % THEME_ORDER.length;
-	return THEME_ORDER[nextIndex] ?? "system";
-}
 
 export const Route = createFileRoute("/_home/")({
 	loader: async ({ context }) => {
@@ -207,9 +191,6 @@ function PostsSection({ posts }: { posts: Array<Post> }) {
 }
 
 function Footer() {
-	const { theme, setTheme } = useTheme();
-	const nextTheme = getNextTheme(theme);
-
 	return (
 		<footer className="mt-16 border-t py-8">
 			<div className="mx-auto flex max-w-4xl items-center justify-between px-4">
@@ -221,23 +202,7 @@ function Footer() {
 				>
 					Builded by VKHR
 				</a>
-				<Button
-					variant="ghost"
-					size="icon"
-					aria-label={`Theme: ${theme}. Switch to ${nextTheme}.`}
-					title={`Theme: ${theme}. Switch to ${nextTheme}.`}
-					onClick={() => {
-						setTheme(nextTheme);
-					}}
-				>
-					{theme === "light" ? (
-						<HugeiconsIcon icon={Sun} strokeWidth={2} />
-					) : theme === "dark" ? (
-						<HugeiconsIcon icon={Moon} strokeWidth={2} />
-					) : (
-						<HugeiconsIcon icon={Desktop} strokeWidth={2} />
-					)}
-				</Button>
+				<ThemeSwitcher variant="ghost" />
 			</div>
 		</footer>
 	);

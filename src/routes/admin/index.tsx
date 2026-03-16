@@ -1,13 +1,4 @@
-import {
-	Desktop,
-	Eye,
-	EyeOff,
-	Layers,
-	Moon,
-	Pencil,
-	Plus,
-	Sun,
-} from "@hugeicons/core-free-icons";
+import { Eye, EyeOff, Layers, Pencil, Plus } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
@@ -26,7 +17,7 @@ import {
 	EditingProvider,
 	InlineInputCell,
 } from "#/components/data-table";
-import { useTheme } from "#/components/providers/theme-provider";
+import { ThemeSwitcher } from "#/components/theme-switcher";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -50,13 +41,11 @@ import {
 	TooltipTrigger,
 } from "#/components/ui/tooltip";
 import { getCurrentUser } from "#/functions/auth";
-import type { Theme } from "#/functions/theme";
 import { authClient } from "#/lib/auth-client";
 import { isAuthError } from "#/lib/auth-errors";
 import { listRecentPosts, listRecentProjects } from "#/queries/admin";
 
 const DASHBOARD_LIMIT = 11;
-const THEME_ORDER: Array<Theme> = ["system", "light", "dark"];
 
 type RecentItemRow = {
 	id: Id<"posts"> | Id<"projects">;
@@ -88,13 +77,6 @@ function formatCreatedAt(timestamp: number) {
 	return new Date(timestamp).toLocaleString();
 }
 
-function getNextTheme(theme: Theme): Theme {
-	const currentIndex = THEME_ORDER.indexOf(theme);
-	const nextIndex = (currentIndex + 1) % THEME_ORDER.length;
-
-	return THEME_ORDER[nextIndex] ?? "system";
-}
-
 export const Route = createFileRoute("/admin/")({
 	component: RouteComponent,
 	loader: async ({ context, location }) => {
@@ -124,12 +106,10 @@ export const Route = createFileRoute("/admin/")({
 
 export function RouteComponent() {
 	const navigate = useNavigate();
-	const { theme, setTheme } = useTheme();
 	const updatePost = useMutation(api.functions.posts.updateSummary);
 	const updateProject = useMutation(api.functions.projects.updateSummary);
 	const { data: recentPosts } = useSuspenseQuery(recentPostsQuery());
 	const { data: recentProjects } = useSuspenseQuery(recentProjectsQuery());
-	const nextTheme = getNextTheme(theme);
 
 	const recentPostRows = React.useMemo<Array<RecentItemRow>>(
 		() =>
@@ -302,23 +282,7 @@ export function RouteComponent() {
 							Admin Overview
 						</CardTitle>
 						<div className="flex flex-wrap gap-2">
-							<Button
-								variant="outline"
-								size="icon"
-								aria-label={`Theme: ${theme}. Switch to ${nextTheme}.`}
-								title={`Theme: ${theme}. Switch to ${nextTheme}.`}
-								onClick={() => {
-									setTheme(nextTheme);
-								}}
-							>
-								{theme === "light" ? (
-									<HugeiconsIcon icon={Sun} strokeWidth={2} />
-								) : theme === "dark" ? (
-									<HugeiconsIcon icon={Moon} strokeWidth={2} />
-								) : (
-									<HugeiconsIcon icon={Desktop} strokeWidth={2} />
-								)}
-							</Button>
+							<ThemeSwitcher />
 							<Button
 								variant="outline"
 								onClick={() => {

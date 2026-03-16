@@ -150,10 +150,10 @@ export function TagsAdminResource({
 			},
 			{
 				accessorKey: "_creationTime",
-        header: "Created",
-        meta: {
-          headerClassName: "w-[20%]",
-        },
+				header: "Created",
+				meta: {
+					headerClassName: "w-[20%]",
+				},
 				cell: ({ row }) =>
 					new Date(row.original._creationTime).toLocaleString(),
 			},
