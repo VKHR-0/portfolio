@@ -1,6 +1,7 @@
-const CANVAS_WIDTH = 1920;
-const CANVAS_HEIGHT = 1080;
-const GRAIN_INTENSITY = 20;
+const SVG_WIDTH = 10;
+const SVG_HEIGHT = 10;
+const GRAIN_BASE_FREQUENCY = 0.65;
+const GRAIN_NUM_OCTAVES = 3;
 
 type GradientStop = {
 	color: string;
@@ -88,76 +89,64 @@ function randomGradientConfig(): GradientConfig {
 	};
 }
 
-function renderGradientToCanvas(
-	config: GradientConfig,
-	width: number,
-	height: number,
-): HTMLCanvasElement {
-	const canvas = document.createElement("canvas");
-	canvas.width = width;
-	canvas.height = height;
+function angleToSVGCoordinates(angleDeg: number): {
+	x1: string;
+	y1: string;
+	x2: string;
+	y2: string;
+} {
+	const angleRad = (angleDeg * Math.PI) / 180;
+	const cos = Math.cos(angleRad);
+	const sin = Math.sin(angleRad);
 
-	const ctx = canvas.getContext("2d");
-	if (!ctx) throw new Error("Canvas 2D context not available");
+	const x1 = ((50 - cos * 50) / 100) * 100;
+	const y1 = ((50 - sin * 50) / 100) * 100;
+	const x2 = ((50 + cos * 50) / 100) * 100;
+	const y2 = ((50 + sin * 50) / 100) * 100;
 
-	// Convert angle to start/end points
-	const angleRad = (config.angleDeg * Math.PI) / 180;
-	const cx = width / 2;
-	const cy = height / 2;
-	// Diagonal length so gradient always covers the full canvas
-	const diagonal = Math.sqrt(width * width + height * height) / 2;
-	const dx = Math.cos(angleRad) * diagonal;
-	const dy = Math.sin(angleRad) * diagonal;
-
-	const gradient = ctx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy);
-
-	for (const stop of config.stops) {
-		gradient.addColorStop(stop.position, stop.color);
-	}
-
-	ctx.fillStyle = gradient;
-	ctx.fillRect(0, 0, width, height);
-
-	return canvas;
+	return {
+		x1: `${x1.toFixed(2)}%`,
+		y1: `${y1.toFixed(2)}%`,
+		x2: `${x2.toFixed(2)}%`,
+		y2: `${y2.toFixed(2)}%`,
+	};
 }
 
-function applyGrain(canvas: HTMLCanvasElement, intensity: number): void {
-	const ctx = canvas.getContext("2d");
-	if (!ctx) return;
+function renderGradientToSVG(config: GradientConfig): string {
+	const { x1, y1, x2, y2 } = angleToSVGCoordinates(config.angleDeg);
 
-	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-	const { data } = imageData;
+	const stops = config.stops
+		.map(
+			(stop) =>
+				`<stop offset="${(stop.position * 100).toFixed(0)}%" stop-color="${stop.color}"/>`,
+		)
+		.join("\n      ");
 
-	// Simple box-muller-ish noise for more natural grain distribution
-	for (let i = 0; i < data.length; i += 4) {
-		const noise =
-			(Math.random() + Math.random() + Math.random() - 1.5) * intensity;
-		data[i] = Math.min(255, Math.max(0, data[i] + noise)); // R
-		data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise)); // G
-		data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise)); // B
-		// Alpha unchanged
-	}
-
-	ctx.putImageData(imageData, 0, 0);
+	return `<svg width="${SVG_WIDTH}" height="${SVG_HEIGHT}" viewBox="0 0 ${SVG_WIDTH} ${SVG_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">
+      ${stops}
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="${GRAIN_BASE_FREQUENCY}" numOctaves="${GRAIN_NUM_OCTAVES}" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0" in="noise" result="grain"/>
+      <feComposite operator="in" in="grain" in2="SourceGraphic" result="composite"/>
+      <feBlend mode="multiply" in="composite" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="${SVG_WIDTH}" height="${SVG_HEIGHT}" fill="url(#grad)" filter="url(#grain)"/>
+</svg>`;
 }
 
-function canvasToFile(canvas: HTMLCanvasElement): Promise<File> {
-	return new Promise((resolve, reject) => {
-		canvas.toBlob((blob) => {
-			if (!blob) {
-				reject(new Error("Canvas toBlob returned null"));
-				return;
-			}
-			resolve(
-				new File([blob], `gradient-${Date.now()}.png`, { type: "image/png" }),
-			);
-		}, "image/png");
+function svgToFile(svgString: string): File {
+	const blob = new Blob([svgString], { type: "image/svg+xml" });
+	return new File([blob], `gradient-${Date.now()}.svg`, {
+		type: "image/svg+xml",
 	});
 }
 
 export async function generateGradientImage(): Promise<File> {
 	const config = randomGradientConfig();
-	const canvas = renderGradientToCanvas(config, CANVAS_WIDTH, CANVAS_HEIGHT);
-	applyGrain(canvas, GRAIN_INTENSITY);
-	return canvasToFile(canvas);
+	const svgString = renderGradientToSVG(config);
+	return svgToFile(svgString);
 }
