@@ -33,6 +33,7 @@ export function DataTableRoot<TData extends object, TField extends string>({
 	onSearchChange,
 	pagination,
 	getRowId,
+	getRowProps,
 	tableClassName,
 }: DataTableRootProps<TData, TField>) {
 	const internalNavigationRef = React.useRef(false);
@@ -141,6 +142,29 @@ export function DataTableRoot<TData extends object, TField extends string>({
 					getPreviousPageSearch(previousSearch, previousPage),
 				);
 			},
+			goToPage: (targetPage: number) => {
+				const targetIndex = targetPage - 1;
+
+				if (targetIndex < 0 || targetIndex > store.state.cursorHistory.length) {
+					return;
+				}
+
+				if (targetIndex < store.state.cursorHistory.length) {
+					const pageEntry = store.state.cursorHistory[targetIndex];
+					store.setState((previousState) => ({
+						...previousState,
+						cursorHistory: previousState.cursorHistory.slice(0, targetIndex),
+					}));
+					updateSearch((previousSearch) => ({
+						...previousSearch,
+						cursor: pageEntry.cursor ?? undefined,
+						page: pageEntry.page,
+					}));
+					return;
+				}
+
+				actions.goToNextPage();
+			},
 		}),
 		[store, updateSearch],
 	);
@@ -154,9 +178,20 @@ export function DataTableRoot<TData extends object, TField extends string>({
 			getRowId: getRowId
 				? (originalRow, index) => getRowId(originalRow as TData, index)
 				: undefined,
+			getRowProps: getRowProps
+				? (originalRow, index) => getRowProps(originalRow as TData, index)
+				: undefined,
 			tableClassName,
 		}),
-		[columns, data, emptyLabel, getRowId, loadingLabel, tableClassName],
+		[
+			columns,
+			data,
+			emptyLabel,
+			getRowId,
+			getRowProps,
+			loadingLabel,
+			tableClassName,
+		],
 	);
 
 	const value = React.useMemo<DataTableContextValue>(

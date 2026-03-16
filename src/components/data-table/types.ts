@@ -23,12 +23,17 @@ export type DataTableMeta = {
 	loadingLabel: string;
 	emptyLabel: string;
 	getRowId?: (originalRow: object, index: number) => string;
+	getRowProps?: (
+		originalRow: object,
+		index: number,
+	) => React.ComponentPropsWithoutRef<"tr"> & Record<string, unknown>;
 	tableClassName?: string;
 };
 
 export type DataTableActions = {
 	goToNextPage: () => void;
 	goToPreviousPage: () => void;
+	goToPage: (page: number) => void;
 	setSorting: (sorting: SortingState) => void;
 };
 
@@ -54,6 +59,10 @@ export type DataTableRootProps<TData extends object, TField extends string> = {
 		isDone: boolean;
 	};
 	getRowId?: (originalRow: TData, index: number) => string;
+	getRowProps?: (
+		originalRow: TData,
+		index: number,
+	) => React.ComponentPropsWithoutRef<"tr"> & Record<string, unknown>;
 	tableClassName?: string;
 };
 
