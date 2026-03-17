@@ -5,9 +5,8 @@ import { Link } from "@tanstack/react-router";
 import type { api } from "convex/_generated/api";
 import type { FunctionReturnType } from "convex/server";
 import * as React from "react";
-import { COLORS, type ColorKey } from "shared/colors";
-import { Badge } from "#/components/ui/badge";
 import { Card } from "#/components/ui/card";
+import { Separator } from "#/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs";
 
 import { CornerSquare } from "./-layout";
@@ -28,32 +27,34 @@ export function Projects({
 	const projects = tab === "recent" ? recentProjects : featuredProjects;
 
 	return (
-		<section className="relative border-t-2 px-4 py-12">
+		<section className="relative border-t-2 py-8">
 			<CornerSquare position="top-left" />
 			<CornerSquare position="top-right" />
 
-			<div className="flex items-center justify-between">
+			<div className="flex items-center justify-between px-4">
 				<h2 className="font-semibold text-2xl">
 					{tab === "recent" ? "Recent Projects" : "Featured Projects"}
 				</h2>
 
-				<Tabs
-					value={tab}
-					onValueChange={(value) => setTab(value as "recent" | "featured")}
-				>
-					<TabsList variant="line">
-						<TabsTrigger value="recent">Recent</TabsTrigger>
-						<TabsTrigger value="featured">Featured</TabsTrigger>
-					</TabsList>
-				</Tabs>
+				<div className="border-2 bg-background px-1">
+					<Tabs
+						value={tab}
+						onValueChange={(value) => setTab(value as "recent" | "featured")}
+					>
+						<TabsList variant="line">
+							<TabsTrigger value="recent">Recent</TabsTrigger>
+							<TabsTrigger value="featured">Featured</TabsTrigger>
+						</TabsList>
+					</Tabs>
+				</div>
 			</div>
 
 			{!projects || projects.length === 0 ? (
-				<p className="mt-6 text-muted-foreground">
+				<p className="mt-4 text-muted-foreground">
 					{tab === "recent" ? "No projects yet." : "No featured projects."}
 				</p>
 			) : (
-				<div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+				<div className="relative mt-6 grid sm:grid-cols-2 lg:grid-cols-3">
 					{projects.map((project) => (
 						<ProjectCard key={project._id} project={project} />
 					))}
@@ -67,7 +68,7 @@ function ProjectCard({ project }: { project: Project }) {
 	const hasLinks = project.repositoryUrl || project.demoUrl;
 
 	return (
-		<Card className="group relative overflow-hidden transition-shadow hover:shadow-lg">
+		<Card className="group relative overflow-hidden rounded-none bg-transparent">
 			<Link
 				to="/projects/$slugId"
 				params={{ slugId: project.slug }}
@@ -82,25 +83,28 @@ function ProjectCard({ project }: { project: Project }) {
 			</Link>
 
 			{hasLinks && (
-				<div className="absolute top-4 right-4 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+				<div className="absolute top-6.5 right-4 flex border-2 bg-background opacity-0 transition-opacity group-hover:opacity-100">
 					{project.repositoryUrl && (
 						<a
 							href={project.repositoryUrl}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="rounded-full bg-background/80 p-2 backdrop-blur-sm transition-colors hover:bg-background"
+							className="flex items-center justify-center p-2 transition-colors hover:bg-muted"
 							onClick={(e) => e.stopPropagation()}
 							aria-label="View repository"
 						>
 							<HugeiconsIcon icon={Github} strokeWidth={2} className="size-4" />
 						</a>
 					)}
+					{project.repositoryUrl && project.demoUrl && (
+						<Separator className="w-0.5!" orientation="vertical" />
+					)}
 					{project.demoUrl && (
 						<a
 							href={project.demoUrl}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="rounded-full bg-background/80 p-2 backdrop-blur-sm transition-colors hover:bg-background"
+							className="flex items-center justify-center p-2 transition-colors hover:bg-muted"
 							onClick={(e) => e.stopPropagation()}
 							aria-label="View demo"
 						>
@@ -111,23 +115,6 @@ function ProjectCard({ project }: { project: Project }) {
 							/>
 						</a>
 					)}
-				</div>
-			)}
-
-			{project.technologies.length > 0 && (
-				<div className="flex flex-wrap gap-1.5 px-4 pb-4">
-					{project.technologies.map((tech) => {
-						const palette = COLORS[tech.color as ColorKey] ?? COLORS.blue;
-						return (
-							<Badge
-								key={tech.name}
-								variant="outline"
-								className={`${palette.bg} ${palette.text} ${palette.border}`}
-							>
-								{tech.name}
-							</Badge>
-						);
-					})}
 				</div>
 			)}
 		</Card>
