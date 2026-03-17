@@ -4,7 +4,7 @@ type LayoutProps = {
 
 export function Layout({ children }: LayoutProps) {
 	return (
-		<>
+		<div className="relative">
 			<div
 				className="pointer-events-none absolute inset-0 bg-diagonal-dashed"
 				aria-hidden="true"
@@ -12,7 +12,7 @@ export function Layout({ children }: LayoutProps) {
 			<div className="relative z-10 flex min-h-screen flex-col overflow-hidden font-sans">
 				{children}
 			</div>
-		</>
+		</div>
 	);
 }
 

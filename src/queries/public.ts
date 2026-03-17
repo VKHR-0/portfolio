@@ -13,6 +13,10 @@ export function listPublicProjects(limit?: number) {
 	return convexQuery(api.functions.projects.listPublicRecent, { limit });
 }
 
+export function listPublicFeaturedProjects(limit?: number) {
+	return convexQuery(api.functions.projects.listPublicFeatured, { limit });
+}
+
 export function listPublicPosts(limit?: number) {
 	return convexQuery(api.functions.posts.listPublicRecent, { limit });
 }

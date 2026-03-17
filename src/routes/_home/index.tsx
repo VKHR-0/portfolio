@@ -1,7 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Skeleton } from "#/components/ui/skeleton";
-import { listPublicPosts, listPublicProjects } from "#/queries/public";
+import {
+	listPublicFeaturedProjects,
+	listPublicPosts,
+	listPublicProjects,
+} from "#/queries/public";
 import { Header } from "./-header";
 import { Hero } from "./-hero";
 import { CornerSquare, Layout } from "./-layout";
@@ -11,7 +15,8 @@ import { Projects } from "./-projects";
 export const Route = createFileRoute("/_home/")({
 	loader: async ({ context }) => {
 		await Promise.all([
-			context.queryClient.ensureQueryData(listPublicProjects(4)),
+			context.queryClient.ensureQueryData(listPublicProjects(6)),
+			context.queryClient.ensureQueryData(listPublicFeaturedProjects(6)),
 			context.queryClient.ensureQueryData(listPublicPosts(5)),
 		]);
 	},
@@ -20,7 +25,10 @@ export const Route = createFileRoute("/_home/")({
 });
 
 function HomePage() {
-	const { data: projects } = useSuspenseQuery(listPublicProjects(4));
+	const { data: recentProjects } = useSuspenseQuery(listPublicProjects(6));
+	const { data: featuredProjects } = useSuspenseQuery(
+		listPublicFeaturedProjects(6),
+	);
 	const { data: posts } = useSuspenseQuery(listPublicPosts(5));
 
 	return (
@@ -33,7 +41,10 @@ function HomePage() {
 
 					<Hero />
 
-					<Projects projects={projects} />
+					<Projects
+						recentProjects={recentProjects}
+						featuredProjects={featuredProjects}
+					/>
 					<Posts posts={posts} />
 
 					<CornerSquare position="bottom-left" />
@@ -51,12 +62,14 @@ function HomePageSkeleton() {
 			<Skeleton className="mt-4 h-6 w-96" />
 			<Skeleton className="mt-6 h-10 w-24" />
 
-			<Skeleton className="mt-12 h-8 w-40" />
-			<div className="mt-6 grid gap-6 sm:grid-cols-2">
-				<Skeleton className="aspect-video" />
-				<Skeleton className="aspect-video" />
-				<Skeleton className="aspect-video" />
-				<Skeleton className="aspect-video" />
+			<Skeleton className="mt-12 h-8 w-32" />
+			<div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+				<Skeleton className="h-40" />
+				<Skeleton className="h-40" />
+				<Skeleton className="h-40" />
+				<Skeleton className="h-40" />
+				<Skeleton className="h-40" />
+				<Skeleton className="h-40" />
 			</div>
 
 			<Skeleton className="mt-12 h-8 w-32" />

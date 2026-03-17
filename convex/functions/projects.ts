@@ -164,7 +164,7 @@ const update = zAuthedMutation({
 		description: z.string(),
 		content: z.string(),
 		status: projectStatus,
-		isFeatured: z.boolean(),
+		isFeatured: z.boolean().optional(),
 		imageId: zid("media").optional(),
 		repositoryUrl: z.string().optional(),
 		demoUrl: z.string().optional(),
