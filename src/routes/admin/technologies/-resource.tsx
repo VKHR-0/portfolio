@@ -223,7 +223,7 @@ export function TechnologiesAdminResource({
 				enableSorting: false,
 				header: "",
 				meta: {
-					headerClassName: "w-9",
+					headerClassName: "w-10",
 					cellClassName: "px-1.5 py-2",
 				},
 				cell: ({ row }) => (
@@ -242,7 +242,7 @@ export function TechnologiesAdminResource({
 				enableSorting: false,
 				header: "",
 				meta: {
-					headerClassName: "w-9",
+					headerClassName: "w-10",
 					cellClassName: "px-1 py-2 grid place-items-center",
 				},
 				cell: ({ row }) => (
@@ -271,7 +271,6 @@ export function TechnologiesAdminResource({
 				accessorKey: "name",
 				header: "Name",
 				meta: {
-					headerClassName: "w-[30%]",
 					cellClassName: "font-medium",
 				},
 				cell: ({ row }) => (
@@ -291,9 +290,6 @@ export function TechnologiesAdminResource({
 			{
 				accessorKey: "slug",
 				header: "Slug",
-				meta: {
-					headerClassName: "w-[30%]",
-				},
 				cell: ({ row }) => (
 					<InlineInputCell
 						value={row.original.slug}
@@ -311,9 +307,6 @@ export function TechnologiesAdminResource({
 			{
 				accessorKey: "_creationTime",
 				header: "Created",
-				meta: {
-					headerClassName: "w-[20%]",
-				},
 				cell: ({ row }) =>
 					new Date(row.original._creationTime).toLocaleString(),
 			},

@@ -72,7 +72,7 @@ export function PostsAdminResource({
 				enableSorting: false,
 				header: "",
 				meta: {
-					headerClassName: "w-[7%]",
+					headerClassName: "w-20",
 					cellClassName: "px-1 py-2",
 				},
 				cell: ({ row }) => (
@@ -126,7 +126,6 @@ export function PostsAdminResource({
 				accessorKey: "title",
 				header: "Title",
 				meta: {
-					headerClassName: "w-[30%]",
 					cellClassName: "truncate font-medium",
 				},
 				cell: ({ row }) => (
@@ -146,7 +145,6 @@ export function PostsAdminResource({
 				accessorKey: "slug",
 				header: "Slug",
 				meta: {
-					headerClassName: "w-[28%]",
 					cellClassName: "truncate",
 				},
 				cell: ({ row }) => (
@@ -166,7 +164,7 @@ export function PostsAdminResource({
 				accessorKey: "status",
 				header: "Status",
 				meta: {
-					headerClassName: "w-[6%]",
+					headerClassName: "w-20",
 				},
 				cell: ({ row }) => {
 					const variant =

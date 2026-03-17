@@ -1,4 +1,4 @@
-import { Eye, Pencil, Plus } from "@hugeicons/core-free-icons";
+import { Eye, Pencil, Plus, Star } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -30,6 +30,7 @@ type ProjectRow = {
 	title: string;
 	slug: string;
 	status: "active" | "completed" | "archived";
+	isFeatured: boolean;
 };
 
 type ProjectsAdminResourceProps = {
@@ -59,6 +60,7 @@ export function ProjectsAdminResource({
 	onSearchChange,
 }: ProjectsAdminResourceProps) {
 	const updateProject = useMutation(api.functions.projects.updateSummary);
+	const toggleFeatured = useMutation(api.functions.projects.toggleFeatured);
 	const { data: result } = useQuery(getProjectsAdminQuery(search));
 	const projects = result?.page ?? [];
 
@@ -69,7 +71,7 @@ export function ProjectsAdminResource({
 				enableSorting: false,
 				header: "",
 				meta: {
-					headerClassName: "w-[6%]",
+					headerClassName: "w-20",
 					cellClassName: "px-1 py-2",
 				},
 				cell: ({ row }) => (
@@ -104,10 +106,42 @@ export function ProjectsAdminResource({
 				),
 			},
 			{
+				id: "featured",
+				enableSorting: false,
+				header: "",
+				meta: {
+					headerClassName: "w-10",
+					cellClassName: "px-1 py-2",
+				},
+				cell: ({ row }) => (
+					<div className="flex justify-center">
+						<DataTable.ActionButton
+							onClick={() => toggleFeatured({ id: row.original._id })}
+							aria-label={
+								row.original.isFeatured
+									? "Unfeature project"
+									: "Feature project"
+							}
+							title={
+								row.original.isFeatured
+									? "Unfeature project"
+									: "Feature project"
+							}
+						>
+							<HugeiconsIcon
+								icon={Star}
+								strokeWidth={2}
+								fill={row.original.isFeatured ? "currentColor" : "none"}
+								className={row.original.isFeatured ? "text-primary" : ""}
+							/>
+						</DataTable.ActionButton>
+					</div>
+				),
+			},
+			{
 				accessorKey: "title",
 				header: "Title",
 				meta: {
-					headerClassName: "w-[30%]",
 					cellClassName: "truncate font-medium",
 				},
 				cell: ({ row }) => (
@@ -127,7 +161,6 @@ export function ProjectsAdminResource({
 				accessorKey: "slug",
 				header: "Slug",
 				meta: {
-					headerClassName: "w-[28%]",
 					cellClassName: "truncate",
 				},
 				cell: ({ row }) => (
@@ -147,7 +180,7 @@ export function ProjectsAdminResource({
 				accessorKey: "status",
 				header: "Status",
 				meta: {
-					headerClassName: "w-[6%]",
+					headerClassName: "w-20",
 				},
 				cell: ({ row }) => {
 					const variant =
@@ -165,7 +198,7 @@ export function ProjectsAdminResource({
 				},
 			},
 		],
-		[updateProject],
+		[updateProject, toggleFeatured],
 	);
 
 	return (

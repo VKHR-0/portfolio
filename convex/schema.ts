@@ -16,6 +16,8 @@ export default defineSchema({
 			v.literal("archived"),
 		),
 
+		isFeatured: v.boolean(),
+
 		authorId: v.string(),
 
 		repositoryUrl: v.optional(v.string()),

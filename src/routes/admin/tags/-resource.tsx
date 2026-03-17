@@ -95,7 +95,7 @@ export function TagsAdminResource({
 				enableSorting: false,
 				header: "",
 				meta: {
-					headerClassName: "w-9",
+					headerClassName: "w-10",
 					cellClassName: "px-1 py-2 grid place-items-center",
 				},
 				cell: ({ row }) => (
@@ -113,7 +113,6 @@ export function TagsAdminResource({
 				accessorKey: "name",
 				header: "Name",
 				meta: {
-					headerClassName: "w-[35%]",
 					cellClassName: "font-medium",
 				},
 				cell: ({ row }) => (
@@ -132,9 +131,6 @@ export function TagsAdminResource({
 			{
 				accessorKey: "slug",
 				header: "Slug",
-				meta: {
-					headerClassName: "w-[35%]",
-				},
 				cell: ({ row }) => (
 					<InlineInputCell
 						value={row.original.slug}
@@ -151,9 +147,6 @@ export function TagsAdminResource({
 			{
 				accessorKey: "_creationTime",
 				header: "Created",
-				meta: {
-					headerClassName: "w-[20%]",
-				},
 				cell: ({ row }) =>
 					new Date(row.original._creationTime).toLocaleString(),
 			},

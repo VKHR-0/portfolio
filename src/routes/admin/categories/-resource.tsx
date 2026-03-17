@@ -101,7 +101,7 @@ export function CategoriesAdminResource({
 				enableSorting: false,
 				header: "",
 				meta: {
-					headerClassName: "w-9",
+					headerClassName: "w-10",
 					cellClassName: "px-1 py-2 grid place-items-center",
 				},
 				cell: ({ row }) => (
@@ -119,7 +119,6 @@ export function CategoriesAdminResource({
 				accessorKey: "name",
 				header: "Name",
 				meta: {
-					headerClassName: "w-[22%]",
 					cellClassName: "font-medium",
 				},
 				cell: ({ row }) => (
@@ -139,9 +138,6 @@ export function CategoriesAdminResource({
 			{
 				accessorKey: "slug",
 				header: "Slug",
-				meta: {
-					headerClassName: "w-[22%]",
-				},
 				cell: ({ row }) => (
 					<InlineInputCell
 						value={row.original.slug}
@@ -161,7 +157,6 @@ export function CategoriesAdminResource({
 				header: "Description",
 				enableSorting: false,
 				meta: {
-					headerClassName: "w-[36%]",
 					cellClassName: "text-muted-foreground",
 				},
 				cell: ({ row }) => (
@@ -181,9 +176,6 @@ export function CategoriesAdminResource({
 			{
 				accessorKey: "_creationTime",
 				header: "Created",
-				meta: {
-					headerClassName: "w-[20%]",
-				},
 				cell: ({ row }) =>
 					new Date(row.original._creationTime).toLocaleString(),
 			},

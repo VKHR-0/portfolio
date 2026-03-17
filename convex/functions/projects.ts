@@ -43,13 +43,16 @@ const listRecent = zAuthedQuery({
 			.order("desc")
 			.take(limit);
 
-		return projects.map(({ _id, title, slug, status, _creationTime }) => ({
-			_id,
-			title,
-			slug,
-			status,
-			_creationTime,
-		}));
+		return projects.map(
+			({ _id, title, slug, status, isFeatured, _creationTime }) => ({
+				_id,
+				title,
+				slug,
+				status,
+				isFeatured,
+				_creationTime,
+			}),
+		);
 	},
 });
 
@@ -136,6 +139,7 @@ const create = zAuthedMutation({
 			description: args.description?.trim() ?? "",
 			content,
 			status: args.status ?? "active",
+			isFeatured: false,
 			imageId: args.imageId,
 			attachments,
 			repositoryUrl: args.repositoryUrl,
@@ -160,6 +164,7 @@ const update = zAuthedMutation({
 		description: z.string(),
 		content: z.string(),
 		status: projectStatus,
+		isFeatured: z.boolean(),
 		imageId: zid("media").optional(),
 		repositoryUrl: z.string().optional(),
 		demoUrl: z.string().optional(),
@@ -280,6 +285,76 @@ const remove = zAuthedMutation({
 	},
 });
 
+const toggleFeatured = zAuthedMutation({
+	args: {
+		id: zid("projects"),
+	},
+	handler: async (ctx, args) => {
+		const { id } = args;
+		const { userId } = ctx;
+
+		await assertDocumentOwner(ctx, {
+			documentId: id,
+			userId,
+			documentType: "projects",
+		});
+
+		const project = await ctx.db.get(id);
+		if (!project) {
+			throw new Error("Project not found.");
+		}
+
+		await ctx.db.patch(id, {
+			isFeatured: !project.isFeatured,
+		});
+
+		return { _id: id, isFeatured: !project.isFeatured };
+	},
+});
+
+const listPublicFeatured = zQuery({
+	args: {
+		limit: z.number().min(1).max(20).optional(),
+	},
+	handler: async (ctx, args) => {
+		const limit = args.limit ?? 4;
+
+		const projects = await ctx.db
+			.query("projects")
+			.filter((q) => q.neq(q.field("status"), "archived"))
+			.filter((q) => q.eq(q.field("isFeatured"), true))
+			.order("desc")
+			.take(limit);
+
+		return await Promise.all(
+			projects.map(async (project) => {
+				const techRows = await ctx.db
+					.query("projectTechnology")
+					.withIndex("by_project", (q) => q.eq("projectId", project._id))
+					.collect();
+
+				const [technologies, imageUrl] = await Promise.all([
+					Promise.all(techRows.map((row) => ctx.db.get(row.technologyId))),
+					resolveImageUrl(ctx, project.imageId),
+				]);
+
+				return {
+					_id: project._id,
+					title: project.title,
+					slug: project.slug,
+					description: project.description,
+					imageUrl,
+					technologies: technologies
+						.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
+						.map(({ name, color }) => ({ name, color })),
+					repositoryUrl: project.repositoryUrl,
+					demoUrl: project.demoUrl,
+				};
+			}),
+		);
+	},
+});
+
 const getEditableBySlug = zAuthedQuery({
 	args: {
 		slug: z.string(),
@@ -357,9 +432,11 @@ export {
 	getEditableBySlug,
 	getPublicBySlug,
 	list,
+	listPublicFeatured,
 	listPublicRecent,
 	listRecent,
 	remove,
+	toggleFeatured,
 	update,
 	updateSummary,
 };
