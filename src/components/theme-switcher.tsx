@@ -1,48 +1,51 @@
 import { Desktop, Moon, Sun } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { motion } from "framer-motion";
+import type * as React from "react";
 import { useTheme } from "#/components/providers/theme-provider";
-import { Button } from "#/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import type { Theme } from "#/functions/theme";
 
-const THEME_ORDER: Array<Theme> = ["system", "light", "dark"];
-
-function getNextTheme(theme: Theme): Theme {
-	const currentIndex = THEME_ORDER.indexOf(theme);
-	const nextIndex = (currentIndex + 1) % THEME_ORDER.length;
-	return THEME_ORDER[nextIndex] ?? "system";
-}
-
-type ThemeSwitcherProps = {
-	variant?:
-		| "outline"
-		| "ghost"
-		| "default"
-		| "secondary"
-		| "destructive"
-		| "link";
+const THEME_CONFIG: Record<Theme, { icon: React.ReactNode; label: string }> = {
+	system: {
+		icon: <HugeiconsIcon icon={Desktop} strokeWidth={2} />,
+		label: "System",
+	},
+	light: {
+		icon: <HugeiconsIcon icon={Sun} strokeWidth={2} />,
+		label: "Light",
+	},
+	dark: {
+		icon: <HugeiconsIcon icon={Moon} strokeWidth={2} />,
+		label: "Dark",
+	},
 };
 
-export function ThemeSwitcher({ variant = "outline" }: ThemeSwitcherProps) {
+type ThemeSwitcherProps = {
+	className?: string;
+};
+
+export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
 	const { theme, setTheme } = useTheme();
-	const nextTheme = getNextTheme(theme);
 
 	return (
-		<Button
-			variant={variant}
-			size="icon"
-			aria-label={`Theme: ${theme}. Switch to ${nextTheme}.`}
-			title={`Theme: ${theme}. Switch to ${nextTheme}.`}
-			onClick={() => {
-				setTheme(nextTheme);
-			}}
-		>
-			{theme === "light" ? (
-				<HugeiconsIcon icon={Sun} strokeWidth={2} />
-			) : theme === "dark" ? (
-				<HugeiconsIcon icon={Moon} strokeWidth={2} />
-			) : (
-				<HugeiconsIcon icon={Desktop} strokeWidth={2} />
-			)}
-		</Button>
+		<Tabs value={theme} onValueChange={(theme) => setTheme(theme)}>
+			<TabsList variant="line" className={className}>
+				{(["system", "light", "dark"] as const).map((t) => {
+					const config = THEME_CONFIG[t];
+					return (
+						<TabsTrigger key={t} value={t} className="size-7">
+							<motion.div
+								whileHover={{ scale: 1.1 }}
+								whileTap={{ scale: 0.95 }}
+								transition={{ duration: 0.15 }}
+							>
+								{config.icon}
+							</motion.div>
+						</TabsTrigger>
+					);
+				})}
+			</TabsList>
+		</Tabs>
 	);
 }

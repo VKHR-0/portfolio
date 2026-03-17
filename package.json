@@ -62,6 +62,8 @@
 		"cmdk": "^1.1.1",
 		"convex": "^1.33.1",
 		"convex-helpers": "^0.1.114",
+		"framer-motion": "^12.37.0",
+		"heat-graph": "^0.0.1",
 		"katex": "^0.16.38",
 		"lowlight": "^3.3.0",
 		"motion": "^12.36.0",

@@ -8,6 +8,7 @@ type ThemeContext = {
 	setTheme: (value: Theme) => void;
 	resolvedTheme: "light" | "dark";
 };
+
 type Props = React.PropsWithChildren<{ theme: Theme }>;
 
 const ThemeContext = React.createContext<ThemeContext | null>(null);

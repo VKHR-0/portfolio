@@ -6,8 +6,8 @@ export const Route = createFileRoute("/_home")({
 
 function HomeLayout() {
 	return (
-		<main className="flex min-h-screen flex-col">
+		<div className="flex min-h-screen flex-col">
 			<Outlet />
-		</main>
+		</div>
 	);
 }
