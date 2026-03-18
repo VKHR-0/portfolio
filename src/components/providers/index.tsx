@@ -1,5 +1,7 @@
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
 import { HeadContent, Scripts, useRouteContext } from "@tanstack/react-router";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import type * as React from "react";
 import { ThemeProvider } from "#/components/providers/theme-provider";
 import { Devtools } from "#/components/shell";
@@ -33,6 +35,8 @@ export function RootProviders({ children, theme }: RootProvidersProps) {
 							{children}
 							<Toaster position="top-center" />
 							<Devtools />
+							<Analytics />
+							<SpeedInsights />
 							<Scripts />
 						</body>
 					</html>
