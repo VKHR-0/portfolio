@@ -14,10 +14,7 @@ export const Route = createFileRoute("/_home/posts/")({
 	component: PostsPage,
 });
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-	month: "short",
-	day: "numeric",
-});
+import { shortDate } from "#/lib/format";
 
 function PostsPage() {
 	const { data: posts } = useSuspenseQuery(listPublicPosts());
@@ -91,7 +88,7 @@ function PostsPage() {
 															post._creationTime,
 														).toISOString()}
 													>
-														{dateFormatter.format(new Date(post._creationTime))}
+														{shortDate.format(new Date(post._creationTime))}
 													</time>
 												</div>
 											</Link>

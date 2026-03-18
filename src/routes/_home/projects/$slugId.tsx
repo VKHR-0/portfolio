@@ -22,11 +22,7 @@ export const Route = createFileRoute("/_home/projects/$slugId")({
 	component: RouteComponent,
 });
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-	year: "numeric",
-	month: "long",
-	day: "numeric",
-});
+import { longDate } from "#/lib/format";
 
 function RouteComponent() {
 	const { contentHtml } = Route.useLoaderData();
@@ -184,7 +180,7 @@ function RouteComponent() {
 							</Badge>
 							<span aria-hidden="true">|</span>
 							<time dateTime={new Date(project._creationTime).toISOString()}>
-								{dateFormatter.format(new Date(project._creationTime))}
+								{longDate.format(new Date(project._creationTime))}
 							</time>
 						</div>
 					</div>

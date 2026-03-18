@@ -33,9 +33,9 @@ export function Projects({ recentProjects, featuredProjects }: ProjectsProps) {
 		null,
 	);
 
-	const handleProjectClick = React.useCallback((project: Project) => {
+	const handleProjectClick = (project: Project) => {
 		setSelectedProject(project);
-	}, []);
+	};
 
 	const projects = tab === "recent" ? recentProjects : featuredProjects;
 
@@ -104,10 +104,7 @@ type ProjectCardProps = {
 	onClick: (project: Project) => void;
 };
 
-const ProjectCard = React.memo(function ProjectCard({
-	project,
-	onClick,
-}: ProjectCardProps) {
+function ProjectCard({ project, onClick }: ProjectCardProps) {
 	const hasLinks = project.repositoryUrl || project.demoUrl;
 
 	return (
@@ -230,7 +227,7 @@ const ProjectCard = React.memo(function ProjectCard({
 			</div>
 		</motion.div>
 	);
-});
+}
 
 type ProjectModalProps = {
 	project: Project;

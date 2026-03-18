@@ -82,12 +82,12 @@ export type ActiveState = {
 };
 
 export type UploadableImageAttrs = {
-	src?: unknown;
-	mediaId?: unknown;
-	alt?: unknown;
-	title?: unknown;
-	uploadId?: unknown;
-	uploading?: unknown;
-	uploadError?: unknown;
+	src?: string;
+	mediaId?: string;
+	alt?: string;
+	title?: string;
+	uploadId?: string;
+	uploading?: boolean;
+	uploadError?: string | null;
 	[key: string]: unknown;
 };

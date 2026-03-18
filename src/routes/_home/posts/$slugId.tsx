@@ -21,11 +21,7 @@ export const Route = createFileRoute("/_home/posts/$slugId")({
 	component: RouteComponent,
 });
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-	year: "numeric",
-	month: "long",
-	day: "numeric",
-});
+import { longDate } from "#/lib/format";
 
 function RouteComponent() {
 	const { contentHtml } = Route.useLoaderData();
@@ -73,7 +69,7 @@ function RouteComponent() {
 
 				<div className="mb-8 flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
 					<time dateTime={new Date(post._creationTime).toISOString()}>
-						{dateFormatter.format(new Date(post._creationTime))}
+						{longDate.format(new Date(post._creationTime))}
 					</time>
 
 					{post.category && (

@@ -14,10 +14,7 @@ export const Route = createFileRoute("/_home/projects/")({
 	component: ProjectsPage,
 });
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-	month: "short",
-	day: "numeric",
-});
+import { shortDate } from "#/lib/format";
 
 function ProjectsPage() {
 	const { data: projects } = useSuspenseQuery(listPublicProjects());
@@ -141,9 +138,7 @@ function ProjectsPage() {
 														).toISOString()}
 														className="text-muted-foreground text-sm"
 													>
-														{dateFormatter.format(
-															new Date(project._creationTime),
-														)}
+														{shortDate.format(new Date(project._creationTime))}
 													</time>
 												</div>
 											</Link>

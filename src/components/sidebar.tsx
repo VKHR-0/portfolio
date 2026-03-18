@@ -11,6 +11,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
+import type { ComponentProps } from "react";
 import * as React from "react";
 import {
 	Sidebar,
@@ -32,6 +33,69 @@ import {
 	SidebarTrigger,
 } from "#/components/ui/sidebar";
 import { listRecentPosts, listRecentProjects } from "#/queries/admin";
+
+type NavItem = {
+	icon: ComponentProps<typeof HugeiconsIcon>["icon"];
+	label: string;
+	path: string;
+	createPath?: string;
+	createLabel?: string;
+};
+
+const TAXONOMY_ITEMS: Array<NavItem> = [
+	{
+		icon: Tag,
+		label: "Tags",
+		path: "/admin/tags",
+		createPath: "/admin/tags/new",
+		createLabel: "Create tag",
+	},
+	{
+		icon: SidebarIcon,
+		label: "Series",
+		path: "/admin/series",
+		createPath: "/admin/series/new",
+		createLabel: "Create series",
+	},
+	{
+		icon: SidebarIcon,
+		label: "Categories",
+		path: "/admin/categories",
+		createPath: "/admin/categories/new",
+		createLabel: "Create category",
+	},
+	{
+		icon: Cpu,
+		label: "Technologies",
+		path: "/admin/technologies",
+		createPath: "/admin/technologies/new",
+		createLabel: "Create technology",
+	},
+];
+
+function NavMenuItem({ item, pathname }: { item: NavItem; pathname: string }) {
+	return (
+		<SidebarMenuItem>
+			<SidebarMenuButton
+				isActive={pathname.startsWith(item.path)}
+				tooltip={item.label}
+				render={<Link to={item.path} />}
+			>
+				<HugeiconsIcon icon={item.icon} strokeWidth={2} />
+				<span>{item.label}</span>
+			</SidebarMenuButton>
+			{item.createPath && item.createLabel && (
+				<SidebarMenuAction
+					render={<Link to={item.createPath} />}
+					title={item.createLabel}
+				>
+					<HugeiconsIcon icon={Plus} strokeWidth={2} />
+					<span className="sr-only">{item.createLabel}</span>
+				</SidebarMenuAction>
+			)}
+		</SidebarMenuItem>
+	);
+}
 
 function AdminSidebar() {
 	const pathname = useRouterState({
@@ -60,62 +124,46 @@ function AdminSidebar() {
 					<SidebarGroupLabel>Content</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={pathname.startsWith("/admin/posts")}
-									tooltip="Posts"
-									render={<Link to="/admin/posts" />}
-								>
-									<HugeiconsIcon icon={FileText} strokeWidth={2} />
-									<span>Posts</span>
-								</SidebarMenuButton>
-								<SidebarMenuAction
-									render={<Link to="/admin/posts/new" />}
-									title="Create post"
-								>
-									<HugeiconsIcon icon={Plus} strokeWidth={2} />
-									<span className="sr-only">Create post</span>
-								</SidebarMenuAction>
-							</SidebarMenuItem>
+							<NavMenuItem
+								item={{
+									icon: FileText,
+									label: "Posts",
+									path: "/admin/posts",
+									createPath: "/admin/posts/new",
+									createLabel: "Create post",
+								}}
+								pathname={pathname}
+							/>
 							<React.Suspense
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
 								<RecentPostsMenu pathname={pathname} />
 							</React.Suspense>
 
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={pathname.startsWith("/admin/projects")}
-									tooltip="Projects"
-									render={<Link to="/admin/projects" />}
-								>
-									<HugeiconsIcon icon={Briefcase} strokeWidth={2} />
-									<span>Projects</span>
-								</SidebarMenuButton>
-								<SidebarMenuAction
-									render={<Link to="/admin/projects/new" />}
-									title="Create project"
-								>
-									<HugeiconsIcon icon={Plus} strokeWidth={2} />
-									<span className="sr-only">Create project</span>
-								</SidebarMenuAction>
-							</SidebarMenuItem>
+							<NavMenuItem
+								item={{
+									icon: Briefcase,
+									label: "Projects",
+									path: "/admin/projects",
+									createPath: "/admin/projects/new",
+									createLabel: "Create project",
+								}}
+								pathname={pathname}
+							/>
 							<React.Suspense
 								fallback={<SidebarMenuSkeleton className="px-2" showIcon />}
 							>
 								<RecentProjectsMenu pathname={pathname} />
 							</React.Suspense>
 
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={pathname.startsWith("/admin/media")}
-									tooltip="Media"
-									render={<Link to="/admin/media" />}
-								>
-									<HugeiconsIcon icon={Photo} strokeWidth={2} />
-									<span>Media</span>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
+							<NavMenuItem
+								item={{
+									icon: Photo,
+									label: "Media",
+									path: "/admin/media",
+								}}
+								pathname={pathname}
+							/>
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
@@ -126,90 +174,23 @@ function AdminSidebar() {
 					<SidebarGroupLabel>Taxonomy</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={pathname.startsWith("/admin/tags")}
-									tooltip="Tags"
-									render={<Link to="/admin/tags" />}
-								>
-									<HugeiconsIcon icon={Tag} strokeWidth={2} />
-									<span>Tags</span>
-								</SidebarMenuButton>
-								<SidebarMenuAction
-									render={<Link to="/admin/tags/new" />}
-									title="Create tag"
-								>
-									<HugeiconsIcon icon={Plus} strokeWidth={2} />
-									<span className="sr-only">Create tag</span>
-								</SidebarMenuAction>
-							</SidebarMenuItem>
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={pathname.startsWith("/admin/series")}
-									tooltip="Series"
-									render={<Link to="/admin/series" />}
-								>
-									<HugeiconsIcon icon={SidebarIcon} strokeWidth={2} />
-									<span>Series</span>
-								</SidebarMenuButton>
-								<SidebarMenuAction
-									render={<Link to="/admin/series/new" />}
-									title="Create series"
-								>
-									<HugeiconsIcon icon={Plus} strokeWidth={2} />
-									<span className="sr-only">Create series</span>
-								</SidebarMenuAction>
-							</SidebarMenuItem>
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={pathname.startsWith("/admin/categories")}
-									tooltip="Categories"
-									render={<Link to="/admin/categories" />}
-								>
-									<HugeiconsIcon icon={SidebarIcon} strokeWidth={2} />
-									<span>Categories</span>
-								</SidebarMenuButton>
-								<SidebarMenuAction
-									render={<Link to="/admin/categories/new" />}
-									title="Create category"
-								>
-									<HugeiconsIcon icon={Plus} strokeWidth={2} />
-									<span className="sr-only">Create category</span>
-								</SidebarMenuAction>
-							</SidebarMenuItem>
-							<SidebarMenuItem>
-								<SidebarMenuButton
-									isActive={pathname.startsWith("/admin/technologies")}
-									tooltip="Technologies"
-									render={<Link to="/admin/technologies" />}
-								>
-									<HugeiconsIcon icon={Cpu} strokeWidth={2} />
-									<span>Technologies</span>
-								</SidebarMenuButton>
-								<SidebarMenuAction
-									render={<Link to="/admin/technologies/new" />}
-									title="Create technology"
-								>
-									<HugeiconsIcon icon={Plus} strokeWidth={2} />
-									<span className="sr-only">Create technology</span>
-								</SidebarMenuAction>
-							</SidebarMenuItem>
+							{TAXONOMY_ITEMS.map((item) => (
+								<NavMenuItem key={item.path} item={item} pathname={pathname} />
+							))}
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarMenu>
-					<SidebarMenuItem>
-						<SidebarMenuButton
-							isActive={pathname.startsWith("/admin/settings")}
-							tooltip="Settings"
-							render={<Link to="/admin/settings" />}
-						>
-							<HugeiconsIcon icon={Settings} strokeWidth={2} />
-							<span>Settings</span>
-						</SidebarMenuButton>
-					</SidebarMenuItem>
+					<NavMenuItem
+						item={{
+							icon: Settings,
+							label: "Settings",
+							path: "/admin/settings",
+						}}
+						pathname={pathname}
+					/>
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

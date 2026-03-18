@@ -27,8 +27,55 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { cn } from "#/lib/utils";
 import type { ActiveState, BlockType } from "./types";
 import type { BubbleMenuState } from "./use-bubble-menu";
+
+const MARK_BUTTONS: Array<{
+	icon: typeof Bold;
+	label: string;
+	stateKey?: Exclude<keyof ActiveState, "blockType">;
+	run: (editor: TiptapEditor) => void;
+}> = [
+	{
+		icon: Bold,
+		label: "Bold",
+		stateKey: "bold",
+		run: (e) => e.chain().focus().toggleBold().run(),
+	},
+	{
+		icon: Italic,
+		label: "Italic",
+		stateKey: "italic",
+		run: (e) => e.chain().focus().toggleItalic().run(),
+	},
+	{
+		icon: Underline,
+		label: "Underline",
+		stateKey: "underline",
+		run: (e) => e.chain().focus().toggleUnderline().run(),
+	},
+	{
+		icon: Strikethrough,
+		label: "Strikethrough",
+		stateKey: "strike",
+		run: (e) => e.chain().focus().toggleStrike().run(),
+	},
+	{
+		icon: Code,
+		label: "Code",
+		stateKey: "code",
+		run: (e) => e.chain().focus().toggleCode().run(),
+	},
+	{
+		icon: RemoveFormatting,
+		label: "Remove formatting",
+		run: (e) => e.chain().focus().unsetAllMarks().clearNodes().run(),
+	},
+];
+
+const animatedPanelClass =
+	"rounded-md border border-border bg-popover p-1 shadow-sm duration-200 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 data-[state=open]:animate-in";
 
 type EditorBubbleMenuProps = {
 	editor: TiptapEditor;
@@ -112,7 +159,6 @@ export function EditorBubbleMenu({
 			}}
 		>
 			<div className="flex flex-col gap-1">
-				{/* Toolbar row */}
 				<div className="flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm">
 					<div className="w-fit">
 						<Select
@@ -147,90 +193,27 @@ export function EditorBubbleMenu({
 						</Select>
 					</div>
 
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						aria-label="Bold"
-						title="Bold"
-						onClick={() => editor.chain().focus().toggleBold().run()}
-						disabled={disabled}
-						aria-pressed={activeState.bold}
-						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-					>
-						<HugeiconsIcon icon={Bold} strokeWidth={2} className="size-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						aria-label="Italic"
-						title="Italic"
-						onClick={() => editor.chain().focus().toggleItalic().run()}
-						disabled={disabled}
-						aria-pressed={activeState.italic}
-						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-					>
-						<HugeiconsIcon icon={Italic} strokeWidth={2} className="size-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						aria-label="Underline"
-						title="Underline"
-						onClick={() => editor.chain().focus().toggleUnderline().run()}
-						disabled={disabled}
-						aria-pressed={activeState.underline}
-						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-					>
-						<HugeiconsIcon
-							icon={Underline}
-							strokeWidth={2}
-							className="size-4"
-						/>
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						aria-label="Strikethrough"
-						title="Strikethrough"
-						onClick={() => editor.chain().focus().toggleStrike().run()}
-						disabled={disabled}
-						aria-pressed={activeState.strike}
-						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-					>
-						<HugeiconsIcon
-							icon={Strikethrough}
-							strokeWidth={2}
-							className="size-4"
-						/>
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						aria-label="Code"
-						title="Code"
-						onClick={() => editor.chain().focus().toggleCode().run()}
-						disabled={disabled}
-						aria-pressed={activeState.code}
-						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-					>
-						<HugeiconsIcon icon={Code} strokeWidth={2} className="size-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon-sm"
-						aria-label="Remove formatting"
-						title="Remove formatting"
-						onClick={() =>
-							editor.chain().focus().unsetAllMarks().clearNodes().run()
-						}
-						disabled={disabled}
-					>
-						<HugeiconsIcon
-							icon={RemoveFormatting}
-							strokeWidth={2}
-							className="size-4"
-						/>
-					</Button>
+					{MARK_BUTTONS.map((btn) => (
+						<Button
+							key={btn.label}
+							variant="ghost"
+							size="icon-sm"
+							aria-label={btn.label}
+							title={btn.label}
+							onClick={() => btn.run(editor)}
+							disabled={disabled}
+							aria-pressed={
+								btn.stateKey ? activeState[btn.stateKey] : undefined
+							}
+							className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+						>
+							<HugeiconsIcon
+								icon={btn.icon}
+								strokeWidth={2}
+								className="size-4"
+							/>
+						</Button>
+					))}
 
 					<Button
 						variant="ghost"
@@ -276,11 +259,13 @@ export function EditorBubbleMenu({
 					) : null}
 				</div>
 
-				{/* Link panel */}
 				{showLinkInput ? (
 					<div
 						data-state="open"
-						className="data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm duration-200 data-[state=open]:animate-in"
+						className={cn(
+							animatedPanelClass,
+							"flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap",
+						)}
 					>
 						<Input
 							id="link-url"
@@ -322,11 +307,13 @@ export function EditorBubbleMenu({
 					</div>
 				) : null}
 
-				{/* Alt text panel */}
 				{showAltInput && isOnImage ? (
 					<div
 						data-state="open"
-						className="data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm duration-200 data-[state=open]:animate-in"
+						className={cn(
+							animatedPanelClass,
+							"flex flex-nowrap items-center gap-0.5 overflow-x-auto whitespace-nowrap",
+						)}
 					>
 						<Input
 							id="image-alt"
@@ -361,11 +348,13 @@ export function EditorBubbleMenu({
 					</div>
 				) : null}
 
-				{/* Table actions panel */}
 				{showTableActions && isInTable ? (
 					<div
 						data-state="open"
-						className="data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:slide-in-from-top-1 inline-flex w-fit flex-nowrap items-center gap-1 self-end overflow-x-auto whitespace-nowrap rounded-md border border-border bg-popover p-1 shadow-sm duration-200 data-[state=open]:animate-in"
+						className={cn(
+							animatedPanelClass,
+							"inline-flex w-fit flex-nowrap items-center gap-1 self-end overflow-x-auto whitespace-nowrap",
+						)}
 					>
 						<span className="ml-1 text-muted-foreground text-sm">Rows:</span>
 						<Button

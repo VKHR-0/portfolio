@@ -41,11 +41,7 @@ export function Posts({ posts }: PostsProps) {
 	);
 }
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-	year: "numeric",
-	month: "short",
-	day: "numeric",
-});
+import { mediumDate } from "#/lib/format";
 
 type PostCardProps = {
 	post: Post;
@@ -67,7 +63,7 @@ function PostCard({ post }: PostCardProps) {
 
 			<div className="flex shrink-0 items-center gap-4 text-muted-foreground text-sm">
 				<time dateTime={new Date(post._creationTime).toISOString()}>
-					{dateFormatter.format(new Date(post._creationTime))}
+					{mediumDate.format(new Date(post._creationTime))}
 				</time>
 				<HugeiconsIcon
 					icon={ArrowRight}

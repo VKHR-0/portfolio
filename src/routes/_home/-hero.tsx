@@ -1,6 +1,7 @@
 import { Document, Github, Linkedin, Mail } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Separator } from "#/components/ui/separator";
+import { SOCIAL_LINKS } from "#/lib/constants";
 import { CornerSquare } from "./-layout";
 
 export function Hero() {
@@ -14,7 +15,7 @@ export function Hero() {
 				</h1>
 				<div className="flex border-l-2 bg-background">
 					<a
-						href="https://github.com/VKHR-0"
+						href={SOCIAL_LINKS.github}
 						target="_blank"
 						rel="noopener noreferrer"
 						className="flex items-center justify-center p-4 transition-colors hover:bg-muted"
@@ -24,7 +25,7 @@ export function Hero() {
 					</a>
 					<Separator className="w-0.5!" orientation="vertical" />
 					<a
-						href="mailto:viktor.harhatt@gmail.com"
+						href={`mailto:${SOCIAL_LINKS.email}`}
 						className="flex items-center justify-center p-4 transition-colors hover:bg-muted"
 						aria-label="Send email"
 					>
@@ -32,7 +33,7 @@ export function Hero() {
 					</a>
 					<Separator className="w-0.5!" orientation="vertical" />
 					<a
-						href="https://www.linkedin.com/in/viktor-harhat/"
+						href={SOCIAL_LINKS.linkedin}
 						className="flex items-center justify-center p-4 transition-colors hover:bg-muted"
 						aria-label="LinkedIn profile"
 					>
@@ -40,7 +41,7 @@ export function Hero() {
 					</a>
 					<Separator className="w-0.5!" orientation="vertical" />
 					<a
-						href="https://drive.google.com/file/d/1F5MOLqZH-C3Ioehlr4ZS0_7M5zhd2Tm1/view?usp=sharing"
+						href={SOCIAL_LINKS.cv}
 						className="flex items-center justify-center p-4 transition-colors hover:bg-muted"
 						aria-label="CV"
 					>

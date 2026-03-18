@@ -5,6 +5,7 @@ import { toSlug } from "../../shared/slug";
 import { deriveAttachmentIds } from "../_lib/attachment";
 import { resolveImageUrl } from "../_lib/media";
 import { assertDocumentOwner } from "../_lib/owned";
+import { resolveProjectRelations } from "../_lib/project";
 import { sortedPaginate } from "../_lib/sorted";
 import { syncProjectMedia, syncProjectTechnologies } from "../_lib/sync";
 import { zAuthedMutation, zAuthedQuery, zQuery } from "../_lib/validated";
@@ -71,15 +72,10 @@ const listPublicRecent = zQuery({
 
 		return await Promise.all(
 			projects.map(async (project) => {
-				const techRows = await ctx.db
-					.query("projectTechnology")
-					.withIndex("by_project", (q) => q.eq("projectId", project._id))
-					.collect();
-
-				const [technologies, imageUrl] = await Promise.all([
-					Promise.all(techRows.map((row) => ctx.db.get(row.technologyId))),
-					resolveImageUrl(ctx, project.imageId),
-				]);
+				const { technologies, imageUrl } = await resolveProjectRelations(
+					ctx,
+					project,
+				);
 
 				return {
 					_id: project._id,
@@ -88,9 +84,7 @@ const listPublicRecent = zQuery({
 					description: project.description,
 					_creationTime: project._creationTime,
 					imageUrl,
-					technologies: technologies
-						.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
-						.map(({ name, color }) => ({ name, color })),
+					technologies,
 					repositoryUrl: project.repositoryUrl,
 					demoUrl: project.demoUrl,
 				};
@@ -329,15 +323,10 @@ const listPublicFeatured = zQuery({
 
 		return await Promise.all(
 			projects.map(async (project) => {
-				const techRows = await ctx.db
-					.query("projectTechnology")
-					.withIndex("by_project", (q) => q.eq("projectId", project._id))
-					.collect();
-
-				const [technologies, imageUrl] = await Promise.all([
-					Promise.all(techRows.map((row) => ctx.db.get(row.technologyId))),
-					resolveImageUrl(ctx, project.imageId),
-				]);
+				const { technologies, imageUrl } = await resolveProjectRelations(
+					ctx,
+					project,
+				);
 
 				return {
 					_id: project._id,
@@ -346,9 +335,7 @@ const listPublicFeatured = zQuery({
 					description: project.description,
 					_creationTime: project._creationTime,
 					imageUrl,
-					technologies: technologies
-						.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
-						.map(({ name, color }) => ({ name, color })),
+					technologies,
 					repositoryUrl: project.repositoryUrl,
 					demoUrl: project.demoUrl,
 				};
@@ -407,24 +394,17 @@ const getPublicBySlug = zQuery({
 			return null;
 		}
 
-		const techRows = await ctx.db
-			.query("projectTechnology")
-			.withIndex("by_project", (q) => q.eq("projectId", project._id))
-			.collect();
-
-		const [technologies, imageUrl] = await Promise.all([
-			Promise.all(techRows.map((row) => ctx.db.get(row.technologyId))),
-			resolveImageUrl(ctx, project.imageId),
-		]);
+		const { technologies, imageUrl } = await resolveProjectRelations(
+			ctx,
+			project,
+		);
 
 		const { _id, authorId, attachments, ...rest } = project;
 
 		return {
 			...rest,
 			imageUrl,
-			technologies: technologies
-				.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
-				.map(({ name, color }) => ({ name, color })),
+			technologies,
 		};
 	},
 });
