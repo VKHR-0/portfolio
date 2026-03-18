@@ -1,7 +1,7 @@
 import { ConvexQueryClient } from "@convex-dev/react-query";
 import { MutationCache, QueryClient } from "@tanstack/react-query";
 import { createRouteMask, createRouter } from "@tanstack/react-router";
-import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { ConvexProvider } from "convex/react";
 import { toast } from "sonner";
 import { ErrorPage, LoadingPage, NotFoundPage } from "#/components/shell";
@@ -45,35 +45,33 @@ export function getRouter() {
 
 	convexQueryClient.connect(queryClient);
 
-	const router = createRouter({
-		routeTree,
-		routeMasks: [createTagMask, createSeriesMask, createCategoryMask],
-		notFoundMode: "root",
+	const router = routerWithQueryClient(
+		createRouter({
+			routeTree,
+			routeMasks: [createTagMask, createSeriesMask, createCategoryMask],
+			notFoundMode: "root",
 
-		scrollRestoration: true,
-		defaultPreload: "intent",
-		defaultPreloadStaleTime: 0,
+			scrollRestoration: true,
+			defaultPreload: "intent",
+			defaultPreloadStaleTime: 0,
 
-		defaultPendingComponent: LoadingPage,
-		defaultErrorComponent: ErrorPage,
-		defaultNotFoundComponent: NotFoundPage,
+			defaultPendingComponent: LoadingPage,
+			defaultErrorComponent: ErrorPage,
+			defaultNotFoundComponent: NotFoundPage,
 
-		context: {
-			queryClient,
-			convexQueryClient,
-		},
+			context: {
+				queryClient,
+				convexQueryClient,
+			},
 
-		Wrap: ({ children }) => (
-			<ConvexProvider client={convexQueryClient.convexClient}>
-				{children}
-			</ConvexProvider>
-		),
-	});
-
-	setupRouterSsrQueryIntegration({
-		router,
+			Wrap: ({ children }) => (
+				<ConvexProvider client={convexQueryClient.convexClient}>
+					{children}
+				</ConvexProvider>
+			),
+		}),
 		queryClient,
-	});
+	);
 
 	return router;
 }
