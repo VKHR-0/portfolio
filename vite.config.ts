@@ -22,7 +22,7 @@ const config = defineConfig({
 				},
 			},
 		}),
-		nitro({ preset: "bun" }),
+		nitro(),
 		tailwindcss(),
 		tanstackStart(),
 		react(),
