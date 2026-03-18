@@ -3,7 +3,11 @@ import { api } from "convex/_generated/api";
 import { convexAuthQuery, getToken } from "#/lib/auth-server";
 
 export const getAuth = createServerFn({ method: "GET" }).handler(async () => {
-	return await getToken();
+	try {
+		return await getToken();
+	} catch {
+		return null;
+	}
 });
 
 export const getCurrentUser = createServerFn({ method: "GET" }).handler(
