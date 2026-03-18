@@ -1,4 +1,8 @@
-import { Github, Link as LinkIcon } from "@hugeicons/core-free-icons";
+import {
+	ArrowRight,
+	Github,
+	Link as LinkIcon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { Link } from "@tanstack/react-router";
@@ -15,13 +19,12 @@ type Project = FunctionReturnType<
 	typeof api.functions.projects.listPublicRecent
 >[number];
 
-export function Projects({
-	recentProjects,
-	featuredProjects,
-}: {
+type ProjectsProps = {
 	recentProjects: Array<Project>;
 	featuredProjects: Array<Project>;
-}) {
+};
+
+export function Projects({ recentProjects, featuredProjects }: ProjectsProps) {
 	const [tab, setTab] = React.useState<"recent" | "featured">("recent");
 
 	const projects = tab === "recent" ? recentProjects : featuredProjects;
@@ -32,9 +35,18 @@ export function Projects({
 			<CornerSquare position="top-right" />
 
 			<div className="flex items-center justify-between px-4">
-				<h2 className="font-semibold text-2xl">
-					{tab === "recent" ? "Recent Projects" : "Featured Projects"}
-				</h2>
+				<Link
+					to="/projects"
+					className="group flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+				>
+					<h2 className="font-semibold text-2xl text-foreground">
+						{tab === "recent" ? "Recent Projects" : "Featured Projects"}
+					</h2>
+					<HugeiconsIcon icon={ArrowRight} strokeWidth={2} className="size-5" />
+					<span className="max-w-0 overflow-hidden whitespace-nowrap transition-all duration-200 group-hover:max-w-20">
+						see more
+					</span>
+				</Link>
 
 				<div className="border-2 bg-background px-1">
 					<Tabs

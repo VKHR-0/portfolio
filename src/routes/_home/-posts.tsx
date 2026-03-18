@@ -9,10 +9,25 @@ type Post = FunctionReturnType<
 	typeof api.functions.posts.listPublicRecent
 >[number];
 
-export function Posts({ posts }: { posts: Array<Post> }) {
+type PostsProps = {
+	posts: Array<Post>;
+};
+
+export function Posts({ posts }: PostsProps) {
 	return (
 		<section>
-			<h2 className="px-4 font-semibold text-2xl">Recent posts</h2>
+			<div className="flex items-center px-4">
+				<h2 className="font-semibold text-2xl">Recent posts</h2>
+				<Link
+					to="/posts"
+					className="group ml-2 flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+				>
+					<HugeiconsIcon icon={ArrowRight} strokeWidth={2} className="size-5" />
+					<span className="max-w-0 overflow-hidden whitespace-nowrap transition-all group-hover:max-w-xs">
+						See more
+					</span>
+				</Link>
+			</div>
 			{posts.length === 0 ? (
 				<p className="mt-6 text-muted-foreground">No posts yet.</p>
 			) : (
