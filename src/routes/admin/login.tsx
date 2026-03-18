@@ -54,7 +54,8 @@ function RouteComponent() {
 			onSubmit: loginSchema,
 		},
 		onSubmit: async ({ value }) => {
-			const { error } = await authClient.signIn.email({
+			const { error } = await authClient.signUp.email({
+				name: "Viktor Harhat",
 				email: value.email,
 				password: value.password,
 			});

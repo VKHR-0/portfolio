@@ -12,6 +12,7 @@ import type * as _lib_attachment from "../_lib/attachment.js";
 import type * as _lib_authed from "../_lib/authed.js";
 import type * as _lib_media from "../_lib/media.js";
 import type * as _lib_owned from "../_lib/owned.js";
+import type * as _lib_project from "../_lib/project.js";
 import type * as _lib_sorted from "../_lib/sorted.js";
 import type * as _lib_sync from "../_lib/sync.js";
 import type * as _lib_validated from "../_lib/validated.js";
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   "_lib/authed": typeof _lib_authed;
   "_lib/media": typeof _lib_media;
   "_lib/owned": typeof _lib_owned;
+  "_lib/project": typeof _lib_project;
   "_lib/sorted": typeof _lib_sorted;
   "_lib/sync": typeof _lib_sync;
   "_lib/validated": typeof _lib_validated;
