@@ -24,7 +24,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 		emailAndPassword: {
 			enabled: true,
 			requireEmailVerification: false,
-			disableSignUp: false,
+			disableSignUp: true,
 		},
 
 		plugins: [convex({ authConfig })],
