@@ -1,4 +1,9 @@
-import { ArrowLeft, ExternalLink, Github } from "@hugeicons/core-free-icons";
+import {
+	ArrowLeft,
+	Briefcase,
+	ExternalLink,
+	Github,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -61,7 +66,14 @@ function ProjectsPage() {
 					</div>
 
 					{!projects || projects.length === 0 ? (
-						<p className="text-muted-foreground">No projects yet.</p>
+						<div className="mx-4 mt-6 flex flex-col items-center justify-center border-2 border-dashed bg-muted/50 p-12 text-center">
+							<HugeiconsIcon
+								icon={Briefcase}
+								strokeWidth={2}
+								className="mb-4 size-8 text-muted-foreground/50"
+							/>
+							<p className="text-muted-foreground">No projects yet.</p>
+						</div>
 					) : (
 						<div className="space-y-12 p-2 sm:p-4">
 							{years.map((year) => (

@@ -1,5 +1,6 @@
 import {
 	ArrowRight,
+	Briefcase,
 	Github,
 	Link as LinkIcon,
 } from "@hugeicons/core-free-icons";
@@ -72,9 +73,16 @@ export function Projects({ recentProjects, featuredProjects }: ProjectsProps) {
 			</div>
 
 			{!projects || projects.length === 0 ? (
-				<p className="mt-4 text-muted-foreground">
-					{tab === "recent" ? "No projects yet." : "No featured projects."}
-				</p>
+				<div className="mx-4 mt-6 flex flex-col items-center justify-center border-2 border-dashed bg-muted/50 p-12 text-center">
+					<HugeiconsIcon
+						icon={Briefcase}
+						strokeWidth={2}
+						className="mb-4 size-8 text-muted-foreground/50"
+					/>
+					<p className="text-muted-foreground">
+						{tab === "recent" ? "No projects yet." : "No featured projects."}
+					</p>
+				</div>
 			) : (
 				<div className="relative mt-6 grid sm:grid-cols-2 lg:grid-cols-3">
 					{projects.map((project) => (

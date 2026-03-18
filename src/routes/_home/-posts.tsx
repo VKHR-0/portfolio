@@ -1,4 +1,4 @@
-import { ArrowRight } from "@hugeicons/core-free-icons";
+import { ArrowRight, FileText } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "@tanstack/react-router";
 import type { api } from "convex/_generated/api";
@@ -29,7 +29,14 @@ export function Posts({ posts }: PostsProps) {
 				</Link>
 			</div>
 			{posts.length === 0 ? (
-				<p className="mt-6 text-muted-foreground">No posts yet.</p>
+				<div className="mx-4 mt-6 flex flex-col items-center justify-center border-2 border-dashed bg-muted/50 p-12 text-center">
+					<HugeiconsIcon
+						icon={FileText}
+						strokeWidth={2}
+						className="mb-4 size-8 text-muted-foreground/50"
+					/>
+					<p className="text-muted-foreground">No posts yet.</p>
+				</div>
 			) : (
 				<div className="mt-8 flex flex-col gap-4 p-2 sm:p-4">
 					{posts.map((post) => (
