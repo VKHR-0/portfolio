@@ -31,7 +31,7 @@ export function Posts({ posts }: PostsProps) {
 			{posts.length === 0 ? (
 				<p className="mt-6 text-muted-foreground">No posts yet.</p>
 			) : (
-				<div className="mt-8">
+				<div className="mt-8 flex flex-col gap-4 p-2 sm:p-4">
 					{posts.map((post) => (
 						<PostCard key={post._id} post={post} />
 					))}
@@ -56,21 +56,25 @@ function PostCard({ post }: PostCardProps) {
 		<Link
 			to="/posts/$slugId"
 			params={{ slugId: post.slug }}
-			className="group relative flex items-center justify-between border-t-2 px-4 py-4 transition-colors hover:bg-muted/50"
+			className="group relative flex flex-col justify-between gap-4 border-2 bg-background p-4 transition-colors hover:bg-muted sm:flex-row sm:items-center"
 		>
-			<CornerSquare position="top-left" mode="centered" className="-ml-px" />
-			<CornerSquare position="top-right" mode="centered" className="-mr-px" />
-			<div>
-				<h3 className="font-medium group-hover:text-primary">{post.title}</h3>
-				<time className="text-muted-foreground text-sm">
+			<CornerSquare position="top-left" mode="offset" />
+			<CornerSquare position="top-right" mode="offset" />
+			<CornerSquare position="bottom-left" mode="offset" />
+			<CornerSquare position="bottom-right" mode="offset" />
+
+			<h3 className="font-semibold text-lg">{post.title}</h3>
+
+			<div className="flex shrink-0 items-center gap-4 text-muted-foreground text-sm">
+				<time dateTime={new Date(post._creationTime).toISOString()}>
 					{dateFormatter.format(new Date(post._creationTime))}
 				</time>
+				<HugeiconsIcon
+					icon={ArrowRight}
+					strokeWidth={2}
+					className="size-5 transition-transform group-hover:translate-x-1"
+				/>
 			</div>
-			<HugeiconsIcon
-				icon={ArrowRight}
-				strokeWidth={2}
-				className="size-5 text-muted-foreground transition-transform group-hover:translate-x-1"
-			/>
 		</Link>
 	);
 }

@@ -86,6 +86,7 @@ const listPublicRecent = zQuery({
 					title: project.title,
 					slug: project.slug,
 					description: project.description,
+					_creationTime: project._creationTime,
 					imageUrl,
 					technologies: technologies
 						.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
@@ -343,6 +344,7 @@ const listPublicFeatured = zQuery({
 					title: project.title,
 					slug: project.slug,
 					description: project.description,
+					_creationTime: project._creationTime,
 					imageUrl,
 					technologies: technologies
 						.filter((tech): tech is NonNullable<typeof tech> => tech !== null)
