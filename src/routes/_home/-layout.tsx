@@ -1,3 +1,6 @@
+import { cva } from "class-variance-authority";
+import { cn } from "#/lib/utils";
+
 type LayoutProps = {
 	children: React.ReactNode;
 };
@@ -16,21 +19,80 @@ export function Layout({ children }: LayoutProps) {
 	);
 }
 
+const cornerSquareVariants = cva(
+	"absolute z-30 size-3 rotate-45 border-2 bg-background",
+	{
+		variants: {
+			position: {
+				"top-left": "",
+				"top-right": "",
+				"bottom-left": "",
+				"bottom-right": "",
+			},
+			mode: {
+				offset: "",
+				centered: "",
+			},
+		},
+		compoundVariants: [
+			{
+				position: "top-left",
+				mode: "offset",
+				class: "-top-1.5 -left-1.5",
+			},
+			{
+				position: "top-right",
+				mode: "offset",
+				class: "-top-1.5 -right-1.5",
+			},
+			{
+				position: "bottom-left",
+				mode: "offset",
+				class: "-bottom-1.5 -left-1.5",
+			},
+			{
+				position: "bottom-right",
+				mode: "offset",
+				class: "-right-1.5 -bottom-1.5",
+			},
+			{
+				position: "top-left",
+				mode: "centered",
+				class: "top-0 left-0 -translate-x-1/2 -translate-y-1/2",
+			},
+			{
+				position: "top-right",
+				mode: "centered",
+				class: "top-0 right-0 translate-x-1/2 -translate-y-1/2",
+			},
+			{
+				position: "bottom-left",
+				mode: "centered",
+				class: "bottom-0 left-0 -translate-x-1/2 translate-y-1/2",
+			},
+			{
+				position: "bottom-right",
+				mode: "centered",
+				class: "right-0 bottom-0 translate-x-1/2 translate-y-1/2",
+			},
+		],
+		defaultVariants: {
+			position: "top-left",
+			mode: "offset",
+		},
+	},
+);
+
 type CornerSquareProps = {
 	position: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+	mode?: "offset" | "centered";
+	className?: string;
 };
 
-export function CornerSquare({ position }: CornerSquareProps) {
-	const positionClasses: Record<CornerSquareProps["position"], string> = {
-		"top-left": "-left-1.5 -top-1.5",
-		"top-right": "-right-1.5 -top-1.5",
-		"bottom-left": "-bottom-1.5 -left-1.5",
-		"bottom-right": "-bottom-1.5 -right-1.5",
-	};
-
+export function CornerSquare({ position, mode, className }: CornerSquareProps) {
 	return (
 		<div
-			className={`absolute size-3 rotate-45 border-2 bg-background ${positionClasses[position]} z-20`}
+			className={cn(cornerSquareVariants({ position, mode }), className)}
 			aria-hidden="true"
 		/>
 	);

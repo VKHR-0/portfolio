@@ -64,11 +64,36 @@ export function Projects({
 	);
 }
 
-function ProjectCard({ project }: { project: Project }) {
+type ProjectCardProps = {
+	project: Project;
+};
+
+function ProjectCard({ project }: ProjectCardProps) {
 	const hasLinks = project.repositoryUrl || project.demoUrl;
 
 	return (
-		<Card className="group relative overflow-hidden rounded-none bg-transparent">
+		<Card className="group relative overflow-visible rounded-none border-t-2 nth-last-[-n+2]:border-b-2 bg-transparent ring-0 even:border-l-2">
+			<CornerSquare
+				position="top-right"
+				mode="offset"
+				className="-mt-px -mr-px"
+			/>
+			<CornerSquare
+				position="top-left"
+				mode="offset"
+				className="-mt-px -ml-px"
+			/>
+			<CornerSquare
+				position="bottom-left"
+				mode="offset"
+				className="-mb-px -ml-px"
+			/>
+			<CornerSquare
+				position="bottom-right"
+				mode="offset"
+				className="-mr-px -mb-px"
+			/>
+
 			<Link
 				to="/projects/$slugId"
 				params={{ slugId: project.slug }}
@@ -76,14 +101,14 @@ function ProjectCard({ project }: { project: Project }) {
 			>
 				<h3 className="font-semibold text-lg">{project.title}</h3>
 				{project.description && (
-					<p className="mt-2 line-clamp-3 text-muted-foreground text-sm">
+					<p className="mt-2 line-clamp-2 text-muted-foreground text-sm">
 						{project.description}
 					</p>
 				)}
 			</Link>
 
 			{hasLinks && (
-				<div className="absolute top-6.5 right-4 flex border-2 bg-background opacity-0 transition-opacity group-hover:opacity-100">
+				<div className="absolute top-4 right-4 flex border-2 bg-background opacity-0 transition-opacity group-hover:opacity-100">
 					{project.repositoryUrl && (
 						<a
 							href={project.repositoryUrl}

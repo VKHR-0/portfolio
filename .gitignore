@@ -44,5 +44,3 @@ next-env.d.ts
 .vinxi
 __unconfig*
 todos.json
-
-tmp/
