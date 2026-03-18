@@ -6,7 +6,7 @@ import {
 	listPublicPosts,
 	listPublicProjects,
 } from "#/queries/public";
-import { Footer } from "./-foooter";
+import { Footer } from "./-footer";
 import { Header } from "./-header";
 import { Hero } from "./-hero";
 import { CornerSquare, Layout } from "./-layout";
@@ -35,7 +35,7 @@ function HomePage() {
 	return (
 		<Layout>
 			<Header />
-			<div className="flex h-full flex-1 flex-col">
+			<div className="flex h-full flex-1 flex-col px-4">
 				<main className="container relative mx-auto max-w-4xl flex-1 border-r-2 border-l-2 bg-background">
 					<CornerSquare position="top-left" />
 					<CornerSquare position="top-right" />

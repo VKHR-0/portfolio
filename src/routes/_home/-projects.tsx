@@ -84,7 +84,7 @@ function ProjectCard({ project }: ProjectCardProps) {
 	const hasLinks = project.repositoryUrl || project.demoUrl;
 
 	return (
-		<Card className="group relative overflow-visible rounded-none border-t-2 nth-last-[-n+2]:border-b-2 bg-transparent ring-0 even:border-l-2">
+		<Card className="group relative overflow-visible rounded-none border-t-2 bg-transparent ring-0 last:border-b-2 even:border-l-0 sm:nth-last-[-n+2]:border-b-2 sm:even:border-l-2 lg:nth-last-[-n+3]:border-b-2 lg:nth-[3n+2]:border-l-2 lg:nth-[3n]:border-l-2 lg:even:border-l-0">
 			<CornerSquare
 				position="top-right"
 				mode="offset"
