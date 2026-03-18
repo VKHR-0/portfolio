@@ -6,6 +6,7 @@ import {
 	listPublicPosts,
 	listPublicProjects,
 } from "#/queries/public";
+import { Footer } from "./-foooter";
 import { Header } from "./-header";
 import { Hero } from "./-hero";
 import { CornerSquare, Layout } from "./-layout";
@@ -51,6 +52,7 @@ function HomePage() {
 					<CornerSquare position="bottom-right" />
 				</main>
 			</div>
+			<Footer />
 		</Layout>
 	);
 }

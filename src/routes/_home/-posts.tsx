@@ -16,7 +16,7 @@ export function Posts({ posts }: { posts: Array<Post> }) {
 			{posts.length === 0 ? (
 				<p className="mt-6 text-muted-foreground">No posts yet.</p>
 			) : (
-				<div className="mt-6">
+				<div className="mt-8">
 					{posts.map((post) => (
 						<PostCard key={post._id} post={post} />
 					))}
