@@ -1,4 +1,5 @@
 import { cva } from "class-variance-authority";
+import { type HTMLMotionProps, motion } from "motion/react";
 import { cn } from "#/lib/utils";
 
 type LayoutProps = {
@@ -83,17 +84,23 @@ const cornerSquareVariants = cva(
 	},
 );
 
-type CornerSquareProps = {
+type CornerSquareProps = HTMLMotionProps<"div"> & {
 	position: "top-left" | "top-right" | "bottom-left" | "bottom-right";
 	mode?: "offset" | "centered";
 	className?: string;
 };
 
-export function CornerSquare({ position, mode, className }: CornerSquareProps) {
+export function CornerSquare({
+	position,
+	mode,
+	className,
+	...props
+}: CornerSquareProps) {
 	return (
-		<div
+		<motion.div
 			className={cn(cornerSquareVariants({ position, mode }), className)}
 			aria-hidden="true"
+			{...props}
 		/>
 	);
 }
