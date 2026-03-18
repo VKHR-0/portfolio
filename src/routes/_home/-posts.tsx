@@ -17,7 +17,7 @@ export function Posts({ posts }: PostsProps) {
 	return (
 		<section>
 			<div className="flex items-center px-4">
-				<h2 className="font-semibold text-2xl">Recent posts</h2>
+				<h2 className="font-semibold text-xl sm:text-2xl">Recent posts</h2>
 				<Link
 					to="/posts"
 					className="group ml-2 flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
@@ -66,7 +66,7 @@ function PostCard({ post }: PostCardProps) {
 			<CornerSquare position="bottom-left" mode="offset" />
 			<CornerSquare position="bottom-right" mode="offset" />
 
-			<h3 className="font-semibold text-lg">{post.title}</h3>
+			<h3 className="font-semibold text-base sm:text-lg">{post.title}</h3>
 
 			<div className="flex shrink-0 items-center gap-4 text-muted-foreground text-sm">
 				<time dateTime={new Date(post._creationTime).toISOString()}>

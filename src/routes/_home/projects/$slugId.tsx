@@ -50,7 +50,7 @@ function RouteComponent() {
 
 	return (
 		<Layout>
-			<article className="relative mx-auto my-8 w-full max-w-4xl border-2 bg-background">
+			<article className="relative mx-4 my-4 max-w-4xl border-2 bg-background sm:mx-auto sm:my-8 sm:w-full">
 				<CornerSquare position="top-left" mode="offset" />
 				<CornerSquare position="top-right" mode="offset" />
 				<CornerSquare position="bottom-left" mode="offset" />
@@ -77,7 +77,7 @@ function RouteComponent() {
 						</Link>
 
 						{(project.repositoryUrl || project.demoUrl) && (
-							<div className="absolute top-4 right-4 flex items-center gap-3">
+							<div className="absolute top-4 right-4 flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-3">
 								{project.repositoryUrl && (
 									<a
 										href={project.repositoryUrl}
@@ -115,7 +115,7 @@ function RouteComponent() {
 
 				<div className="mx-auto w-full max-w-3xl px-4 pb-10">
 					{!project.imageUrl && (
-						<div className="mt-10 mb-8 flex items-center justify-between">
+						<div className="mt-10 mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
 							<Link
 								to="/projects"
 								className="inline-flex items-center gap-1.5 text-muted-foreground text-sm transition-colors hover:text-foreground"
@@ -168,7 +168,7 @@ function RouteComponent() {
 					<div
 						className={`${project.imageUrl ? "mt-4" : ""} mb-4 flex flex-wrap items-end gap-3`}
 					>
-						<h1 className="font-bold text-4xl leading-tight tracking-tight">
+						<h1 className="font-bold text-3xl leading-tight tracking-tight sm:text-4xl">
 							{project.title}
 						</h1>
 						<div className="mb-1 flex items-center gap-3 text-muted-foreground text-sm">
@@ -204,7 +204,7 @@ function RouteComponent() {
 					)}
 
 					{project.description && (
-						<p className="mb-8 text-lg text-muted-foreground leading-relaxed">
+						<p className="mb-8 text-base text-muted-foreground leading-relaxed sm:text-lg">
 							{project.description}
 						</p>
 					)}

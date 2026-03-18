@@ -49,7 +49,7 @@ function RouteComponent() {
 
 	return (
 		<Layout>
-			<article className="relative mx-auto my-8 w-full max-w-4xl border-2 bg-background p-4 md:p-10">
+			<article className="relative mx-4 my-4 max-w-4xl border-2 bg-background p-4 sm:mx-auto sm:my-8 sm:w-full md:p-10">
 				<CornerSquare position="top-left" mode="offset" />
 				<CornerSquare position="top-right" mode="offset" />
 				<CornerSquare position="bottom-left" mode="offset" />
@@ -63,7 +63,7 @@ function RouteComponent() {
 					Back to posts
 				</Link>
 
-				<h1 className="mb-4 font-bold text-4xl leading-tight tracking-tight">
+				<h1 className="mb-4 font-bold text-3xl leading-tight tracking-tight sm:text-4xl">
 					{post.title}
 				</h1>
 

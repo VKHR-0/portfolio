@@ -60,7 +60,7 @@ function ProjectsPage() {
 								className="size-5"
 							/>
 						</Link>
-						<h1 className="font-bold text-2xl">Projects</h1>
+						<h1 className="font-bold text-xl sm:text-2xl">Projects</h1>
 						<CornerSquare position="bottom-left" />
 						<CornerSquare position="bottom-right" />
 					</div>
@@ -93,7 +93,7 @@ function ProjectsPage() {
 												<CornerSquare position="bottom-right" mode="offset" />
 
 												<div className="flex-1">
-													<h3 className="font-semibold text-lg">
+													<h3 className="font-semibold text-base sm:text-lg">
 														{project.title}
 													</h3>
 													{project.description && (

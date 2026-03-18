@@ -45,12 +45,12 @@ export function Projects({ recentProjects, featuredProjects }: ProjectsProps) {
 			<CornerSquare position="top-left" />
 			<CornerSquare position="top-right" />
 
-			<div className="flex items-center justify-between px-4">
+			<div className="flex flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between">
 				<Link
 					to="/projects"
 					className="group flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
 				>
-					<h2 className="font-semibold text-2xl text-foreground">
+					<h2 className="font-semibold text-foreground text-xl sm:text-2xl">
 						{tab === "recent" ? "Recent Projects" : "Featured Projects"}
 					</h2>
 					<HugeiconsIcon icon={ArrowRight} strokeWidth={2} className="size-5" />
@@ -59,7 +59,7 @@ export function Projects({ recentProjects, featuredProjects }: ProjectsProps) {
 					</span>
 				</Link>
 
-				<div className="border-2 bg-background px-1">
+				<div className="self-start border-2 bg-background px-1 sm:self-auto">
 					<Tabs
 						value={tab}
 						onValueChange={(value) => setTab(value as "recent" | "featured")}
@@ -171,7 +171,7 @@ function ProjectCard({ project, onClick }: ProjectCardProps) {
 				>
 					<motion.h3
 						layoutId={`project-title-${project._id}`}
-						className="font-semibold text-lg"
+						className="font-semibold text-base sm:text-lg"
 						transition={springTransition}
 					>
 						{project.title}
@@ -332,11 +332,11 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
 							</div>
 						)}
 
-						<div className="p-6">
-							<div className="mb-4 flex items-start justify-between gap-4">
+						<div className="p-4 sm:p-6">
+							<div className="mb-4 flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
 								<motion.h2
 									layoutId={`project-title-${project._id}`}
-									className="font-bold text-2xl"
+									className="font-bold text-xl sm:text-2xl"
 									transition={springTransition}
 								>
 									{project.title}
@@ -346,14 +346,14 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
 									<motion.div
 										layoutId={`project-links-${project._id}`}
 										transition={springTransition}
-										className="flex shrink-0 border-2 bg-background"
+										className="flex w-full shrink-0 border-2 bg-background sm:w-auto"
 									>
 										{project.repositoryUrl && (
 											<a
 												href={project.repositoryUrl}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted"
+												className="flex flex-1 items-center justify-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted sm:flex-none"
 											>
 												<HugeiconsIcon
 													icon={Github}
@@ -371,7 +371,7 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
 												href={project.demoUrl}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="flex items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted"
+												className="flex flex-1 items-center justify-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted sm:flex-none"
 											>
 												<HugeiconsIcon
 													icon={LinkIcon}

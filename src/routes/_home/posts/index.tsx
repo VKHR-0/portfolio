@@ -55,7 +55,7 @@ function PostsPage() {
 								className="size-5"
 							/>
 						</Link>
-						<h1 className="font-bold text-2xl">Posts</h1>
+						<h1 className="font-bold text-xl sm:text-2xl">Posts</h1>
 						<CornerSquare position="bottom-left" />
 						<CornerSquare position="bottom-right" />
 					</div>
@@ -87,7 +87,9 @@ function PostsPage() {
 												<CornerSquare position="bottom-left" mode="offset" />
 												<CornerSquare position="bottom-right" mode="offset" />
 
-												<h3 className="font-semibold text-lg">{post.title}</h3>
+												<h3 className="font-semibold text-base sm:text-lg">
+													{post.title}
+												</h3>
 
 												<div className="shrink-0 text-muted-foreground text-sm">
 													<time

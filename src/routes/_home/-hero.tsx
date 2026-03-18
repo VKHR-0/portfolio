@@ -7,18 +7,18 @@ import { CornerSquare } from "./-layout";
 export function Hero() {
 	return (
 		<section>
-			<div className="relative flex items-center justify-between border-b-2">
+			<div className="relative flex flex-col justify-between border-b-2 sm:flex-row sm:items-center">
 				<CornerSquare position="bottom-left" />
 				<CornerSquare position="bottom-right" />
-				<h1 className="pl-4 font-bold font-mono text-2xl md:text-3xl">
+				<h1 className="border-b-2 p-4 font-bold font-mono text-2xl sm:border-b-0 sm:pl-4 md:text-3xl">
 					Hi, I'm Viktor
 				</h1>
-				<div className="flex border-l-2 bg-background">
+				<div className="flex w-full bg-background sm:w-auto sm:border-l-2">
 					<a
 						href={SOCIAL_LINKS.github}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex items-center justify-center p-4 transition-colors hover:bg-muted"
+						className="flex flex-1 items-center justify-center p-3 transition-colors hover:bg-muted sm:flex-none sm:p-4"
 						aria-label="GitHub profile"
 					>
 						<HugeiconsIcon icon={Github} strokeWidth={2} className="size-5" />
@@ -26,7 +26,7 @@ export function Hero() {
 					<Separator className="w-0.5!" orientation="vertical" />
 					<a
 						href={`mailto:${SOCIAL_LINKS.email}`}
-						className="flex items-center justify-center p-4 transition-colors hover:bg-muted"
+						className="flex flex-1 items-center justify-center p-3 transition-colors hover:bg-muted sm:flex-none sm:p-4"
 						aria-label="Send email"
 					>
 						<HugeiconsIcon icon={Mail} strokeWidth={2} className="size-5" />
@@ -34,7 +34,7 @@ export function Hero() {
 					<Separator className="w-0.5!" orientation="vertical" />
 					<a
 						href={SOCIAL_LINKS.linkedin}
-						className="flex items-center justify-center p-4 transition-colors hover:bg-muted"
+						className="flex flex-1 items-center justify-center p-3 transition-colors hover:bg-muted sm:flex-none sm:p-4"
 						aria-label="LinkedIn profile"
 					>
 						<HugeiconsIcon icon={Linkedin} strokeWidth={2} className="size-5" />
@@ -42,14 +42,14 @@ export function Hero() {
 					<Separator className="w-0.5!" orientation="vertical" />
 					<a
 						href={SOCIAL_LINKS.cv}
-						className="flex items-center justify-center p-4 transition-colors hover:bg-muted"
+						className="flex flex-1 items-center justify-center p-3 transition-colors hover:bg-muted sm:flex-none sm:p-4"
 						aria-label="CV"
 					>
 						<HugeiconsIcon icon={Document} strokeWidth={2} className="size-5" />
 					</a>
 				</div>
 			</div>
-			<article className="px-4 py-8 text-lg">
+			<article className="space-y-4 px-4 py-6 text-base sm:py-8 sm:text-lg">
 				<p>
 					I'm a software developer who loves developing web applications,
 					whether it's frontend, backend, or DevOps - I've experienced all of
