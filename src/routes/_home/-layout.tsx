@@ -96,6 +96,7 @@ export function CornerSquare({
 	className,
 	...props
 }: CornerSquareProps) {
+	"use no memo";
 	return (
 		<motion.div
 			className={cn(cornerSquareVariants({ position, mode }), className)}

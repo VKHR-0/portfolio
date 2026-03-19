@@ -29,6 +29,7 @@ type ProjectsProps = {
 };
 
 export function Projects({ recentProjects, featuredProjects }: ProjectsProps) {
+	"use no memo";
 	const [tab, setTab] = React.useState<"recent" | "featured">("recent");
 	const [selectedProject, setSelectedProject] = React.useState<Project | null>(
 		null,
@@ -113,6 +114,7 @@ type ProjectCardProps = {
 };
 
 function ProjectCard({ project, onClick }: ProjectCardProps) {
+	"use no memo";
 	const hasLinks = project.repositoryUrl || project.demoUrl;
 
 	return (
@@ -243,6 +245,7 @@ type ProjectModalProps = {
 };
 
 function ProjectModal({ project, onClose }: ProjectModalProps) {
+	"use no memo";
 	React.useEffect(() => {
 		const handleEscape = (e: KeyboardEvent) => {
 			if (e.key === "Escape") onClose();

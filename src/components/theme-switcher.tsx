@@ -1,6 +1,6 @@
 import { Desktop, Moon, Sun } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import type * as React from "react";
 import { useTheme } from "#/components/providers/theme-provider";
 import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs";
@@ -26,6 +26,7 @@ type ThemeSwitcherProps = {
 };
 
 export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
+	"use no memo";
 	const { theme, setTheme } = useTheme();
 
 	return (
