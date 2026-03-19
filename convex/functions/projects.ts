@@ -45,13 +45,13 @@ const listRecent = zAuthedQuery({
 			.take(limit);
 
 		return projects.map(
-			({ _id, title, slug, status, isFeatured, _creationTime }) => ({
+			({ _id, title, slug, status, isFeatured, publishDate }) => ({
 				_id,
 				title,
 				slug,
 				status,
 				isFeatured,
-				_creationTime,
+				publishDate,
 			}),
 		);
 	},
@@ -66,6 +66,7 @@ const listPublicRecent = zQuery({
 
 		const projects = await ctx.db
 			.query("projects")
+			.withIndex("by_publish_date")
 			.filter((q) => q.neq(q.field("status"), "archived"))
 			.order("desc")
 			.take(limit);
@@ -82,7 +83,7 @@ const listPublicRecent = zQuery({
 					title: project.title,
 					slug: project.slug,
 					description: project.description,
-					_creationTime: project._creationTime,
+					publishDate: project.publishDate ?? project._creationTime,
 					imageUrl,
 					technologies,
 					repositoryUrl: project.repositoryUrl,
@@ -110,6 +111,7 @@ const create = zAuthedMutation({
 		repositoryUrl: z.string().optional(),
 		demoUrl: z.string().optional(),
 		technologyIds: z.array(zid("technologies")).optional(),
+		publishDate: z.number().optional(),
 	},
 	handler: async (ctx, args) => {
 		const { userId } = ctx;
@@ -140,6 +142,7 @@ const create = zAuthedMutation({
 			repositoryUrl: args.repositoryUrl,
 			demoUrl: args.demoUrl,
 			authorId: userId,
+			publishDate: args.publishDate ?? Date.now(),
 		});
 
 		await Promise.all([
@@ -164,6 +167,7 @@ const update = zAuthedMutation({
 		repositoryUrl: z.string().optional(),
 		demoUrl: z.string().optional(),
 		technologyIds: z.array(zid("technologies")),
+		publishDate: z.number(),
 	},
 	handler: async (ctx, args) => {
 		const { id, title, slug: rawSlug, technologyIds, ...fields } = args;
@@ -316,6 +320,7 @@ const listPublicFeatured = zQuery({
 
 		const projects = await ctx.db
 			.query("projects")
+			.withIndex("by_publish_date")
 			.filter((q) => q.neq(q.field("status"), "archived"))
 			.filter((q) => q.eq(q.field("isFeatured"), true))
 			.order("desc")
@@ -333,7 +338,7 @@ const listPublicFeatured = zQuery({
 					title: project.title,
 					slug: project.slug,
 					description: project.description,
-					_creationTime: project._creationTime,
+					publishDate: project.publishDate,
 					imageUrl,
 					technologies,
 					repositoryUrl: project.repositoryUrl,
@@ -399,7 +404,7 @@ const getPublicBySlug = zQuery({
 			project,
 		);
 
-		const { _id, authorId, attachments, ...rest } = project;
+		const { authorId, attachments, ...rest } = project;
 
 		return {
 			...rest,

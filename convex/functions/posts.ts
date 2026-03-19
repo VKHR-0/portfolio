@@ -44,12 +44,12 @@ const listRecent = zAuthedQuery({
 			.order("desc")
 			.take(limit);
 
-		return posts.map(({ _id, title, slug, status, _creationTime }) => ({
+		return posts.map(({ _id, title, slug, status, publishDate }) => ({
 			_id,
 			title,
 			slug,
 			status,
-			_creationTime,
+			publishDate,
 		}));
 	},
 });
@@ -63,15 +63,16 @@ const listPublicRecent = zQuery({
 
 		const posts = await ctx.db
 			.query("posts")
+			.withIndex("by_publish_date")
 			.filter((q) => q.eq(q.field("status"), "public"))
 			.order("desc")
 			.take(limit);
 
-		return posts.map(({ _id, title, slug, _creationTime }) => ({
+		return posts.map(({ _id, title, slug, publishDate }) => ({
 			_id,
 			title,
 			slug,
-			_creationTime,
+			publishDate,
 		}));
 	},
 });
@@ -92,6 +93,7 @@ const create = zAuthedMutation({
 		categoryId: zid("categories").optional(),
 		projectId: zid("projects").optional(),
 		tagIds: z.array(zid("tags")).optional(),
+		publishDate: z.number().optional(),
 	},
 	handler: async (ctx, args) => {
 		const { userId } = ctx;
@@ -120,6 +122,7 @@ const create = zAuthedMutation({
 			categoryId: args.categoryId,
 			projectId: args.projectId,
 			authorId: userId,
+			publishDate: args.publishDate ?? Date.now(),
 		});
 
 		await Promise.all([
@@ -142,6 +145,7 @@ const update = zAuthedMutation({
 		categoryId: zid("categories").optional(),
 		projectId: zid("projects").optional(),
 		tagIds: z.array(zid("tags")),
+		publishDate: z.number(),
 	},
 	handler: async (ctx, args) => {
 		const { id, title, slug: rawSlug, tagIds, ...fields } = args;
@@ -282,7 +286,7 @@ const getEditableBySlug = zAuthedQuery({
 			.withIndex("by_post", (q) => q.eq("postId", post._id))
 			.collect();
 
-		const { _creationTime, authorId, ...rest } = post;
+		const { authorId, ...rest } = post;
 
 		return { ...rest, tagIds: tagRows.map((row) => row.tagId) };
 	},
@@ -327,7 +331,7 @@ const getPublicBySlug = zQuery({
 			title: post.title,
 			slug: post.slug,
 			content: post.content,
-			_creationTime: post._creationTime,
+			publishDate: post.publishDate,
 			category: category ? { name: category.name, slug: category.slug } : null,
 			tags: tags
 				.filter((tag): tag is NonNullable<typeof tag> => tag !== null)
