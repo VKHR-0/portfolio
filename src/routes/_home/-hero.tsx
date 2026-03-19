@@ -10,7 +10,7 @@ export function Hero() {
 			<div className="relative flex flex-col justify-between border-b-2 sm:flex-row sm:items-center">
 				<CornerSquare position="bottom-left" />
 				<CornerSquare position="bottom-right" />
-				<h1 className="border-b-2 p-4 font-bold font-mono text-2xl sm:border-b-0 sm:pl-4 md:text-3xl">
+				<h1 className="border-b-2 p-4 font-bold font-mono text-2xl sm:border-b-0 sm:p-0 sm:pl-4 md:text-3xl">
 					Hi, I'm Viktor
 				</h1>
 				<div className="flex w-full bg-background sm:w-auto sm:border-l-2">
