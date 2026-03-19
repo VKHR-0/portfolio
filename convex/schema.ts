@@ -22,10 +22,13 @@ export default defineSchema({
 
 		repositoryUrl: v.optional(v.string()),
 		demoUrl: v.optional(v.string()),
+
+		publishDate: v.number(),
 	})
 		.index("by_slug", ["slug"])
 		.index("by_title", ["title"])
-		.index("by_author", ["authorId"]),
+		.index("by_author", ["authorId"])
+		.index("by_publish_date", ["publishDate"]),
 
 	posts: defineTable({
 		title: v.string(),
@@ -44,6 +47,8 @@ export default defineSchema({
 		seriesId: v.optional(v.id("series")),
 
 		authorId: v.string(),
+
+		publishDate: v.number(),
 	})
 		.index("by_slug", ["slug"])
 		.index("by_title", ["title"])
@@ -51,7 +56,8 @@ export default defineSchema({
 		.index("by_category", ["categoryId"])
 		.index("by_series", ["seriesId"])
 		.index("by_author", ["authorId"])
-		.index("by_status_and_category", ["status", "categoryId"]),
+		.index("by_status_and_category", ["status", "categoryId"])
+		.index("by_publish_date", ["publishDate"]),
 
 	categories: defineTable({
 		name: v.string(),
