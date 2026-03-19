@@ -172,7 +172,7 @@ export function EditorBubbleMenu({
 							<SelectTrigger
 								size="sm"
 								aria-label="Block style"
-								className="min-w-29 border-transparent bg-transparent py-0 pr-1.5 pl-2 shadow-none hover:bg-accent focus-visible:border-transparent focus-visible:ring-0"
+								className="h-9 min-w-29 border-transparent bg-transparent py-0 pr-1.5 pl-2 shadow-none hover:bg-accent focus-visible:border-transparent focus-visible:ring-0 sm:h-8"
 							>
 								<SelectValue />
 							</SelectTrigger>
@@ -205,12 +205,12 @@ export function EditorBubbleMenu({
 							aria-pressed={
 								btn.stateKey ? activeState[btn.stateKey] : undefined
 							}
-							className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+							className="h-9 w-9 aria-pressed:bg-accent aria-pressed:text-accent-foreground sm:h-8 sm:w-8"
 						>
 							<HugeiconsIcon
 								icon={btn.icon}
 								strokeWidth={2}
-								className="size-4"
+								className="size-5 sm:size-4"
 							/>
 						</Button>
 					))}
@@ -223,9 +223,13 @@ export function EditorBubbleMenu({
 						onClick={openLinkInput}
 						disabled={disabled}
 						aria-pressed={showLinkInput || activeState.link}
-						className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+						className="h-9 w-9 aria-pressed:bg-accent aria-pressed:text-accent-foreground sm:h-8 sm:w-8"
 					>
-						<HugeiconsIcon icon={Link} strokeWidth={2} className="size-4" />
+						<HugeiconsIcon
+							icon={Link}
+							strokeWidth={2}
+							className="size-5 sm:size-4"
+						/>
 					</Button>
 
 					{isOnImage ? (
@@ -237,7 +241,7 @@ export function EditorBubbleMenu({
 							aria-pressed={showAltInput}
 							onClick={toggleAltInput}
 							disabled={disabled}
-							className="text-xs aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+							className="h-9 text-xs aria-pressed:bg-accent aria-pressed:text-accent-foreground sm:h-8"
 						>
 							ALT
 						</Button>
@@ -252,9 +256,13 @@ export function EditorBubbleMenu({
 							onClick={toggleTableActions}
 							disabled={disabled}
 							aria-pressed={showTableActions}
-							className="aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+							className="h-9 w-9 aria-pressed:bg-accent aria-pressed:text-accent-foreground sm:h-8 sm:w-8"
 						>
-							<HugeiconsIcon icon={Table} strokeWidth={2} className="size-4" />
+							<HugeiconsIcon
+								icon={Table}
+								strokeWidth={2}
+								className="size-5 sm:size-4"
+							/>
 						</Button>
 					) : null}
 				</div>

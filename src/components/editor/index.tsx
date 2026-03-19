@@ -105,11 +105,12 @@ export function Editor({
 	const lastEmittedValueRef = React.useRef<string>(value);
 
 	const tiptapSurfaceClass = cn(
-		"min-h-16 w-full rounded-md border border-input bg-transparent px-8 text-base shadow-xs outline-none transition-[color,box-shadow]",
+		"min-h-16 w-full rounded-md border border-input bg-transparent px-4 text-base shadow-xs outline-none transition-[color,box-shadow] md:px-8",
 		"selection:bg-primary placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30",
 		"[&_.ProseMirror-selectednode]:bg-primary/15 [&_.ProseMirror-selectednode]:outline-none [&_li.ProseMirror-selectednode::after]:border-0 [&_li.ProseMirror-selectednode::after]:bg-primary/15",
 		"[&_img[data-upload-error]]:ring-2 [&_img[data-upload-error]]:ring-destructive [&_img[data-upload-error]]:ring-offset-2 [&_img[data-upload-error]]:ring-offset-background [&_img[data-uploading=true]]:animate-pulse [&_img[data-uploading=true]]:opacity-70",
 		"[&_p.is-empty::before]:pointer-events-none [&_p.is-empty::before]:float-left [&_p.is-empty::before]:h-0 [&_p.is-empty::before]:text-muted-foreground [&_p.is-empty::before]:content-[attr(data-placeholder)]",
+		"touch-manipulation",
 		editorClassName,
 	);
 
@@ -355,10 +356,14 @@ export function Editor({
 			{disabled ? null : (
 				<DragHandle
 					editor={editor}
-					className="z-40 grid -translate-x-1 place-items-center"
+					className="z-40 hidden -translate-x-1 place-items-center md:grid"
 					nested
 				>
-					<Button variant="outline" size="icon-xs">
+					<Button
+						variant="outline"
+						size="icon-xs"
+						className="touch-manipulation"
+					>
 						<HugeiconsIcon icon={GripVertical} size={16} strokeWidth={2} />
 					</Button>
 				</DragHandle>
