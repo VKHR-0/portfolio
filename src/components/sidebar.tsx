@@ -2,6 +2,7 @@ import {
 	Briefcase,
 	Cpu,
 	FileText,
+	Menu as MenuIcon,
 	Photo,
 	Plus,
 	Settings,
@@ -13,6 +14,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ComponentProps } from "react";
 import * as React from "react";
+import { Button } from "#/components/ui/button";
 import {
 	Sidebar,
 	SidebarContent,
@@ -31,6 +33,7 @@ import {
 	SidebarMenuSubItem,
 	SidebarSeparator,
 	SidebarTrigger,
+	useSidebar,
 } from "#/components/ui/sidebar";
 import { listRecentPosts, listRecentProjects } from "#/queries/admin";
 
@@ -115,7 +118,7 @@ function AdminSidebar() {
 					<SidebarTrigger
 						size="icon-lg"
 						variant="outline"
-						className="transition-all duration-200 ease-linear group-data-[collapsible=icon]:ml-0"
+						className="hidden transition-all duration-200 ease-linear group-data-[collapsible=icon]:ml-0 md:flex"
 					/>
 				</div>
 			</SidebarHeader>
@@ -268,4 +271,20 @@ function RecentProjectsMenu({ pathname }: { pathname: string }) {
 	);
 }
 
-export { AdminSidebar as Sidebar };
+function MobileSidebarTrigger() {
+	const { toggleSidebar } = useSidebar();
+
+	return (
+		<Button
+			variant="outline"
+			size="icon"
+			onClick={toggleSidebar}
+			className="fixed top-4 left-4 z-30 md:hidden"
+			aria-label="Open menu"
+		>
+			<HugeiconsIcon icon={MenuIcon} strokeWidth={2} className="size-5" />
+		</Button>
+	);
+}
+
+export { AdminSidebar as Sidebar, MobileSidebarTrigger };
