@@ -69,8 +69,8 @@ function PostCard({ post }: PostCardProps) {
 			<h3 className="font-semibold text-base sm:text-lg">{post.title}</h3>
 
 			<div className="flex shrink-0 items-center gap-4 text-muted-foreground text-sm">
-				<time dateTime={new Date(post._creationTime).toISOString()}>
-					{mediumDate.format(new Date(post._creationTime))}
+				<time dateTime={new Date(post.publishDate).toISOString()}>
+					{mediumDate.format(new Date(post.publishDate))}
 				</time>
 				<HugeiconsIcon
 					icon={ArrowRight}

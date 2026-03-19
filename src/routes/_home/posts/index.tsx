@@ -21,7 +21,7 @@ function PostsPage() {
 
 	const groupedPosts = posts.reduce(
 		(acc, post) => {
-			const year = new Date(post._creationTime).getFullYear();
+			const year = new Date(post.publishDate).getFullYear();
 			if (!acc[year]) acc[year] = [];
 			acc[year].push(post);
 			return acc;
@@ -93,11 +93,9 @@ function PostsPage() {
 
 												<div className="shrink-0 text-muted-foreground text-sm">
 													<time
-														dateTime={new Date(
-															post._creationTime,
-														).toISOString()}
+														dateTime={new Date(post.publishDate).toISOString()}
 													>
-														{shortDate.format(new Date(post._creationTime))}
+														{shortDate.format(new Date(post.publishDate))}
 													</time>
 												</div>
 											</Link>

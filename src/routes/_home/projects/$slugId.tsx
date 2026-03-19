@@ -179,8 +179,8 @@ function RouteComponent() {
 								{project.status}
 							</Badge>
 							<span aria-hidden="true">|</span>
-							<time dateTime={new Date(project._creationTime).toISOString()}>
-								{longDate.format(new Date(project._creationTime))}
+							<time dateTime={new Date(project.publishDate).toISOString()}>
+								{longDate.format(new Date(project.publishDate))}
 							</time>
 						</div>
 					</div>

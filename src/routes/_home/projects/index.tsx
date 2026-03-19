@@ -26,7 +26,7 @@ function ProjectsPage() {
 
 	const groupedProjects = projects.reduce(
 		(acc, project) => {
-			const year = new Date(project._creationTime).getFullYear();
+			const year = new Date(project.publishDate).getFullYear();
 			if (!acc[year]) acc[year] = [];
 			acc[year].push(project);
 			return acc;
@@ -146,11 +146,11 @@ function ProjectsPage() {
 													)}
 													<time
 														dateTime={new Date(
-															project._creationTime,
+															project.publishDate,
 														).toISOString()}
 														className="text-muted-foreground text-sm"
 													>
-														{shortDate.format(new Date(project._creationTime))}
+														{shortDate.format(new Date(project.publishDate))}
 													</time>
 												</div>
 											</Link>

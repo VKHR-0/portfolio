@@ -68,8 +68,8 @@ function RouteComponent() {
 				</h1>
 
 				<div className="mb-8 flex flex-wrap items-center gap-3 text-muted-foreground text-sm">
-					<time dateTime={new Date(post._creationTime).toISOString()}>
-						{longDate.format(new Date(post._creationTime))}
+					<time dateTime={new Date(post.publishDate).toISOString()}>
+						{longDate.format(new Date(post.publishDate))}
 					</time>
 
 					{post.category && (
