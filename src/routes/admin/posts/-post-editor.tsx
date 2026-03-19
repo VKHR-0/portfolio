@@ -1,4 +1,5 @@
 import {
+	Calendar as CalendarIcon,
 	Eye,
 	EyeOff,
 	Link as LinkIcon,
@@ -12,6 +13,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { api } from "convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import { useMutation } from "convex/react";
+import { format } from "date-fns";
 import * as React from "react";
 import { toSlug } from "shared/slug";
 import { toast } from "sonner";
@@ -26,6 +28,7 @@ import {
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { ButtonGroup } from "#/components/ui/button-group";
+import { Calendar } from "#/components/ui/calendar";
 import { Card, CardContent } from "#/components/ui/card";
 import {
 	Combobox,
@@ -86,6 +89,7 @@ type EditablePost = {
 	categoryId?: Id<"categories">;
 	seriesId?: Id<"series">;
 	tagIds: Array<Id<"tags">>;
+	publishDate: number;
 };
 
 type LookupOption<TId extends string> = {
@@ -111,6 +115,7 @@ type EditorFormState = {
 	categoryId?: Id<"categories">;
 	seriesId?: Id<"series">;
 	tagIds: Array<Id<"tags">>;
+	publishDate: number;
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -133,6 +138,7 @@ function createFormState(initialPost?: EditablePost): EditorFormState {
 		categoryId: initialPost?.categoryId,
 		seriesId: initialPost?.seriesId,
 		tagIds: initialPost?.tagIds ?? [],
+		publishDate: initialPost?.publishDate ?? Date.now(),
 	};
 }
 
@@ -697,6 +703,41 @@ export function PostEditor({
 												</SelectGroup>
 											</SelectContent>
 										</Select>
+									)}
+								</form.Field>
+
+								<form.Field name="publishDate">
+									{(field) => (
+										<Popover>
+											<PopoverTrigger
+												render={
+													<Button
+														variant="ghost"
+														size="sm"
+														className="border-input border-y-0 border-r border-l-0 bg-transparent px-3 font-normal hover:bg-muted"
+													>
+														<HugeiconsIcon
+															icon={CalendarIcon}
+															strokeWidth={2}
+															className="mr-2 size-4"
+														/>
+														{format(new Date(field.state.value), "MMM d, yyyy")}
+													</Button>
+												}
+											/>
+											<PopoverContent align="end" className="w-auto p-0">
+												<Calendar
+													mode="single"
+													selected={new Date(field.state.value)}
+													onSelect={(date) => {
+														if (date) {
+															field.handleChange(date.getTime());
+														}
+													}}
+													initialFocus
+												/>
+											</PopoverContent>
+										</Popover>
 									)}
 								</form.Field>
 
