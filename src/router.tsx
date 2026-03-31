@@ -4,7 +4,6 @@ import { createRouteMask, createRouter } from "@tanstack/react-router";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { ConvexProvider } from "convex/react";
 import { toast } from "sonner";
-import { ErrorPage, LoadingPage, NotFoundPage } from "#/components/shell";
 import { env } from "#/env";
 import { routeTree } from "./routeTree.gen";
 
@@ -49,15 +48,10 @@ export function getRouter() {
 		createRouter({
 			routeTree,
 			routeMasks: [createTagMask, createSeriesMask, createCategoryMask],
-			notFoundMode: "root",
 
 			scrollRestoration: true,
 			defaultPreload: "intent",
 			defaultPreloadStaleTime: 0,
-
-			defaultPendingComponent: LoadingPage,
-			defaultErrorComponent: ErrorPage,
-			defaultNotFoundComponent: NotFoundPage,
 
 			context: {
 				queryClient,

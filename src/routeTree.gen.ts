@@ -9,8 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as HomeRouteImport } from './routes/_home'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as HomeRouteRouteImport } from './routes/_home/route'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -42,13 +42,13 @@ import { Route as AdminCategoriesNewRouteImport } from './routes/admin/categorie
 import { Route as HomeProjectsSlugIdRouteImport } from './routes/_home/projects/$slugId'
 import { Route as HomePostsSlugIdRouteImport } from './routes/_home/posts/$slugId'
 
-const HomeRoute = HomeRouteImport.update({
-  id: '/_home',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRouteRoute = HomeRouteRouteImport.update({
+  id: '/_home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -59,7 +59,7 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const HomeIndexRoute = HomeIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => HomeRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
@@ -134,12 +134,12 @@ const AdminCategoriesIndexRoute = AdminCategoriesIndexRouteImport.update({
 const HomeProjectsIndexRoute = HomeProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
-  getParentRoute: () => HomeRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 const HomePostsIndexRoute = HomePostsIndexRouteImport.update({
   id: '/posts/',
   path: '/posts/',
-  getParentRoute: () => HomeRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -194,17 +194,17 @@ const AdminCategoriesNewRoute = AdminCategoriesNewRouteImport.update({
 const HomeProjectsSlugIdRoute = HomeProjectsSlugIdRouteImport.update({
   id: '/projects/$slugId',
   path: '/projects/$slugId',
-  getParentRoute: () => HomeRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 const HomePostsSlugIdRoute = HomePostsSlugIdRouteImport.update({
   id: '/posts/$slugId',
   path: '/posts/$slugId',
-  getParentRoute: () => HomeRoute,
+  getParentRoute: () => HomeRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/admin': typeof AdminRouteRouteWithChildren
   '/': typeof HomeIndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRouteRouteWithChildren
   '/admin/media': typeof AdminMediaRouteRouteWithChildren
   '/admin/series': typeof AdminSeriesRouteRouteWithChildren
@@ -264,8 +264,8 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/_home': typeof HomeRouteRouteWithChildren
   '/admin': typeof AdminRouteRouteWithChildren
-  '/_home': typeof HomeRouteWithChildren
   '/admin/categories': typeof AdminCategoriesRouteRouteWithChildren
   '/admin/media': typeof AdminMediaRouteRouteWithChildren
   '/admin/series': typeof AdminSeriesRouteRouteWithChildren
@@ -300,8 +300,8 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/admin'
     | '/'
+    | '/admin'
     | '/admin/categories'
     | '/admin/media'
     | '/admin/series'
@@ -360,8 +360,8 @@ export interface FileRouteTypes {
     | '/admin/technologies'
   id:
     | '__root__'
-    | '/admin'
     | '/_home'
+    | '/admin'
     | '/admin/categories'
     | '/admin/media'
     | '/admin/series'
@@ -395,25 +395,25 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  HomeRouteRoute: typeof HomeRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
-  HomeRoute: typeof HomeRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_home': {
-      id: '/_home'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_home': {
+      id: '/_home'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof HomeRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -428,7 +428,7 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof HomeIndexRouteImport
-      parentRoute: typeof HomeRoute
+      parentRoute: typeof HomeRouteRoute
     }
     '/admin/settings': {
       id: '/admin/settings'
@@ -533,14 +533,14 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects/'
       preLoaderRoute: typeof HomeProjectsIndexRouteImport
-      parentRoute: typeof HomeRoute
+      parentRoute: typeof HomeRouteRoute
     }
     '/_home/posts/': {
       id: '/_home/posts/'
       path: '/posts'
       fullPath: '/posts/'
       preLoaderRoute: typeof HomePostsIndexRouteImport
-      parentRoute: typeof HomeRoute
+      parentRoute: typeof HomeRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -617,17 +617,37 @@ declare module '@tanstack/react-router' {
       path: '/projects/$slugId'
       fullPath: '/projects/$slugId'
       preLoaderRoute: typeof HomeProjectsSlugIdRouteImport
-      parentRoute: typeof HomeRoute
+      parentRoute: typeof HomeRouteRoute
     }
     '/_home/posts/$slugId': {
       id: '/_home/posts/$slugId'
       path: '/posts/$slugId'
       fullPath: '/posts/$slugId'
       preLoaderRoute: typeof HomePostsSlugIdRouteImport
-      parentRoute: typeof HomeRoute
+      parentRoute: typeof HomeRouteRoute
     }
   }
 }
+
+interface HomeRouteRouteChildren {
+  HomeIndexRoute: typeof HomeIndexRoute
+  HomePostsSlugIdRoute: typeof HomePostsSlugIdRoute
+  HomeProjectsSlugIdRoute: typeof HomeProjectsSlugIdRoute
+  HomePostsIndexRoute: typeof HomePostsIndexRoute
+  HomeProjectsIndexRoute: typeof HomeProjectsIndexRoute
+}
+
+const HomeRouteRouteChildren: HomeRouteRouteChildren = {
+  HomeIndexRoute: HomeIndexRoute,
+  HomePostsSlugIdRoute: HomePostsSlugIdRoute,
+  HomeProjectsSlugIdRoute: HomeProjectsSlugIdRoute,
+  HomePostsIndexRoute: HomePostsIndexRoute,
+  HomeProjectsIndexRoute: HomeProjectsIndexRoute,
+}
+
+const HomeRouteRouteWithChildren = HomeRouteRoute._addFileChildren(
+  HomeRouteRouteChildren,
+)
 
 interface AdminCategoriesRouteRouteChildren {
   AdminCategoriesNewRoute: typeof AdminCategoriesNewRoute
@@ -737,27 +757,9 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
-interface HomeRouteChildren {
-  HomeIndexRoute: typeof HomeIndexRoute
-  HomePostsSlugIdRoute: typeof HomePostsSlugIdRoute
-  HomeProjectsSlugIdRoute: typeof HomeProjectsSlugIdRoute
-  HomePostsIndexRoute: typeof HomePostsIndexRoute
-  HomeProjectsIndexRoute: typeof HomeProjectsIndexRoute
-}
-
-const HomeRouteChildren: HomeRouteChildren = {
-  HomeIndexRoute: HomeIndexRoute,
-  HomePostsSlugIdRoute: HomePostsSlugIdRoute,
-  HomeProjectsSlugIdRoute: HomeProjectsSlugIdRoute,
-  HomePostsIndexRoute: HomePostsIndexRoute,
-  HomeProjectsIndexRoute: HomeProjectsIndexRoute,
-}
-
-const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
+  HomeRouteRoute: HomeRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
-  HomeRoute: HomeRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

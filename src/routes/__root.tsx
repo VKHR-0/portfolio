@@ -2,10 +2,10 @@ import type { ConvexQueryClient } from "@convex-dev/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { RootProviders } from "#/components/providers";
-import { ErrorPage, LoadingPage, NotFoundPage } from "#/components/shell";
 import { getAuth } from "#/functions/auth";
 import { getTheme } from "#/functions/theme";
 import appCss from "../styles.css?url";
+import { NotFound } from "./_home/-not-found";
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
@@ -42,10 +42,8 @@ export const Route = createRootRouteWithContext<{
 		};
 	},
 	loader: () => getTheme(),
+	notFoundComponent: NotFound,
 	shellComponent: ShellComponent,
-	pendingComponent: LoadingPage,
-	errorComponent: ErrorPage,
-	notFoundComponent: NotFoundPage,
 });
 
 function ShellComponent() {

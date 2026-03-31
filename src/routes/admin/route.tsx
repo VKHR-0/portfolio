@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { ErrorPage, LoadingPage, NotFoundPage } from "#/components/shell";
 import { AuthedPage } from "#/components/shell/authed";
 import { MobileSidebarTrigger, Sidebar } from "#/components/sidebar";
 import { SidebarProvider } from "#/components/ui/sidebar";
@@ -36,6 +37,9 @@ export const Route = createFileRoute("/admin")({
 		};
 	},
 	component: AdminLayout,
+	pendingComponent: LoadingPage,
+	errorComponent: ErrorPage,
+	notFoundComponent: NotFoundPage,
 });
 
 export function AdminLayout() {

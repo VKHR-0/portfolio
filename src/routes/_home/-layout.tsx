@@ -2,9 +2,7 @@ import { cva } from "class-variance-authority";
 import { type HTMLMotionProps, motion } from "motion/react";
 import { cn } from "#/lib/utils";
 
-type LayoutProps = {
-	children: React.ReactNode;
-};
+type LayoutProps = React.PropsWithChildren<unknown>;
 
 export function Layout({ children }: LayoutProps) {
 	return (
